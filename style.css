@@ -1,0 +1,3703 @@
+/* ==================================================================
+   FÔLEGO — LIVRO-CAIXA PESSOAL
+
+   Direção visual: editorial, tátil e assimétrica.
+   Aqui não há biblioteca de componentes nem imagens externas.
+   Os comentários mostram qual parte da interface cada bloco altera.
+================================================================== */
+
+/* ------------------------------------------------------------------
+   1. VARIÁVEIS GERAIS
+   Troque estas cores para mudar a identidade do sistema inteiro.
+------------------------------------------------------------------ */
+:root {
+    --paper: #eeebe2; /* Papel cru usado no fundo principal. */
+    --paper-light: #f9f6ec; /* Papel claro usado em recibos e formulários. */
+    --ink: #11120e; /* Tinta preta dos textos, linhas e áreas escuras. */
+    --ink-soft: #292a23; /* Preto menos intenso para detalhes. */
+    --muted: #625f58; /* Cinza mais escuro para os textos secundários manterem contraste. */
+    --line-soft: #c8c3b7; /* Linha clara para divisões internas. */
+    --acid: #c8ff3d; /* Verde ácido dos destaques e progresso. */
+    --orange: #ff4e1a; /* Laranja das saídas e ações importantes. */
+    --green: #164b3a; /* Verde profundo do painel de saldo. */
+    --blue: #2456d8; /* Azul pontual para algumas categorias. */
+    --white: #fffdf5; /* Branco quente para textos sobre fundos escuros. */
+
+    --rail-width: 108px; /* Largura da navegação lateral no computador. */
+    --page-limit: 1540px; /* Impede que o conteúdo fique largo demais. */
+    --hard-shadow: 10px 10px 0 var(--ink); /* Sombra sólida de cartaz impresso. */
+    --fast: 160ms ease; /* Velocidade das interações curtas. */
+
+    color-scheme: light; /* Deixa calendário e campos nativos claros. */
+}
+
+/* O botão “Inverter cores” troca papel e tinta, sem alterar os acentos. */
+html[data-theme="dark"] {
+    --paper: #11120e;
+    --paper-light: #1c1e18;
+    --ink: #efecdf;
+    --ink-soft: #d7d3c6;
+    --muted: #b5b1a5;
+    --line-soft: #3c3e35;
+    --green: #c8ff3d;
+    --white: #11120e;
+    color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------
+   2. BASE E RESET
+------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box; /* Inclui padding e borda dentro das medidas. */
+}
+
+html {
+    scroll-behavior: smooth; /* Suaviza a troca entre as telas. */
+}
+
+body {
+    min-width: 320px; /* Evita quebra em aparelhos muito estreitos. */
+    min-height: 100vh; /* Faz o fundo cobrir toda a tela. */
+    margin: 0; /* Remove a margem automática do navegador. */
+    overflow-x: hidden; /* Impede rolagem horizontal acidental. */
+    background: var(--paper); /* Aplica o papel cru no fundo. */
+    color: var(--ink); /* Define a tinta padrão dos textos. */
+    font-family: Arial, Helvetica, sans-serif; /* Fonte direta, sem aparência de template. */
+    -webkit-font-smoothing: antialiased; /* Suaviza as letras em telas de alta resolução. */
+    transition: background-color 240ms ease, color 240ms ease; /* Anima a inversão de cores. */
+}
+
+button,
+input,
+select {
+    font: inherit; /* Mantém a mesma fonte em controles e textos. */
+}
+
+button,
+select {
+    cursor: pointer; /* Mostra que o elemento pode ser clicado. */
+}
+
+button {
+    border: 0; /* Remove o estilo padrão dos botões. */
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--orange); /* Mostra foco forte para navegação por teclado. */
+    outline-offset: 3px;
+}
+
+.paper-noise {
+    position: fixed; /* Mantém a textura parada durante a rolagem. */
+    inset: 0; /* Faz a textura cobrir toda a tela. */
+    z-index: 200; /* Coloca a textura visual acima dos fundos. */
+    opacity: 0.055; /* Mantém os pontos quase imperceptíveis. */
+    background-image:
+        radial-gradient(circle at 20% 30%, var(--ink) 0 0.6px, transparent 0.8px),
+        radial-gradient(circle at 80% 70%, var(--ink) 0 0.5px, transparent 0.7px);
+    background-size: 9px 11px, 13px 15px; /* Varia o padrão para não parecer uma grade. */
+    pointer-events: none; /* Evita bloquear cliques. */
+    mix-blend-mode: multiply; /* Integra a textura ao papel. */
+}
+
+html[data-theme="dark"] .paper-noise {
+    mix-blend-mode: screen; /* Mantém os pontos visíveis no fundo escuro. */
+}
+
+/* ------------------------------------------------------------------
+   3. ÍNDICE LATERAL
+   É uma régua de navegação, não uma sidebar tradicional.
+------------------------------------------------------------------ */
+.index-rail {
+    position: fixed; /* Mantém o índice visível durante a rolagem. */
+    inset: 0 auto 0 0; /* Encosta o índice à esquerda e ocupa toda a altura. */
+    z-index: 50;
+    display: flex;
+    width: var(--rail-width);
+    flex-direction: column; /* Empilha marca, links e assinatura. */
+    border-right: 2px solid var(--ink);
+    background: var(--ink); /* Cria contraste forte com o conteúdo. */
+    color: var(--paper);
+}
+
+.rail-brand {
+    display: grid;
+    height: 112px;
+    place-content: center; /* Centraliza a letra F no quadrado superior. */
+    border-bottom: 2px solid currentColor;
+    background: var(--acid);
+    color: #11120e;
+    text-decoration: none;
+}
+
+.rail-brand span {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 3.35rem; /* Faz a inicial funcionar como símbolo da marca. */
+    font-style: italic;
+    font-weight: 700;
+    line-height: 0.8;
+    text-align: center;
+}
+
+.rail-brand i {
+    margin-top: 6px;
+    font-size: 0.55rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.rail-nav {
+    display: grid;
+    border-bottom: 2px solid currentColor;
+}
+
+.rail-link {
+    position: relative;
+    display: grid;
+    min-height: 102px;
+    place-content: center;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+    background: transparent;
+    color: inherit;
+    text-align: center;
+    transition: background-color var(--fast), color var(--fast);
+}
+
+.rail-link:last-child {
+    border-bottom: 0;
+}
+
+.rail-link span,
+.rail-link strong {
+    display: block;
+}
+
+.rail-link span {
+    margin-bottom: 8px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    opacity: 0.55;
+}
+
+.rail-link strong {
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.rail-link:hover {
+    background: var(--paper-light);
+    color: var(--ink);
+}
+
+.rail-link.active {
+    background: var(--orange); /* O laranja marca a seção atual. */
+    color: #11120e;
+}
+
+.rail-link.active::after {
+    position: absolute;
+    top: 50%;
+    right: -12px;
+    width: 22px;
+    height: 2px;
+    background: var(--ink); /* Linha que conecta o índice ao conteúdo. */
+    content: "";
+}
+
+.rail-signature {
+    display: flex;
+    flex: 1;
+    min-height: 150px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    writing-mode: vertical-rl; /* Gira a assinatura para acompanhar a régua. */
+}
+
+.rail-signature span {
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+}
+
+.rail-signature b {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.6rem;
+    font-weight: 500;
+    opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------
+   4. ESTRUTURA, CABEÇALHO E BOTÕES
+------------------------------------------------------------------ */
+.app-frame {
+    min-height: 100vh;
+    margin-left: var(--rail-width); /* Reserva espaço para o índice. */
+}
+
+.masthead {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: grid;
+    min-height: 112px;
+    grid-template-columns: minmax(190px, 0.8fr) minmax(200px, 1fr) auto;
+    align-items: stretch;
+    border-bottom: 2px solid var(--ink);
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(12px); /* Mantém o cabeçalho legível sobre a página. */
+}
+
+.wordmark,
+.issue-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 18px clamp(20px, 2.6vw, 42px);
+    border-right: 1px solid var(--ink);
+}
+
+.wordmark strong {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+    font-style: italic;
+    letter-spacing: -0.06em;
+    line-height: 0.9;
+}
+
+.wordmark span,
+.issue-label span {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 0.56rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.issue-label span {
+    margin: 0 0 5px;
+    text-transform: capitalize;
+}
+
+.issue-label h1 {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.masthead-actions {
+    display: flex;
+    align-items: stretch;
+}
+
+.month-stamp {
+    display: grid;
+    min-width: 148px;
+    align-content: center;
+    padding: 15px 19px;
+    border-right: 1px solid var(--ink);
+}
+
+.month-stamp span {
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}
+
+.month-stamp input {
+    width: 126px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.invert-button {
+    display: flex;
+    width: 116px;
+    gap: 9px;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    transition: background-color var(--fast), color var(--fast);
+}
+
+.invert-button:hover {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.invert-symbol {
+    font-size: 1.55rem;
+}
+
+.invert-copy {
+    font-size: 0.52rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.register-button,
+.ink-button,
+.paper-button,
+.danger-button,
+.export-button {
+    display: inline-flex;
+    min-height: 46px;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: transform var(--fast), box-shadow var(--fast), background-color var(--fast);
+}
+
+.register-button {
+    min-width: 138px;
+    background: var(--orange);
+    color: #11120e;
+}
+
+.register-button span,
+.ink-button span {
+    font-size: 1.2rem;
+    font-weight: 400;
+    line-height: 0;
+}
+
+.register-button:hover,
+.ink-button:hover,
+.paper-button:hover,
+.export-button:hover {
+    transform: translate(-3px, -3px); /* Movimento seco, como um cartaz deslocado. */
+    box-shadow: 4px 4px 0 var(--ink);
+}
+
+.ink-button {
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.paper-button,
+.export-button {
+    border: 1px solid var(--ink);
+    background: var(--paper-light);
+    color: var(--ink);
+}
+
+.danger-button {
+    border: 1px solid #11120e;
+    background: var(--orange);
+    color: #11120e;
+}
+
+.main-content {
+    width: min(100%, var(--page-limit));
+    margin: 0 auto;
+    padding: clamp(28px, 4vw, 64px) clamp(18px, 4vw, 62px) 90px;
+}
+
+.view {
+    display: none;
+    animation: page-enter 350ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.view.active {
+    display: block;
+}
+
+@keyframes page-enter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.view-index {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 18px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.view-index span {
+    font-size: 0.65rem;
+    font-weight: 800;
+}
+
+.view-index i {
+    width: 48px;
+    height: 1px;
+    background: var(--ink);
+}
+
+.view-index b {
+    font-size: 0.54rem;
+    letter-spacing: 0.18em;
+}
+
+.section-code {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+/* ------------------------------------------------------------------
+   5. PALCO DO SALDO E RECIBO
+------------------------------------------------------------------ */
+.balance-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.72fr);
+    border: 2px solid var(--ink);
+    box-shadow: var(--hard-shadow);
+}
+
+.balance-field {
+    position: relative;
+    min-height: 505px;
+    padding: clamp(34px, 5vw, 68px);
+    padding-bottom: 105px;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, transparent 49.85%, color-mix(in srgb, var(--paper) 8%, transparent) 50%, transparent 50.15%),
+        var(--ink);
+    background-size: 38px 100%, auto;
+    color: var(--paper);
+}
+
+.balance-field::before {
+    position: absolute;
+    top: 0;
+    right: 8%;
+    width: 2px;
+    height: 46%;
+    background: var(--acid);
+    content: ""; /* Linha vertical que quebra a simetria do palco. */
+}
+
+.signal-label {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 0 0 42px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.signal-label i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--acid);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--acid) 16%, transparent);
+}
+
+.balance-field h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+}
+
+.balance-question {
+    display: block;
+    max-width: 400px;
+    margin-top: 9px;
+    color: color-mix(in srgb, var(--paper) 58%, transparent);
+    font-size: 0.72rem;
+}
+
+.hero-balance {
+    display: block;
+    margin: 34px 0 40px;
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: clamp(2.7rem, 7vw, 7rem);
+    font-weight: 500;
+    letter-spacing: -0.09em;
+    line-height: 0.9;
+}
+
+.balance-footer {
+    display: flex;
+    max-width: 720px;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.balance-footer p {
+    max-width: 360px;
+    margin: 0;
+    color: color-mix(in srgb, var(--paper) 62%, transparent);
+    font-size: 0.65rem;
+    line-height: 1.55;
+}
+
+.balance-field .ink-button {
+    border-color: var(--paper);
+    background: transparent;
+    color: var(--paper);
+}
+
+.balance-field .ink-button:hover {
+    box-shadow: 4px 4px 0 var(--acid);
+}
+
+.balance-tape {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    min-height: 58px;
+    grid-template-columns: auto 1fr auto;
+    gap: 22px;
+    align-items: center;
+    padding: 12px clamp(22px, 4vw, 54px);
+    background: var(--acid);
+    color: #11120e;
+}
+
+.balance-tape span,
+.balance-tape i {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.52rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.balance-tape strong {
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.month-receipt {
+    position: relative;
+    padding: 34px 30px 26px;
+    overflow: hidden;
+    border-left: 2px dashed var(--ink);
+    background: var(--paper-light);
+}
+
+.month-receipt::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 8px;
+    background: repeating-linear-gradient(135deg, var(--paper-light) 0 6px, transparent 6px 12px);
+    content: ""; /* Simula o corte irregular de um recibo. */
+}
+
+.receipt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+}
+
+.receipt-head b {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.receipt-mark {
+    margin: 23px 0 14px;
+    color: var(--orange);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.8rem;
+    font-style: italic;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.receipt-line {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 17px 0;
+    border-bottom: 1px dotted var(--muted);
+}
+
+.receipt-line span,
+.receipt-result span {
+    font-size: 0.57rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.receipt-line small {
+    display: block;
+    max-width: 135px;
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 0.5rem;
+    line-height: 1.35;
+}
+
+.receipt-line small b {
+    color: var(--green);
+}
+
+.receipt-line small b.negative {
+    color: var(--orange);
+}
+
+.receipt-line > strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.83rem;
+    white-space: nowrap;
+}
+
+.receipt-income > strong {
+    color: var(--green);
+}
+
+.receipt-expense > strong {
+    color: var(--orange);
+}
+
+.receipt-rule {
+    height: 6px;
+    margin: 24px 0;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+}
+
+.receipt-result strong,
+.receipt-result small {
+    display: block;
+}
+
+.receipt-result strong {
+    margin: 8px 0;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: clamp(1.35rem, 2.8vw, 2rem);
+    letter-spacing: -0.06em;
+}
+
+.receipt-result small {
+    color: var(--muted);
+    font-size: 0.53rem;
+    line-height: 1.4;
+}
+
+.barcode {
+    height: 28px;
+    margin-top: 28px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 9px);
+}
+
+.month-receipt footer {
+    margin-top: 8px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.45rem;
+    letter-spacing: 0.12em;
+    text-align: center;
+}
+
+/* ------------------------------------------------------------------
+   6. GRÁFICOS E QUADROS DE ANÁLISE
+------------------------------------------------------------------ */
+.rhythm-layout,
+.statement-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.72fr);
+    gap: 24px;
+    margin-top: 34px;
+}
+
+.chart-board,
+.category-board,
+.statement-board,
+.diagnosis-board {
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+}
+
+.chart-board,
+.category-board,
+.statement-board {
+    padding: clamp(22px, 3vw, 36px);
+}
+
+.board-heading {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.board-heading h3 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.35rem, 2.3vw, 2rem);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+}
+
+.chart-key {
+    display: grid;
+    gap: 8px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.chart-key span {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+}
+
+.chart-key i {
+    width: 18px;
+    height: 7px;
+    background: var(--acid);
+}
+
+.chart-key span:last-child i {
+    background: var(--orange);
+}
+
+.bar-chart {
+    position: relative;
+    display: grid;
+    height: 270px;
+    grid-template-columns: repeat(6, minmax(38px, 1fr));
+    gap: clamp(8px, 2vw, 22px);
+    align-items: end;
+    padding: 12px 8px 31px;
+    border-bottom: 2px solid var(--ink);
+    background: repeating-linear-gradient(to top, transparent 0 54px, var(--line-soft) 55px 56px);
+}
+
+.chart-column {
+    position: relative;
+    display: flex;
+    height: 100%;
+    gap: 4px;
+    align-items: end;
+    justify-content: center;
+}
+
+.chart-bar {
+    width: min(24px, 40%);
+    min-height: 3px;
+    transform-origin: bottom;
+    animation: bar-rise 650ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.income-bar {
+    background: var(--acid);
+    outline: 1px solid var(--ink); /* Contorno impresso nas barras de entrada. */
+}
+
+.expense-bar {
+    background: var(--orange);
+    outline: 1px solid var(--ink);
+}
+
+@keyframes bar-rise {
+    from { opacity: 0; transform: scaleY(0); }
+    to { opacity: 1; transform: scaleY(1); }
+}
+
+.chart-month {
+    position: absolute;
+    top: calc(100% + 11px);
+    left: 50%;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    transform: translateX(-50%);
+}
+
+.board-footnote {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: start;
+    margin-top: 22px;
+}
+
+.board-footnote span {
+    padding: 4px 6px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.48rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.board-footnote p {
+    max-width: 430px;
+    margin: 0;
+    color: var(--muted);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    line-height: 1.45;
+}
+
+.category-total {
+    text-align: right;
+}
+
+.category-total span,
+.category-total strong {
+    display: block;
+}
+
+.category-total span {
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-size: 0.48rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.category-total strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.8rem;
+}
+
+.expense-spectrum {
+    height: 34px;
+    margin: 4px 0 24px;
+    border: 1px solid var(--ink);
+    background: var(--line-soft); /* O JavaScript troca este fundo pelas categorias. */
+}
+
+.category-ledger {
+    counter-reset: pressure;
+}
+
+.category-item {
+    display: grid;
+    grid-template-columns: 24px 9px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-soft);
+    counter-increment: pressure;
+}
+
+.category-item::before {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.47rem;
+    content: "0" counter(pressure); /* Numera automaticamente as pressões. */
+}
+
+.category-color {
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--ink);
+}
+
+.category-name {
+    overflow: hidden;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.category-percent {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.68rem;
+}
+
+.empty-mini {
+    margin: 0;
+    padding: 28px 0;
+    color: var(--muted);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.8rem;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------
+   7. EXTRATO RECENTE E DIAGNÓSTICO
+------------------------------------------------------------------ */
+.statement-layout {
+    grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.65fr);
+}
+
+.arrow-link {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.52rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.arrow-link span {
+    display: inline-block;
+    margin-left: 5px;
+    transition: transform var(--fast);
+}
+
+.arrow-link:hover span {
+    transform: translate(3px, -3px);
+}
+
+.recent-list {
+    border-top: 2px solid var(--ink);
+}
+
+.recent-item {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 78px 110px;
+    gap: 13px;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.transaction-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    font-size: 0.85rem;
+    filter: saturate(0.75);
+}
+
+.transaction-main {
+    min-width: 0;
+}
+
+.transaction-main strong,
+.transaction-main span {
+    display: block;
+}
+
+.transaction-main strong {
+    overflow: hidden;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.transaction-main span,
+.recent-date {
+    margin-top: 4px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.49rem;
+}
+
+.recent-date {
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.recent-value {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.64rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.income-value {
+    color: var(--green);
+}
+
+.expense-value {
+    color: var(--orange);
+}
+
+.diagnosis-board {
+    padding: 30px;
+    background: var(--orange);
+    color: #11120e;
+}
+
+.diagnosis-board > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.diagnosis-board .section-code {
+    color: rgba(17, 18, 14, 0.65);
+}
+
+.health-badge {
+    padding: 6px 8px;
+    border: 1px solid #11120e;
+    background: var(--acid);
+    color: #11120e;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.48rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.health-badge.warning {
+    background: #ffd23f;
+}
+
+.health-badge.danger {
+    background: #11120e;
+    color: #fffdf5;
+}
+
+.health-number {
+    display: flex;
+    align-items: baseline;
+    margin: 30px 0 12px;
+}
+
+.health-number strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: clamp(4.2rem, 8vw, 7rem);
+    font-weight: 500;
+    letter-spacing: -0.1em;
+    line-height: 0.8;
+}
+
+.health-number span {
+    margin-left: 9px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.65rem;
+}
+
+.diagnosis-board > p {
+    max-width: 360px;
+    min-height: 54px;
+    margin: 0 0 25px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.8rem;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.health-ruler {
+    position: relative;
+    display: flex;
+    height: 30px;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 2px solid #11120e;
+}
+
+.health-ruler::before {
+    position: absolute;
+    top: -6px;
+    left: var(--health-score, 0%);
+    width: 2px;
+    height: 12px;
+    background: #11120e;
+    content: ""; /* Agulha que mostra a nota sobre a régua. */
+    transform: translateX(-1px);
+    transition: left 600ms ease;
+}
+
+.health-ruler i {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: var(--health-score, 0%);
+    height: 2px;
+    background: var(--acid);
+    transition: width 600ms ease;
+}
+
+.health-ruler span {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.45rem;
+}
+
+.commitment-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 28px 0 8px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+}
+
+.commitment-track {
+    height: 8px;
+    border: 1px solid #11120e;
+    background: rgba(255, 255, 255, 0.26);
+}
+
+.commitment-track i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #11120e !important;
+    transition: width 650ms ease;
+}
+
+.empty-state {
+    display: grid;
+    min-height: 210px;
+    place-content: center;
+    padding: 28px;
+    text-align: center;
+}
+
+.empty-state span {
+    font-size: 1.8rem;
+}
+
+.empty-state strong {
+    margin: 10px 0 5px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.empty-state p {
+    max-width: 300px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.65rem;
+    line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------
+   8. CABEÇALHO DAS PÁGINAS INTERNAS
+------------------------------------------------------------------ */
+.page-intro {
+    display: flex;
+    gap: 30px;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 36px;
+}
+
+.page-intro h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.4rem, 5.6vw, 5.4rem);
+    font-weight: 400;
+    letter-spacing: -0.075em;
+    line-height: 0.92;
+}
+
+.plan-intro h2 {
+    max-width: 1050px;
+}
+
+/* ------------------------------------------------------------------
+   9. FILTROS E EXTRATO COMPLETO
+------------------------------------------------------------------ */
+.ledger-shell {
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: var(--hard-shadow);
+}
+
+.filter-strip {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 160px 190px auto;
+    border-bottom: 2px solid var(--ink);
+}
+
+.search-field,
+.filter-field {
+    display: grid;
+    align-content: center;
+    min-height: 74px;
+    padding: 13px 17px;
+    border-right: 1px solid var(--ink);
+}
+
+.search-field span,
+.filter-field span {
+    margin-bottom: 7px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.48rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.search-field input,
+.filter-field select {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.search-field input::placeholder {
+    color: var(--muted);
+}
+
+.filter-strip .export-button {
+    min-height: 74px;
+    border: 0;
+    background: var(--acid);
+    color: #11120e;
+}
+
+/* A tabela nativa fornece cabeçalhos e relações corretas a leitores de tela. */
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.movement-column { width: 30%; }
+.category-column { width: 15%; }
+.date-column { width: 11%; }
+.status-column { width: 13%; }
+.amount-column { width: 16%; }
+.actions-column { width: 15%; }
+
+.transaction-table-head {
+    height: 42px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.47rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.transaction-table-head th {
+    padding: 9px 8px;
+    text-align: left;
+}
+
+.transaction-table-head th:first-child,
+.transaction-row td:first-child {
+    padding-left: 20px;
+}
+
+.transaction-table-head th:last-child,
+.transaction-row td:last-child {
+    padding-right: 20px;
+}
+
+.transaction-table-head th:nth-last-child(-n + 2) {
+    text-align: right;
+}
+
+.transaction-row {
+    border-bottom: 1px solid var(--line-soft);
+    transition: background-color var(--fast);
+}
+
+.transaction-row td {
+    height: 69px;
+    padding: 11px 8px;
+    vertical-align: middle;
+}
+
+.empty-table-row td {
+    padding: 0;
+}
+
+.transaction-row:hover {
+    background: color-mix(in srgb, var(--acid) 20%, var(--paper-light));
+}
+
+.transaction-cell-main {
+    display: flex;
+    min-width: 0;
+    gap: 11px;
+    align-items: center;
+}
+
+.transaction-cell-main .transaction-icon {
+    flex: 0 0 auto;
+}
+
+.transaction-description {
+    min-width: 0;
+}
+
+.transaction-description strong,
+.transaction-description small {
+    display: block;
+}
+
+.transaction-description strong {
+    overflow: hidden;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.transaction-description small {
+    margin-top: 4px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.47rem;
+    text-transform: uppercase;
+}
+
+.category-cell,
+.date-cell {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+}
+
+.status-pill {
+    display: inline-flex;
+    width: max-content;
+    gap: 6px;
+    align-items: center;
+    padding: 5px 7px;
+    border: 1px solid var(--ink);
+    background: var(--acid);
+    color: #11120e;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.45rem;
+    font-style: normal;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.status-pill.pending {
+    background: #ffd23f;
+}
+
+.value-cell {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.62rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.row-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.row-action {
+    display: grid;
+    width: 31px;
+    height: 31px;
+    place-items: center;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink);
+    transition: var(--fast);
+}
+
+.row-action svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.row-action:hover {
+    border-color: var(--ink);
+    background: var(--acid);
+    color: #11120e;
+}
+
+.row-action.delete:hover {
+    background: var(--orange);
+}
+
+.ledger-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 13px 20px;
+    border-top: 1px solid var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------
+   10. PLANOS E METAS
+------------------------------------------------------------------ */
+.plan-meter {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.6fr) minmax(320px, 1.4fr);
+    margin-bottom: 30px;
+    border: 2px solid var(--ink);
+    background: var(--acid);
+    color: #11120e;
+}
+
+.plan-meter-total,
+.plan-meter-progress {
+    padding: 27px 30px;
+}
+
+.plan-meter-total {
+    border-right: 2px solid #11120e;
+}
+
+.plan-meter-total span,
+.plan-meter-total strong,
+.plan-meter-total small {
+    display: block;
+}
+
+.plan-meter-total span,
+.plan-meter-total small,
+.plan-meter-progress span {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.48rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.plan-meter-total strong {
+    margin: 8px 0;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: clamp(1.4rem, 3vw, 2.1rem);
+    letter-spacing: -0.06em;
+}
+
+.plan-meter-progress {
+    display: grid;
+    align-content: center;
+}
+
+.plan-meter-progress > div:first-child {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.plan-meter-progress strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 1rem;
+}
+
+.plan-track {
+    height: 18px;
+    border: 2px solid #11120e;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.plan-track i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #11120e;
+    transition: width 650ms ease;
+}
+
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    counter-reset: plans;
+}
+
+.goal-card {
+    position: relative;
+    min-height: 265px;
+    padding: 27px;
+    overflow: hidden;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    counter-increment: plans;
+    transition: transform var(--fast), box-shadow var(--fast);
+}
+
+.goal-card::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ink);
+    border-left: 1px solid var(--ink);
+    background: var(--paper);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.47rem;
+    content: "PLANO / 0" counter(plans); /* Numeração automática dos cartões. */
+}
+
+.goal-card:hover {
+    transform: translate(-5px, -5px);
+    box-shadow: 7px 7px 0 var(--ink);
+}
+
+.goal-card.completed {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.goal-card-header {
+    display: flex;
+    gap: 13px;
+    align-items: center;
+    padding-right: 74px;
+}
+
+.goal-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid currentColor;
+    background: var(--paper);
+    font-size: 1.1rem;
+}
+
+.goal-title-wrap {
+    min-width: 0;
+    flex: 1;
+}
+
+.goal-title-wrap h3 {
+    margin: 0;
+    overflow: hidden;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.goal-title-wrap span {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.47rem;
+    text-transform: uppercase;
+}
+
+.goal-actions {
+    display: flex;
+    gap: 3px;
+}
+
+.goal-values {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin: 35px 0 15px;
+}
+
+.goal-values span,
+.goal-values strong,
+.goal-values small {
+    display: block;
+}
+
+.goal-values span {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.47rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.goal-values strong {
+    margin: 6px 0 4px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 1.2rem;
+    letter-spacing: -0.05em;
+}
+
+.goal-values small {
+    color: var(--muted);
+    font-size: 0.5rem;
+}
+
+.goal-percent {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.8rem;
+}
+
+.goal-progress {
+    height: 13px;
+    border: 1px solid currentColor;
+    background: var(--line-soft);
+}
+
+.goal-progress i {
+    display: block;
+    height: 100%;
+    background: var(--orange);
+    transition: width 650ms ease;
+}
+
+.goal-card.completed .goal-progress {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.goal-card.completed .goal-progress i {
+    background: #11120e;
+}
+
+.completed-label {
+    display: inline-block;
+    margin-top: 13px;
+    padding: 5px 7px;
+    border: 1px solid #11120e;
+    background: #11120e;
+    color: #fffdf5;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------
+   11. MODAIS E FORMULÁRIOS
+------------------------------------------------------------------ */
+.modal {
+    width: min(650px, calc(100% - 28px));
+    max-height: calc(100vh - 28px);
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+}
+
+.modal::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+}
+
+.modal[open] {
+    animation: sheet-enter 200ms ease both;
+}
+
+@keyframes sheet-enter {
+    from { opacity: 0; transform: translate(10px, 10px); }
+    to { opacity: 1; transform: translate(0, 0); }
+}
+
+.modal-sheet {
+    max-height: calc(100vh - 28px);
+    padding: clamp(22px, 4vw, 34px);
+    overflow-y: auto;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: 12px 12px 0 var(--orange); /* Sombra chapada, sem aparência de modal genérico. */
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 26px;
+    padding-bottom: 17px;
+    border-bottom: 2px solid var(--ink);
+}
+
+.modal-header span {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    letter-spacing: -0.05em;
+}
+
+.modal-close {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-size: 1.5rem;
+    transition: var(--fast);
+}
+
+.modal-close:hover {
+    background: var(--orange);
+    color: #11120e;
+}
+
+.type-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin: 0 0 22px;
+    padding: 0;
+    border: 0;
+}
+
+.type-switch legend {
+    width: 100%;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.51rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.type-switch input {
+    position: absolute;
+    opacity: 0; /* Esconde o rádio nativo e mantém acessibilidade. */
+}
+
+.type-switch label:first-of-type span {
+    border-right: 0;
+}
+
+.type-switch span {
+    display: grid;
+    height: 49px;
+    place-items: center;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.type-switch input:checked + .income-option {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.type-switch input:checked + .expense-option {
+    background: var(--orange);
+    color: #11120e;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.form-field {
+    display: grid;
+    gap: 7px;
+}
+
+.form-field-wide {
+    grid-column: 1 / -1;
+}
+
+.form-field > span:first-child {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.49rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.form-field > input,
+.form-field > select,
+.money-field {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+.form-field > input,
+.form-field > select {
+    padding: 0 13px;
+    outline: 0;
+    font-size: 0.7rem;
+}
+
+.form-field > input:focus,
+.form-field > select:focus,
+.money-field:focus-within {
+    box-shadow: inset 5px 0 0 var(--acid); /* Faixa lateral mostra o campo ativo. */
+}
+
+.money-field {
+    display: flex;
+    align-items: center;
+    padding: 0 13px;
+}
+
+.money-field b {
+    margin-right: 9px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.55rem;
+}
+
+.money-field input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.72rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--ink);
+}
+
+.confirm-modal {
+    width: min(430px, calc(100% - 28px));
+}
+
+.confirm-sheet {
+    text-align: left;
+}
+
+.warning-mark {
+    display: grid;
+    width: 55px;
+    height: 55px;
+    margin-bottom: 22px;
+    place-items: center;
+    border: 2px solid var(--ink);
+    background: var(--orange);
+    color: #11120e;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+.confirm-sheet h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+}
+
+.confirm-sheet p {
+    margin: 9px 0 0;
+    color: var(--muted);
+    font-size: 0.7rem;
+    line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------
+   12. AVISO E CONFETES
+------------------------------------------------------------------ */
+.toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 100;
+    display: flex;
+    min-width: 290px;
+    max-width: calc(100% - 32px);
+    gap: 11px;
+    align-items: center;
+    padding: 14px 17px;
+    border: 2px solid var(--ink);
+    background: var(--acid);
+    color: #11120e;
+    box-shadow: 6px 6px 0 var(--ink);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(16px);
+    transition: 220ms ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-icon {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #11120e;
+    background: #11120e;
+    color: #fffdf5;
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.toast p {
+    margin: 0;
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.celebration-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.confetti {
+    position: absolute;
+    top: -20px;
+    width: 9px;
+    height: 14px;
+    border: 1px solid #11120e;
+    animation: confetti-fall var(--fall-duration) linear forwards;
+}
+
+@keyframes confetti-fall {
+    to {
+        opacity: 0.15;
+        transform: translate3d(var(--drift), 110vh, 0) rotate(720deg);
+    }
+}
+
+/* ------------------------------------------------------------------
+   13. RESPONSIVIDADE — NOTEBOOK E TABLET
+------------------------------------------------------------------ */
+@media (max-width: 1180px) {
+    .masthead {
+        grid-template-columns: minmax(150px, 0.6fr) minmax(160px, 0.7fr) auto;
+    }
+
+    .wordmark,
+    .issue-label {
+        padding-inline: 22px;
+    }
+
+    .invert-button {
+        width: 64px;
+    }
+
+    .invert-copy {
+        display: none;
+    }
+
+    .register-button {
+        min-width: 112px;
+    }
+
+    .balance-stage {
+        grid-template-columns: minmax(0, 1.2fr) minmax(310px, 0.75fr);
+    }
+
+    .rhythm-layout,
+    .statement-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-strip {
+        grid-template-columns: minmax(220px, 1fr) 145px 170px;
+    }
+
+    .filter-strip .export-button {
+        grid-column: 3;
+        min-height: 52px;
+    }
+
+    .transaction-table-scroll {
+        overflow-x: auto;
+    }
+
+    .transaction-table {
+        min-width: 810px;
+    }
+}
+
+/* A navegação lateral vira uma barra inferior a partir de 820px. */
+@media (max-width: 820px) {
+    :root {
+        --rail-width: 0px;
+    }
+
+    .index-rail {
+        inset: auto 0 0;
+        width: 100%;
+        height: 72px;
+        border-top: 2px solid var(--ink);
+        border-right: 0;
+    }
+
+    .rail-brand,
+    .rail-signature {
+        display: none;
+    }
+
+    .rail-nav {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        grid-template-columns: repeat(3, 1fr);
+        border: 0;
+    }
+
+    .rail-link {
+        min-height: 0;
+        border-right: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+        border-bottom: 0;
+    }
+
+    .rail-link:last-child {
+        border-right: 0;
+    }
+
+    .rail-link.active::after {
+        top: -10px;
+        right: 50%;
+        width: 2px;
+        height: 18px;
+    }
+
+    .rail-link span {
+        margin-bottom: 3px;
+    }
+
+    .app-frame {
+        margin-left: 0;
+    }
+
+    .masthead {
+        position: relative;
+        min-height: 94px;
+        grid-template-columns: 1fr auto;
+        background: var(--paper); /* Usa fundo sólido para o botão flutuante se prender à tela. */
+        backdrop-filter: none; /* Evita que o botão Registrar fique preso ao cabeçalho no celular. */
+    }
+
+    .issue-label {
+        display: none;
+    }
+
+    .wordmark {
+        border-right: 1px solid var(--ink);
+    }
+
+    .month-stamp {
+        min-width: 130px;
+        padding-inline: 13px;
+    }
+
+    .month-stamp input {
+        width: 112px;
+        font-size: 0.64rem;
+    }
+
+    .invert-button {
+        width: 52px;
+    }
+
+    .register-button {
+        position: fixed;
+        right: 16px;
+        bottom: 88px;
+        z-index: 45;
+        width: 56px;
+        min-width: 56px;
+        height: 56px;
+        padding: 0;
+        overflow: hidden;
+        border: 2px solid #11120e;
+        border-radius: 0; /* Mantém o botão quadrado, coerente com o estilo editorial. */
+        color: transparent;
+        font-size: 0;
+        box-shadow: 5px 5px 0 #11120e;
+    }
+
+    .register-button span {
+        color: #11120e;
+        font-size: 1.6rem;
+    }
+
+    .main-content {
+        padding-bottom: 115px;
+    }
+
+    .balance-stage {
+        grid-template-columns: 1fr;
+    }
+
+    .balance-field {
+        min-height: 440px;
+    }
+
+    .month-receipt {
+        border-top: 2px dashed var(--ink);
+        border-left: 0;
+    }
+
+    .goals-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ------------------------------------------------------------------
+   14. RESPONSIVIDADE — CELULAR
+------------------------------------------------------------------ */
+@media (max-width: 620px) {
+    .masthead {
+        grid-template-columns: 1fr auto;
+    }
+
+    .wordmark {
+        padding: 16px;
+    }
+
+    .wordmark strong {
+        font-size: 1.5rem;
+    }
+
+    .wordmark span {
+        font-size: 0.45rem;
+    }
+
+    .masthead-actions {
+        display: grid;
+        grid-template-columns: auto 46px;
+    }
+
+    .month-stamp {
+        min-width: 117px;
+        padding: 11px;
+    }
+
+    .month-stamp input {
+        width: 101px;
+        font-size: 0.58rem;
+    }
+
+    .invert-button {
+        width: 46px;
+    }
+
+    .main-content {
+        padding: 26px 13px 110px;
+    }
+
+    .view-index {
+        margin-left: 3px;
+    }
+
+    .balance-stage,
+    .ledger-shell {
+        box-shadow: 5px 5px 0 var(--ink);
+    }
+
+    .balance-field {
+        min-height: 400px;
+        padding: 29px 22px 96px;
+    }
+
+    .signal-label {
+        margin-bottom: 30px;
+        font-size: 0.5rem;
+    }
+
+    .balance-field h2 {
+        font-size: 1.35rem;
+    }
+
+    .hero-balance {
+        margin: 28px 0 35px;
+        font-size: clamp(2.15rem, 10.8vw, 3.4rem); /* Mantém saldos longos dentro da tela. */
+        white-space: nowrap;
+    }
+
+    .balance-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .balance-footer p {
+        font-size: 0.58rem;
+    }
+
+    .balance-tape {
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding-inline: 18px;
+    }
+
+    .balance-tape i {
+        display: none;
+    }
+
+    .month-receipt {
+        padding: 28px 22px 24px;
+    }
+
+    .rhythm-layout,
+    .statement-layout {
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .chart-board,
+    .category-board,
+    .statement-board,
+    .diagnosis-board {
+        padding: 20px;
+    }
+
+    .board-heading {
+        margin-bottom: 22px;
+    }
+
+    .board-heading h3 {
+        font-size: 1.35rem;
+    }
+
+    .bar-chart {
+        height: 215px;
+        gap: 6px;
+        padding-inline: 2px;
+    }
+
+    .chart-key {
+        gap: 5px;
+    }
+
+    .recent-item {
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        gap: 9px;
+    }
+
+    .recent-date {
+        display: none;
+    }
+
+    .recent-value {
+        font-size: 0.55rem;
+    }
+
+    .page-intro {
+        align-items: flex-start;
+        margin-bottom: 27px;
+    }
+
+    .page-intro h2 {
+        font-size: 2.55rem;
+    }
+
+    .page-intro .ink-button {
+        width: 48px;
+        min-width: 48px;
+        height: 48px;
+        padding: 0;
+        overflow: hidden;
+        color: transparent;
+        font-size: 0;
+    }
+
+    .page-intro .ink-button span {
+        color: var(--paper);
+        font-size: 1.35rem;
+    }
+
+    .filter-strip {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .search-field {
+        grid-column: 1 / -1;
+        border-bottom: 1px solid var(--ink);
+        border-right: 0;
+    }
+
+    .filter-field:nth-of-type(3) {
+        border-right: 0;
+    }
+
+    .filter-strip .export-button {
+        grid-column: 1 / -1;
+    }
+
+    .transaction-table-scroll {
+        overflow: visible;
+    }
+
+    .transaction-table {
+        display: block;
+        min-width: 0;
+    }
+
+    .transaction-table colgroup,
+    .transaction-table thead {
+        display: none;
+    }
+
+    .transaction-table tbody,
+    .empty-table-row,
+    .empty-table-row td {
+        display: block;
+        width: 100%;
+    }
+
+    .transaction-row {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 9px;
+        padding: 14px;
+    }
+
+    .transaction-row td {
+        display: block;
+        height: auto;
+        padding: 0;
+    }
+
+    .transaction-row td:first-child,
+    .transaction-row td:last-child {
+        padding-inline: 0;
+    }
+
+    .transaction-row .category-cell,
+    .transaction-row .date-cell,
+    .transaction-row .status-cell {
+        display: none;
+    }
+
+    .actions-cell {
+        grid-column: 1 / -1;
+    }
+
+    .ledger-footer {
+        gap: 12px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .plan-meter {
+        grid-template-columns: 1fr;
+    }
+
+    .plan-meter-total {
+        border-right: 0;
+        border-bottom: 2px solid #11120e;
+    }
+
+    .plan-meter-total,
+    .plan-meter-progress {
+        padding: 22px;
+    }
+
+    .goal-card {
+        padding: 22px;
+    }
+
+    .goal-card-header {
+        padding-top: 20px;
+        padding-right: 0;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-field-wide {
+        grid-column: auto;
+    }
+
+    .modal-actions > button {
+        flex: 1;
+        padding-inline: 9px;
+    }
+
+    .toast {
+        right: 14px;
+        bottom: 92px;
+        left: 14px;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 390px) {
+    .wordmark span,
+    .month-stamp span {
+        display: none;
+    }
+
+    .month-stamp {
+        min-width: 108px;
+    }
+
+    .page-intro h2 {
+        font-size: 2.15rem;
+    }
+
+    .chart-month {
+        font-size: 0.43rem;
+    }
+
+    .goal-title-wrap h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Respeita pessoas que preferem menos movimento no aparelho. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ==================================================================
+   15. FÔLEGO V2 — LOGIN, CONTA E SINCRONIZAÇÃO
+   Estes blocos preservam a linguagem editorial da dashboard na nova
+   porta de entrada e explicam visualmente o estado da nuvem.
+================================================================== */
+
+/* O atributo hidden sempre vence os layouts flex e grid das novas telas. */
+[hidden] {
+    display: none !important;
+}
+
+/* Mantém descrições completas disponíveis para leitores de tela. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* A tela de abertura ocupa o navegador enquanto a sessão é conferida. */
+.boot-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: grid;
+    place-content: center;
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+}
+
+/* A inicial grande funciona como selo durante o carregamento. */
+.boot-mark {
+    display: grid;
+    width: 112px;
+    height: 112px;
+    margin: 0 auto 24px;
+    place-content: center;
+    border: 2px solid #11120e;
+    background: var(--acid);
+    color: #11120e;
+}
+
+.boot-mark span {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 3.4rem;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 0.72;
+}
+
+.boot-mark i {
+    margin-top: 9px;
+    font-size: 0.7rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.boot-screen > p {
+    margin: 0 0 13px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+/* A linha ácida indica atividade sem depender apenas de um ícone giratório. */
+.boot-line {
+    width: 230px;
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--paper) 22%, transparent);
+}
+
+.boot-line i {
+    display: block;
+    width: 45%;
+    height: 100%;
+    background: var(--acid);
+    animation: boot-progress 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes boot-progress {
+    from { transform: translateX(-15%); }
+    to { transform: translateX(140%); }
+}
+
+/* A tela de acesso divide manifesto e formulário como duas páginas abertas. */
+.auth-shell {
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: minmax(0, 1.17fr) minmax(430px, 0.83fr);
+    background: var(--paper);
+}
+
+/* O manifesto escuro dá personalidade e carrega a promessa do produto. */
+.auth-manifesto {
+    position: relative;
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 2px solid var(--ink);
+    background:
+        linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.035) 50%, transparent 50.2%),
+        #11120e;
+    background-size: 44px 100%, auto;
+    color: #eeebe2;
+}
+
+/* O círculo cria uma marca d'água geométrica, sem imagem externa. */
+.auth-manifesto::before {
+    position: absolute;
+    right: -17vw;
+    bottom: -25vw;
+    width: min(62vw, 820px);
+    aspect-ratio: 1;
+    border: clamp(35px, 6vw, 92px) solid var(--acid);
+    border-radius: 50%;
+    opacity: 0.92;
+    content: "";
+}
+
+/* O pequeno bloco laranja equilibra o círculo e reforça a identidade. */
+.auth-manifesto::after {
+    position: absolute;
+    top: 24%;
+    right: 0;
+    width: clamp(42px, 5vw, 76px);
+    height: clamp(90px, 13vw, 190px);
+    background: var(--orange);
+    content: "";
+}
+
+.auth-brandline {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 106px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px clamp(24px, 4vw, 64px);
+    border-bottom: 1px solid rgba(238, 235, 226, 0.42);
+}
+
+.auth-brandline a {
+    display: flex;
+    gap: 13px;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+}
+
+.auth-brandline a span {
+    display: grid;
+    width: 45px;
+    height: 45px;
+    place-items: center;
+    background: var(--acid);
+    color: #11120e;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2rem;
+    font-style: italic;
+    font-weight: 700;
+}
+
+.auth-brandline a strong {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.4rem;
+    font-style: italic;
+    letter-spacing: -0.04em;
+}
+
+.auth-brandline p,
+.auth-editorial-foot,
+.auth-kicker,
+.auth-pulse {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.auth-brandline p {
+    margin: 0;
+    opacity: 0.66;
+}
+
+/* O texto central usa escala grande, mas limita a largura para boa leitura. */
+.auth-manifesto-copy {
+    position: relative;
+    z-index: 1;
+    width: min(780px, 86%);
+    margin: auto 0;
+    padding: clamp(46px, 7vw, 110px) clamp(24px, 6vw, 92px);
+}
+
+.auth-kicker {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+    color: var(--acid);
+}
+
+.auth-kicker i {
+    width: 33px;
+    height: 3px;
+    background: currentColor;
+}
+
+.auth-manifesto-copy h1 {
+    margin: 25px 0 25px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3.7rem, 7.2vw, 7.9rem);
+    font-weight: 400;
+    letter-spacing: -0.075em;
+    line-height: 0.83;
+}
+
+.auth-manifesto-copy h1 em {
+    color: var(--acid);
+    font-weight: 700;
+}
+
+.auth-manifesto-copy > p {
+    max-width: 520px;
+    margin: 0;
+    color: #d2cec2;
+    font-size: clamp(0.9rem, 1.25vw, 1.1rem);
+    line-height: 1.65;
+}
+
+/* A faixa central transforma benefícios em um elemento gráfico. */
+.auth-pulse {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 54px;
+    gap: 16px;
+    align-items: center;
+    padding: 0 clamp(24px, 6vw, 92px);
+    border-block: 1px solid rgba(238, 235, 226, 0.42);
+}
+
+.auth-pulse i {
+    width: 6px;
+    height: 6px;
+    background: var(--orange);
+    transform: rotate(45deg);
+}
+
+.auth-editorial-foot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    min-height: 116px;
+    grid-template-columns: 1fr auto auto;
+    gap: 40px;
+    align-items: center;
+    padding: 22px clamp(24px, 6vw, 92px);
+}
+
+.auth-editorial-foot span {
+    max-width: 230px;
+    line-height: 1.5;
+}
+
+.auth-editorial-foot p {
+    margin: 0;
+    color: var(--acid);
+    line-height: 1.45;
+}
+
+.auth-editorial-foot b {
+    font-size: 1rem;
+}
+
+/* A mesa clara centraliza o comprovante de acesso. */
+.auth-desk {
+    display: grid;
+    min-height: 100dvh;
+    place-items: center;
+    padding: clamp(24px, 5vw, 78px);
+    background:
+        linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px),
+        var(--paper);
+    background-size: 30px 30px;
+}
+
+/* O formulário é tratado como um recibo físico sobre a mesa. */
+.auth-ticket {
+    position: relative;
+    width: min(100%, 510px);
+    padding: clamp(29px, 4vw, 50px);
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: 11px 11px 0 var(--ink);
+}
+
+.auth-ticket::after {
+    position: absolute;
+    right: 25px;
+    bottom: 54px;
+    width: 76px;
+    height: 21px;
+    opacity: 0.3;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px);
+    content: "";
+}
+
+.auth-ticket-top {
+    display: flex;
+    justify-content: space-between;
+    margin: calc(clamp(29px, 4vw, 50px) * -1) calc(clamp(29px, 4vw, 50px) * -1) 37px;
+    padding: 15px clamp(29px, 4vw, 50px);
+    border-bottom: 2px dashed var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+}
+
+.auth-step {
+    display: block;
+    margin-bottom: 15px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.auth-view h2 {
+    margin: 0 0 31px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.6rem, 4.4vw, 4.4rem);
+    font-weight: 400;
+    letter-spacing: -0.065em;
+    line-height: 0.88;
+}
+
+.auth-explanation {
+    margin: -13px 0 25px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+.auth-form {
+    display: grid;
+    gap: 18px;
+}
+
+.auth-form > label,
+.auth-field {
+    display: grid;
+    gap: 8px;
+}
+
+.auth-form > label > span,
+.auth-field > label,
+.field-help {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+}
+
+.auth-form input {
+    width: 100%;
+    min-height: 54px;
+    padding: 13px 15px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    outline: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 0.92rem;
+}
+
+.auth-form input::placeholder {
+    color: color-mix(in srgb, var(--muted) 72%, transparent);
+}
+
+.password-field {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+}
+
+.password-field input {
+    border: 0;
+}
+
+.password-field button {
+    min-width: 67px;
+    padding: 0 12px;
+    border-left: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.64rem;
+    font-weight: 900;
+}
+
+.password-field button:hover {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.auth-primary {
+    display: flex;
+    min-height: 58px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding: 14px 18px;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.auth-primary span {
+    color: var(--acid);
+    font-size: 1.25rem;
+}
+
+.auth-primary:hover {
+    background: var(--orange);
+    color: #11120e;
+}
+
+.auth-primary:hover span {
+    color: #11120e;
+}
+
+.auth-primary:disabled,
+.auth-form input:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.auth-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.auth-links.single {
+    justify-content: flex-start;
+}
+
+.auth-links button {
+    padding: 5px 0;
+    border-bottom: 1px solid currentColor;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.auth-status {
+    min-height: 21px;
+    margin: 20px 0 0;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.auth-status[data-type="error"] {
+    color: #b52c0b;
+}
+
+.auth-status[data-type="success"] {
+    color: var(--green);
+}
+
+.auth-status[data-type="warning"] {
+    color: #8c4a00;
+}
+
+.auth-ticket-foot {
+    margin-top: 29px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+/* Este aviso aparece somente enquanto as variáveis de ambiente não existem. */
+.auth-config-warning {
+    margin-bottom: 25px;
+    padding: 14px;
+    border: 1px solid #11120e;
+    background: #ffd23f;
+    color: #11120e;
+}
+
+.auth-config-warning strong {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.auth-config-warning p {
+    margin: 5px 0 0;
+    font-size: 0.73rem;
+    line-height: 1.45;
+}
+
+/* ------------------------------------------------------------------
+   CONTA NO CABEÇALHO
+------------------------------------------------------------------ */
+
+.account-control {
+    position: relative;
+    display: flex;
+    border-right: 1px solid var(--ink);
+}
+
+.account-button {
+    display: grid;
+    width: 188px;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 13px;
+    background: transparent;
+    color: var(--ink);
+    text-align: left;
+}
+
+.account-button:hover,
+.account-button[aria-expanded="true"] {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.account-button > span:first-child {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid currentColor;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+.account-copy {
+    min-width: 0;
+}
+
+.account-copy strong,
+.account-copy small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-copy strong {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.account-copy small {
+    position: relative;
+    margin-top: 5px;
+    padding-left: 10px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.58rem;
+}
+
+.account-copy small::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2f8b57;
+    content: "";
+    transform: translateY(-50%);
+}
+
+.account-button[data-sync="busy"] .account-copy small::before {
+    background: #e2b93b;
+}
+
+.account-button[data-sync="error"] .account-copy small::before {
+    background: var(--orange);
+}
+
+/* O menu flutua sob o cabeçalho e reúne conta, backup e saída. */
+.account-menu {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    z-index: 90;
+    width: 292px;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: 7px 7px 0 var(--ink);
+}
+
+.account-menu-head {
+    padding: 17px;
+    border-bottom: 1px solid var(--ink);
+}
+
+.account-menu-head span,
+.account-menu-head strong {
+    display: block;
+}
+
+.account-menu-head span {
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.account-menu-head strong {
+    overflow: hidden;
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+}
+
+.account-menu > button {
+    display: flex;
+    width: 100%;
+    min-height: 49px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 17px;
+    border-bottom: 1px solid var(--line-soft);
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-align: left;
+}
+
+.account-menu > button:hover {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.account-menu > button span {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.58rem;
+}
+
+.account-menu .signout-button {
+    border-bottom: 0;
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.account-menu .signout-button:hover {
+    background: var(--orange);
+}
+
+/* ------------------------------------------------------------------
+   MIGRAÇÃO, BACKUP E ESTADOS DE SINCRONIZAÇÃO
+------------------------------------------------------------------ */
+
+.migration-modal {
+    width: min(610px, calc(100% - 28px));
+}
+
+.migration-sheet {
+    position: relative;
+    overflow: hidden;
+}
+
+.migration-number {
+    display: inline-flex;
+    margin-bottom: 25px;
+    padding: 8px 10px;
+    border: 1px solid #11120e;
+    background: var(--acid);
+    color: #11120e;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.migration-sheet h2 {
+    max-width: 470px;
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    letter-spacing: -0.055em;
+    line-height: 0.95;
+}
+
+.migration-sheet > p {
+    margin: 15px 0 22px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.migration-warning {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #11120e;
+    background: #ffd23f;
+    color: #11120e;
+}
+
+.migration-warning strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.65rem;
+}
+
+.migration-warning p {
+    margin: 0;
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+.migration-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.migration-actions .text-button {
+    min-height: 40px;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sync-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(17, 18, 14, 0.72);
+    backdrop-filter: blur(4px);
+}
+
+.sync-overlay > div {
+    display: flex;
+    min-width: min(410px, 100%);
+    gap: 14px;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #11120e;
+    background: var(--acid);
+    color: #11120e;
+    box-shadow: 7px 7px 0 #11120e;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+}
+
+.sync-overlay i {
+    width: 19px;
+    height: 19px;
+    flex: 0 0 auto;
+    border: 3px solid rgba(17, 18, 14, 0.25);
+    border-top-color: #11120e;
+    border-radius: 50%;
+    animation: sync-spin 700ms linear infinite;
+}
+
+@keyframes sync-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* O tipo do toast agora controla a cor sem competir com !important. */
+.toast-icon {
+    background: #11120e;
+    color: #fffdf5;
+}
+
+.toast[data-type="warning"] {
+    background: #ffd23f;
+}
+
+.toast[data-type="warning"] .toast-icon {
+    background: transparent;
+    color: #11120e;
+}
+
+.toast[data-type="error"] {
+    background: var(--orange);
+}
+
+/* ------------------------------------------------------------------
+   CORREÇÕES DE USABILIDADE E ACESSIBILIDADE DA VERSÃO ANTERIOR
+------------------------------------------------------------------ */
+
+/* Os botões de linha passam a ter área confortável para toque. */
+.row-action {
+    width: 44px;
+    height: 44px;
+    border-color: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+.row-actions {
+    gap: 6px;
+}
+
+/* O foco do seletor Entrada/Saída fica visível ao usar teclado. */
+.type-switch input:focus-visible + span {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+}
+
+/* Os metadados duplicados abaixo da descrição aparecem somente nos cards móveis. */
+.mobile-transaction-meta {
+    display: none;
+}
+
+/* Valores muito longos podem reduzir mais que os saldos comuns. */
+.hero-balance.long-value {
+    font-size: clamp(1.7rem, 5.4vw, 4.6rem);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* Quando todos os valores são zero, o gráfico mostra uma explicação real. */
+.bar-chart.empty::before {
+    position: absolute;
+    inset: 44% 0 auto;
+    z-index: 2;
+    color: var(--muted);
+    content: "SEM MOVIMENTOS CONFIRMADOS NESTE PERÍODO";
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-align: center;
+}
+
+.bar-chart.empty .chart-bar {
+    border: 0;
+}
+
+/* Uma barra com valor zero não recebe nem altura mínima nem contorno. */
+.chart-bar.zero {
+    min-height: 0;
+    outline: 0;
+}
+
+.field-help {
+    display: block;
+    margin-top: 7px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.35;
+}
+
+/* Eleva os menores rótulos para uma leitura mais segura sem perder hierarquia. */
+.section-code,
+.view-index b,
+.month-stamp span,
+.search-field span,
+.filter-field span,
+.status-pill,
+.transaction-description small,
+.category-cell,
+.date-cell,
+.ledger-footer,
+.chart-key,
+.chart-month {
+    font-size: max(0.64rem, 10px);
+}
+
+/* ------------------------------------------------------------------
+   RESPONSIVIDADE DA CONTA E DO LOGIN
+------------------------------------------------------------------ */
+
+@media (max-width: 1450px) {
+    /* Em notebooks, o avatar permanece e o nome sai para liberar o mês. */
+    .account-button {
+        width: 66px;
+        grid-template-columns: 38px;
+        justify-content: center;
+        padding-inline: 12px;
+    }
+
+    .account-copy,
+    .account-button > i {
+        display: none;
+    }
+}
+
+@media (max-width: 980px) {
+    /* No tablet, manifesto e formulário viram capítulos empilhados. */
+    .auth-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-manifesto {
+        min-height: 570px;
+        border-right: 0;
+        border-bottom: 2px solid var(--ink);
+    }
+
+    .auth-manifesto::before {
+        right: -20vw;
+        bottom: -42vw;
+        width: 78vw;
+    }
+
+    .auth-manifesto-copy {
+        padding-block: 60px;
+    }
+
+    .auth-manifesto-copy h1 {
+        font-size: clamp(4rem, 10vw, 6.4rem);
+    }
+
+    .auth-desk {
+        min-height: auto;
+        padding-block: 80px;
+    }
+}
+
+@media (max-width: 820px) {
+    /* O título da página continua visível e semanticamente presente no celular. */
+    .masthead {
+        grid-template-rows: 94px 38px;
+    }
+
+    .issue-label {
+        display: flex;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 14px;
+        border-top: 1px solid var(--ink);
+        border-right: 0;
+        background: var(--paper-light);
+    }
+
+    .issue-label span {
+        display: none;
+    }
+
+    .issue-label h1 {
+        font-size: 0.68rem;
+    }
+
+    .account-menu {
+        right: 0;
+        left: auto;
+    }
+}
+
+@media (max-width: 620px) {
+    .auth-manifesto {
+        min-height: 430px;
+    }
+
+    .auth-brandline {
+        min-height: 78px;
+        padding: 15px 18px;
+    }
+
+    .auth-brandline p {
+        display: none;
+    }
+
+    .auth-manifesto-copy {
+        width: 100%;
+        padding: 42px 20px;
+    }
+
+    .auth-manifesto-copy h1 {
+        margin-block: 18px;
+        font-size: clamp(3rem, 15vw, 4.5rem);
+    }
+
+    .auth-manifesto-copy > p {
+        max-width: 88%;
+        font-size: 0.82rem;
+    }
+
+    .auth-pulse {
+        min-height: 43px;
+        padding-inline: 20px;
+        font-size: 0.58rem;
+    }
+
+    .auth-editorial-foot {
+        display: none;
+    }
+
+    .auth-desk {
+        padding: 38px 17px 50px;
+        place-items: start center;
+    }
+
+    .auth-ticket {
+        padding: 27px 21px;
+        box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    .auth-ticket-top {
+        margin: -27px -21px 30px;
+        padding-inline: 21px;
+    }
+
+    .auth-view h2 {
+        font-size: 2.75rem;
+    }
+
+    .auth-links {
+        gap: 16px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    /* Conta, mês e tema dividem apenas o espaço disponível no cabeçalho. */
+    .masthead-actions {
+        grid-template-columns: 46px auto 46px;
+    }
+
+    .account-button {
+        width: 46px;
+        grid-template-columns: 32px;
+        padding: 7px;
+    }
+
+    .account-button > span:first-child {
+        width: 32px;
+        height: 32px;
+        font-size: 0.58rem;
+    }
+
+    .account-menu {
+        position: fixed;
+        top: 77px;
+        right: 12px;
+        width: min(292px, calc(100vw - 24px));
+    }
+
+    /* Categoria, data e estado voltam a aparecer dentro do card móvel. */
+    .mobile-transaction-meta {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 7px;
+    }
+
+    .mobile-transaction-meta i {
+        padding: 4px 5px;
+        border: 1px solid var(--line-soft);
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 0.58rem;
+        font-style: normal;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .mobile-transaction-meta i.pending {
+        border-color: #11120e;
+        background: #ffd23f;
+        color: #11120e;
+    }
+
+    .transaction-row {
+        padding-block: 17px;
+    }
+
+    .row-actions {
+        justify-content: flex-start;
+    }
+
+    .hero-balance,
+    .hero-balance.long-value {
+        font-size: clamp(1.55rem, 9vw, 3.4rem);
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .migration-warning {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Além do CSS geral, remove os dois indicadores contínuos da nova versão. */
+    .boot-line i,
+    .sync-overlay i {
+        animation: none;
+    }
+}
+
+/* ------------------------------------------------------------------
+   TAMANHO MÍNIMO DOS MICROTEXTOS
+   Mantém a estética de legenda impressa sem voltar aos 7–9 px da V1.
+------------------------------------------------------------------ */
+.rail-brand i,
+.rail-link span,
+.rail-signature span,
+.wordmark span,
+.issue-label span,
+.invert-copy,
+.signal-label,
+.balance-tape span,
+.balance-tape i,
+.receipt-head,
+.receipt-line span,
+.receipt-result span,
+.receipt-line small,
+.receipt-result small,
+.month-receipt footer,
+.board-footnote span,
+.category-total span,
+.category-item::before,
+.arrow-link,
+.recent-date,
+.health-badge,
+.health-ruler span,
+.commitment-line,
+.transaction-table-head,
+.plan-meter-total span,
+.plan-meter-total small,
+.plan-meter-progress span,
+.goal-title-wrap span,
+.goal-values span,
+.goal-values small,
+.completed-label,
+.modal-header span,
+.type-switch legend,
+.type-switch span,
+.form-field > span:first-child,
+.money-field b,
+.account-copy small,
+.account-menu > button span,
+.auth-pulse,
+.mobile-transaction-meta i {
+    font-size: max(0.65rem, 10.4px);
+}
