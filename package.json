@@ -1,12 +1,11 @@
 {
   "name": "folego-financas",
   "private": true,
-<<<<<<< HEAD
   "version": "2.1.0",
-=======
-  "version": "2.0.0",
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,12 +15,8 @@
     "check": "npm run validate:html && npm test && npm run build"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@supabase/supabase-js": "^2.52.1",
     "jspdf": "^3.0.4"
-=======
-    "@supabase/supabase-js": "^2.52.1"
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
   },
   "devDependencies": {
     "html-validate": "^11.5.6",
