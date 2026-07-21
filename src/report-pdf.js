@@ -239,7 +239,7 @@ export function generateFinancialReportPdf(report) {
     }
 
     const filename = `folego-relatorio-${safeFilePart(report.periodLabel) || "financeiro"}.pdf`;
-    doc.save(filename);
-    return filename;
+    const blob = doc.output("blob");
+    return { blob, filename };
 }
 
