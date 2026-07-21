@@ -1,8 +1,13 @@
 -- ============================================================================
+<<<<<<< HEAD
 -- FÔLEGO V2 — BASE DO BANCO, AUTENTICAÇÃO E POLÍTICAS DE SEGURANÇA
 -- Use este arquivo somente em instalações novas. Depois, execute também
 -- supabase/migrations/v2_1_additive.sql para completar a estrutura da V2.1.
 -- Em uma conta já em uso, execute APENAS a migração aditiva da V2.1.
+=======
+-- FÔLEGO V2 — BANCO, AUTENTICAÇÃO E POLÍTICAS DE SEGURANÇA
+-- Execute este arquivo uma única vez no SQL Editor do projeto Supabase.
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 -- ============================================================================
 
 create extension if not exists pgcrypto;

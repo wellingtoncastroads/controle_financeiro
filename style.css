@@ -3701,6 +3701,7 @@ html[data-theme="dark"] .paper-noise {
 .mobile-transaction-meta i {
     font-size: max(0.65rem, 10.4px);
 }
+<<<<<<< HEAD
 
 /* ==================================================================
    16. FÔLEGO V2.1 — PREVISÕES, RAIO-X E NOVOS FORMULÁRIOS
@@ -4894,3 +4895,5 @@ html[data-theme="dark"] .paper-noise {
         grid-column: 2;
     }
 }
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3

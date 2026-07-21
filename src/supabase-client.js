@@ -20,4 +20,7 @@ export const supabase = isSupabaseConfigured
         }
     })
     : null;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3

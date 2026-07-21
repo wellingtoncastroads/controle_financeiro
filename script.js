@@ -2,6 +2,7 @@
 
 import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 import {
+<<<<<<< HEAD
     addGoalContribution,
     deleteAccount,
     importLegacySnapshot,
@@ -18,10 +19,23 @@ import {
 } from "./src/data-service.js";
 import {
     buildTransactionSeries,
+=======
+    importLegacySnapshot,
+    loadUserData,
+    removeGoal,
+    removeTransaction,
+    replaceUserSnapshot,
+    saveGoal,
+    saveProfile,
+    saveTransaction
+} from "./src/data-service.js";
+import {
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     createBackup,
     currentMonthKey,
     EXPENSE_CATEGORIES,
     getBalanceAsOf,
+<<<<<<< HEAD
     getBalanceProjection,
     getBreathingDays,
     getBudgetProgress,
@@ -38,6 +52,14 @@ import {
     PAYMENT_METHOD_LABELS,
     prefersReducedMotion,
     rankExpenses,
+=======
+    INCOME_CATEGORIES,
+    isValidMonth,
+    normalizeGoal,
+    normalizeSnapshot,
+    normalizeTransaction,
+    prefersReducedMotion,
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     readLegacySnapshot,
     sanitizeCsvCell,
     THEME_STORAGE_KEY,
@@ -50,6 +72,7 @@ import {
 ================================================================ */
 
 const CATEGORY_DETAILS = {
+<<<<<<< HEAD
     "Salário": { icon: "briefcase", color: "#c8ff3d" },
     "Freelance": { icon: "terminal", color: "#2456d8" },
     "Vendas": { icon: "tag", color: "#ff4e1a" },
@@ -93,6 +116,24 @@ function renderIcon(name, className = "folego-icon") {
     return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true">${drawing}</svg>`;
 }
 
+=======
+    "Salário": { icon: "💼", color: "#c8ff3d" },
+    "Freelance": { icon: "💻", color: "#2456d8" },
+    "Vendas": { icon: "🏷️", color: "#ff4e1a" },
+    "Investimentos": { icon: "📈", color: "#164b3a" },
+    "Outras receitas": { icon: "✨", color: "#e2b93b" },
+    "Moradia": { icon: "🏠", color: "#c8ff3d" },
+    "Alimentação": { icon: "🛒", color: "#ff4e1a" },
+    "Transporte": { icon: "🚗", color: "#2456d8" },
+    "Saúde": { icon: "💊", color: "#164b3a" },
+    "Educação": { icon: "🎓", color: "#e2b93b" },
+    "Lazer": { icon: "🎮", color: "#ff4e1a" },
+    "Assinaturas": { icon: "📺", color: "#2456d8" },
+    "Contas": { icon: "🧾", color: "#164b3a" },
+    "Outras despesas": { icon: "📦", color: "#747168" }
+};
+
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 const SPECTRUM_COLORS = ["#c8ff3d", "#ff4e1a", "#2456d8", "#164b3a", "#e2b93b"];
 const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const compactCurrencyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -134,8 +175,11 @@ const elements = {
     exportBackupButton: $("#exportBackupButton"),
     importBackupButton: $("#importBackupButton"),
     backupFileInput: $("#backupFileInput"),
+<<<<<<< HEAD
     installAppButton: $("#installAppButton"),
     deleteAccountButton: $("#deleteAccountButton"),
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
     pageTitle: $("#pageTitle"),
     todayLabel: $("#todayLabel"),
@@ -164,6 +208,7 @@ const elements = {
     healthMessage: $("#healthMessage"),
     incomeCommitment: $("#incomeCommitment"),
     incomeCommitmentBar: $("#incomeCommitmentBar"),
+<<<<<<< HEAD
     breathingDays: $("#breathingDays"),
     breathingCaption: $("#breathingCaption"),
     projection30: $("#projection30"),
@@ -174,6 +219,8 @@ const elements = {
     projection90Date: $("#projection90Date"),
     agendaCount: $("#agendaCount"),
     agendaList: $("#agendaList"),
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
     transactionSearch: $("#transactionSearch"),
     typeFilter: $("#typeFilter"),
@@ -189,6 +236,7 @@ const elements = {
     goalsOverallBar: $("#goalsOverallBar"),
     goalsGrid: $("#goalsGrid"),
 
+<<<<<<< HEAD
     exportPdfButton: $("#exportPdfButton"),
     reportReferenceDate: $("#reportReferenceDate"),
     reportPeriodLabel: $("#reportPeriodLabel"),
@@ -203,6 +251,8 @@ const elements = {
     newBudgetButton: $("#newBudgetButton"),
     budgetList: $("#budgetList"),
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     transactionDialog: $("#transactionDialog"),
     transactionForm: $("#transactionForm"),
     transactionModalTitle: $("#transactionModalTitle"),
@@ -212,6 +262,7 @@ const elements = {
     transactionCategory: $("#transactionCategory"),
     transactionDate: $("#transactionDate"),
     transactionStatus: $("#transactionStatus"),
+<<<<<<< HEAD
     transactionPaymentMethod: $("#transactionPaymentMethod"),
     transactionMethodLabel: $("#transactionMethodLabel"),
     transactionMode: $("#transactionMode"),
@@ -221,6 +272,8 @@ const elements = {
     installmentFields: $("#installmentFields"),
     installmentCount: $("#installmentCount"),
     seriesEditHint: $("#seriesEditHint"),
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
     goalDialog: $("#goalDialog"),
     goalForm: $("#goalForm"),
@@ -232,6 +285,7 @@ const elements = {
     goalDeadline: $("#goalDeadline"),
     goalIcon: $("#goalIcon"),
 
+<<<<<<< HEAD
     contributionDialog: $("#contributionDialog"),
     contributionForm: $("#contributionForm"),
     contributionModalTitle: $("#contributionModalTitle"),
@@ -248,17 +302,22 @@ const elements = {
     budgetCategory: $("#budgetCategory"),
     budgetAmount: $("#budgetAmount"),
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     confirmDialog: $("#confirmDialog"),
     confirmTitle: $("#confirmTitle"),
     confirmMessage: $("#confirmMessage"),
     cancelConfirmButton: $("#cancelConfirmButton"),
     confirmDeleteButton: $("#confirmDeleteButton"),
 
+<<<<<<< HEAD
     deleteAccountDialog: $("#deleteAccountDialog"),
     deleteAccountForm: $("#deleteAccountForm"),
     deleteAccountConfirmation: $("#deleteAccountConfirmation"),
     deleteAccountBackupButton: $("#deleteAccountBackupButton"),
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     migrationDialog: $("#migrationDialog"),
     migrationMessage: $("#migrationMessage"),
     migrateDataButton: $("#migrateDataButton"),
@@ -280,14 +339,20 @@ let legacySnapshot = null;
 let toastTimer = null;
 let lastCloudLoad = 0;
 let filters = { search: "", type: "all", category: "all" };
+<<<<<<< HEAD
 let reportState = { mode: "month", referenceDate: toISODate() };
 let deferredInstallPrompt = null;
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
 let state = {
     transactions: [],
     goals: [],
+<<<<<<< HEAD
     budgets: [],
     contributions: [],
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     profile: null,
     settings: {
         theme: localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light",
@@ -354,7 +419,11 @@ function dateWithMonthOffset(offset, preferredDay) {
 }
 
 function categoryDetails(category) {
+<<<<<<< HEAD
     return CATEGORY_DETAILS[category] || { icon: "spark", color: "#8a8ea3" };
+=======
+    return CATEGORY_DETAILS[category] || { icon: "✨", color: "#8a8ea3" };
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 }
 
 function totalByType(transactions, type) {
@@ -368,6 +437,7 @@ function signedCurrency(transaction) {
     return `${signal} ${formatCurrency(transaction.amount)}`;
 }
 
+<<<<<<< HEAD
 function transactionContext(transaction) {
     const parts = [transaction.type === "income" ? "Receita" : "Despesa"];
     parts.push(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other);
@@ -379,6 +449,8 @@ function transactionContext(transaction) {
     return parts.join(" • ");
 }
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 function transactionsForMonth(monthKey, { onlyConfirmed = false, throughToday = false } = {}) {
     const today = toISODate();
     return state.transactions.filter((transaction) => {
@@ -448,7 +520,11 @@ function friendlyError(error) {
     if (message.includes("rate limit")) return "Muitas tentativas seguidas. Aguarde um pouco e tente novamente.";
     if (message.includes("failed to fetch") || message.includes("network")) return "Não foi possível alcançar o servidor. Confira sua conexão.";
     if (message.includes("relation") || message.includes("schema cache") || message.includes("function public")) {
+<<<<<<< HEAD
         return "O banco precisa da atualização V2.1. Execute supabase/migrations/v2_1_additive.sql no SQL Editor do Supabase.";
+=======
+        return "O banco ainda não foi preparado. Execute o arquivo supabase/schema.sql no projeto.";
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     }
     return error?.message || "Algo não saiu como esperado. Tente novamente.";
 }
@@ -513,8 +589,11 @@ async function activateSession(nextSession, { force = false } = {}) {
         state = {
             transactions: cloud.transactions.map(normalizeTransaction).filter(Boolean),
             goals: cloud.goals.map(normalizeGoal).filter(Boolean),
+<<<<<<< HEAD
             budgets: cloud.budgets.map(normalizeBudget).filter(Boolean),
             contributions: cloud.contributions.map(normalizeContribution).filter(Boolean),
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
             profile: cloud.profile,
             settings: {
                 theme: cloud.profile?.theme === "dark" ? "dark" : state.settings.theme,
@@ -535,7 +614,11 @@ async function activateSession(nextSession, { force = false } = {}) {
         setSyncState("ok");
 
         const initialView = window.location.hash.replace("#", "");
+<<<<<<< HEAD
         switchView(["dashboard", "transactions", "goals", "reports"].includes(initialView) ? initialView : "dashboard", false);
+=======
+        switchView(["dashboard", "transactions", "goals"].includes(initialView) ? initialView : "dashboard", false);
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         window.setTimeout(offerLegacyMigration, 180);
     } catch (error) {
         console.error("Falha ao carregar a conta:", error);
@@ -552,8 +635,11 @@ function clearSessionView() {
     activeUserId = null;
     state.transactions = [];
     state.goals = [];
+<<<<<<< HEAD
     state.budgets = [];
     state.contributions = [];
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     state.profile = null;
     closeAccountMenu();
     showAuth("signin");
@@ -817,7 +903,11 @@ function renderRecentTransactions() {
 
     if (!recent.length) {
         elements.recentTransactions.innerHTML = `
+<<<<<<< HEAD
             <div class="empty-state"><span class="empty-icon">${renderIcon("receipt")}</span><strong>Seu caixa começa vazio</strong><p>Registre sua primeira receita ou despesa. Nenhum exemplo foi misturado aos seus dados.</p></div>
+=======
+            <div class="empty-state"><span>🧾</span><strong>Seu caixa começa vazio</strong><p>Registre sua primeira receita ou despesa. Nenhum exemplo foi misturado aos seus dados.</p></div>
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         `;
         return;
     }
@@ -828,8 +918,13 @@ function renderRecentTransactions() {
         const pendingText = transaction.status === "pending" ? " • pendente" : "";
         return `
             <div class="recent-item">
+<<<<<<< HEAD
                 <span class="transaction-icon">${renderIcon(details.icon)}</span>
                 <div class="transaction-main"><strong>${escapeHTML(transaction.description)}</strong><span>${escapeHTML(transaction.category)} • ${escapeHTML(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other)}${pendingText}</span></div>
+=======
+                <span class="transaction-icon">${details.icon}</span>
+                <div class="transaction-main"><strong>${escapeHTML(transaction.description)}</strong><span>${escapeHTML(transaction.category)}${pendingText}</span></div>
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
                 <span class="recent-date">${escapeHTML(formatDate(transaction.date, { day: "2-digit", month: "short" }))}</span>
                 <strong class="recent-value ${valueClass}">${escapeHTML(signedCurrency(transaction))}</strong>
             </div>
@@ -898,7 +993,11 @@ function renderTransactionTable() {
     const transactions = getFilteredTransactions();
     if (!transactions.length) {
         elements.transactionRows.innerHTML = `
+<<<<<<< HEAD
             <tr class="empty-table-row"><td colspan="6"><div class="empty-state"><span class="empty-icon">${renderIcon("search")}</span><strong>Nada encontrado</strong><p>Altere os filtros ou registre um movimento em ${escapeHTML(formatMonthLabel(state.settings.selectedMonth))}.</p></div></td></tr>
+=======
+            <tr class="empty-table-row"><td colspan="6"><div class="empty-state"><span>🔎</span><strong>Nada encontrado</strong><p>Altere os filtros ou registre um movimento em ${escapeHTML(formatMonthLabel(state.settings.selectedMonth))}.</p></div></td></tr>
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         `;
     } else {
         elements.transactionRows.innerHTML = transactions.map((transaction) => {
@@ -909,10 +1008,17 @@ function renderTransactionTable() {
                 <tr class="transaction-row">
                     <td class="movement-cell">
                         <div class="transaction-cell-main">
+<<<<<<< HEAD
                             <span class="transaction-icon">${renderIcon(details.icon)}</span>
                             <div class="transaction-description">
                                 <strong>${escapeHTML(transaction.description)}</strong>
                                 <small>${escapeHTML(transactionContext(transaction))}</small>
+=======
+                            <span class="transaction-icon">${details.icon}</span>
+                            <div class="transaction-description">
+                                <strong>${escapeHTML(transaction.description)}</strong>
+                                <small>${isIncome ? "Receita" : "Despesa"}</small>
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
                                 <span class="mobile-transaction-meta">
                                     <i>${escapeHTML(transaction.category)}</i><i>${escapeHTML(formatDate(transaction.date, { day: "2-digit", month: "short" }))}</i><i class="${transaction.status === "pending" ? "pending" : ""}">${statusText}</i>
                                 </span>
@@ -955,7 +1061,11 @@ function renderGoals() {
     elements.goalsOverallBar.style.width = `${overallPercent}%`;
 
     if (!state.goals.length) {
+<<<<<<< HEAD
         elements.goalsGrid.innerHTML = `<div class="panel empty-state"><span class="empty-icon">${renderIcon("target")}</span><strong>Seu próximo plano começa aqui</strong><p>Crie uma meta e registre aportes para acompanhar o caminho.</p></div>`;
+=======
+        elements.goalsGrid.innerHTML = '<div class="panel empty-state"><span>🎯</span><strong>Seu próximo plano começa aqui</strong><p>Crie uma meta e atualize manualmente o valor que já separou.</p></div>';
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         return;
     }
 
@@ -963,6 +1073,7 @@ function renderGoals() {
         const rawPercent = Number(goal.target) > 0 ? (Number(goal.current) / Number(goal.target)) * 100 : 0;
         const percent = clamp(rawPercent, 0, 100);
         const completed = rawPercent >= 100;
+<<<<<<< HEAD
         const contributions = state.contributions
             .filter((contribution) => contribution.goalId === goal.id)
             .sort((a, b) => b.date.localeCompare(a.date))
@@ -971,12 +1082,19 @@ function renderGoals() {
             <article class="goal-card ${completed ? "completed" : ""}">
                 <div class="goal-card-header">
                     <span class="goal-icon">${renderIcon(GOAL_ICON_NAMES[goal.icon] || "spark")}</span>
+=======
+        return `
+            <article class="goal-card ${completed ? "completed" : ""}">
+                <div class="goal-card-header">
+                    <span class="goal-icon">${escapeHTML(goal.icon)}</span>
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
                     <div class="goal-title-wrap"><h3>${escapeHTML(goal.name)}</h3><span>Prazo: ${escapeHTML(formatDate(goal.deadline, { month: "long", year: "numeric" }))}</span></div>
                     <div class="goal-actions">
                         <button class="row-action" type="button" data-action="edit-goal" data-id="${escapeHTML(goal.id)}" aria-label="Editar ${escapeHTML(goal.name)}" title="Editar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>
                         <button class="row-action delete" type="button" data-action="delete-goal" data-id="${escapeHTML(goal.id)}" aria-label="Excluir ${escapeHTML(goal.name)}" title="Excluir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/></svg></button>
                     </div>
                 </div>
+<<<<<<< HEAD
                 <div class="goal-values"><div><span>JÁ SEPARADO</span><strong>${escapeHTML(formatCurrency(goal.current))}</strong><small>de ${escapeHTML(formatCurrency(goal.target))}</small></div><b class="goal-percent">${percent.toFixed(0)}%</b></div>
                 <div class="goal-progress"><i style="width:${percent}%"></i></div>
                 <div class="goal-contribution-row">
@@ -986,12 +1104,17 @@ function renderGoals() {
                 ${contributions.length ? `<div class="goal-history">${contributions.map((contribution) => `
                     <div><span>${escapeHTML(formatDate(contribution.date, { day: "2-digit", month: "short" }))}</span><strong>+ ${escapeHTML(formatCurrency(contribution.amount))}</strong>${contribution.note ? `<small>${escapeHTML(contribution.note)}</small>` : ""}</div>
                 `).join("")}</div>` : ""}
+=======
+                <div class="goal-values"><div><span>Você informou</span><strong>${escapeHTML(formatCurrency(goal.current))}</strong><small>de ${escapeHTML(formatCurrency(goal.target))} • ajuste manual</small></div><b class="goal-percent">${percent.toFixed(0)}%</b></div>
+                <div class="goal-progress"><i style="width:${percent}%"></i></div>
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
                 ${completed ? '<span class="completed-label">✓ Meta conquistada!</span>' : ""}
             </article>
         `;
     }).join("");
 }
 
+<<<<<<< HEAD
 function renderForecast() {
     const today = toISODate();
     const breathing = getBreathingDays(state.transactions, today, 90);
@@ -1137,6 +1260,8 @@ function renderReports() {
     renderBudgets(reportState.referenceDate.slice(0, 7));
 }
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 function renderAll() {
     elements.monthFilter.value = state.settings.selectedMonth;
     renderGreeting();
@@ -1147,8 +1272,11 @@ function renderAll() {
     renderCategoryFilter();
     renderTransactionTable();
     renderGoals();
+<<<<<<< HEAD
     renderForecast();
     renderReports();
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 }
 
 /* ================================================================
@@ -1156,9 +1284,15 @@ function renderAll() {
 ================================================================ */
 
 function switchView(viewName, scroll = true) {
+<<<<<<< HEAD
     const validViews = ["dashboard", "transactions", "goals", "reports"];
     const selectedView = validViews.includes(viewName) ? viewName : "dashboard";
     const titles = { dashboard: "Pulso atual", transactions: "Extrato completo", goals: "Planos futuros", reports: "Raio-X financeiro" };
+=======
+    const validViews = ["dashboard", "transactions", "goals"];
+    const selectedView = validViews.includes(viewName) ? viewName : "dashboard";
+    const titles = { dashboard: "Pulso atual", transactions: "Extrato completo", goals: "Planos futuros" };
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     document.querySelectorAll("[data-view-section]").forEach((section) => section.classList.toggle("active", section.dataset.viewSection === selectedView));
     document.querySelectorAll(".rail-link[data-view]").forEach((button) => {
         const active = button.dataset.view === selectedView;
@@ -1178,11 +1312,16 @@ function defaultDateForSelectedMonth() {
 function updateTransactionCategoryOptions(type, preferredCategory = null) {
     const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
     elements.transactionCategory.innerHTML = categories
+<<<<<<< HEAD
         .map((category) => `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`)
+=======
+        .map((category) => `<option value="${escapeHTML(category)}">${categoryDetails(category).icon} ${escapeHTML(category)}</option>`)
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         .join("");
     elements.transactionCategory.value = preferredCategory && categories.includes(preferredCategory) ? preferredCategory : categories[0];
 }
 
+<<<<<<< HEAD
 function updateTransactionModeUI() {
     const type = elements.transactionForm.querySelector('input[name="transactionType"]:checked')?.value || "expense";
     const editing = Boolean(elements.transactionId.value);
@@ -1201,6 +1340,8 @@ function updateTransactionModeUI() {
     elements.installmentCount.required = !editing && mode === "installment";
 }
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 function openTransactionDialog(transactionId = null) {
     const transaction = state.transactions.find((item) => item.id === transactionId);
     elements.transactionForm.reset();
@@ -1214,12 +1355,15 @@ function openTransactionDialog(transactionId = null) {
     elements.transactionAmount.value = transaction?.amount || "";
     elements.transactionDate.value = transaction?.date || defaultDateForSelectedMonth();
     elements.transactionStatus.value = transaction?.status || "paid";
+<<<<<<< HEAD
     elements.transactionPaymentMethod.value = transaction?.paymentMethod || "other";
     elements.transactionMode.value = "single";
     elements.recurrenceFrequency.value = "monthly";
     elements.recurrenceCount.value = "12";
     elements.installmentCount.value = "2";
     updateTransactionModeUI();
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     elements.transactionDialog.showModal();
     window.setTimeout(() => elements.transactionDescription.focus(), 80);
 }
@@ -1227,7 +1371,10 @@ function openTransactionDialog(transactionId = null) {
 async function handleTransactionSubmit(event) {
     event.preventDefault();
     if (!session?.user) return;
+<<<<<<< HEAD
     const original = state.transactions.find((transaction) => transaction.id === elements.transactionId.value);
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     const data = normalizeTransaction({
         id: elements.transactionId.value,
         description: elements.transactionDescription.value,
@@ -1235,12 +1382,16 @@ async function handleTransactionSubmit(event) {
         type: elements.transactionForm.querySelector('input[name="transactionType"]:checked')?.value,
         category: elements.transactionCategory.value,
         date: elements.transactionDate.value,
+<<<<<<< HEAD
         status: elements.transactionStatus.value,
         paymentMethod: elements.transactionPaymentMethod.value,
         seriesId: original?.seriesId,
         seriesKind: original?.seriesKind,
         installmentNumber: original?.installmentNumber,
         installmentTotal: original?.installmentTotal
+=======
+        status: elements.transactionStatus.value
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     });
     if (!data) {
         showToast("Revise descrição, valor, categoria e data.", "warning");
@@ -1251,6 +1402,7 @@ async function handleTransactionSubmit(event) {
     setButtonBusy(elements.transactionForm, true, "SALVANDO");
     setSyncState("busy");
     try {
+<<<<<<< HEAD
         if (editing) {
             const saved = await saveTransaction(session.user.id, data);
             state.transactions = state.transactions.map((item) => item.id === saved.id ? saved : item);
@@ -1277,6 +1429,15 @@ async function handleTransactionSubmit(event) {
         showToast(editing
             ? "Movimentação atualizada."
             : generatedCount > 1 ? `${generatedCount} lançamentos criados com segurança.` : "Movimentação registrada.");
+=======
+        const saved = await saveTransaction(session.user.id, data);
+        if (editing) state.transactions = state.transactions.map((item) => item.id === saved.id ? saved : item);
+        else state.transactions.push(saved);
+        renderAll();
+        elements.transactionDialog.close();
+        setSyncState("ok");
+        showToast(editing ? "Movimentação atualizada." : "Movimentação registrada.");
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     } catch (error) {
         setSyncState("error");
         showToast(friendlyError(error), "error");
@@ -1337,6 +1498,7 @@ async function handleGoalSubmit(event) {
     }
 }
 
+<<<<<<< HEAD
 function openContributionDialog(goalId) {
     const goal = state.goals.find((item) => item.id === goalId);
     if (!goal) return;
@@ -1505,6 +1667,15 @@ function requestDeletion(kind, id) {
     const itemName = kind === "transaction" ? item.description : kind === "goal" ? item.name : item.category;
     elements.confirmTitle.textContent = titles[kind];
     elements.confirmMessage.textContent = `“${itemName}” será removido do seu caixa sincronizado.`;
+=======
+function requestDeletion(kind, id) {
+    const item = kind === "transaction"
+        ? state.transactions.find((transaction) => transaction.id === id)
+        : state.goals.find((goal) => goal.id === id);
+    if (!item) return;
+    elements.confirmTitle.textContent = kind === "transaction" ? "Excluir movimentação?" : "Excluir plano?";
+    elements.confirmMessage.textContent = `“${kind === "transaction" ? item.description : item.name}” será removido do seu caixa sincronizado.`;
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     pendingDeletion = { kind, id };
     elements.confirmDialog.showModal();
 }
@@ -1518,6 +1689,7 @@ async function confirmDeletion() {
         if (deletion.kind === "transaction") {
             await removeTransaction(session.user.id, deletion.id);
             state.transactions = state.transactions.filter((item) => item.id !== deletion.id);
+<<<<<<< HEAD
         } else if (deletion.kind === "goal") {
             await removeGoal(session.user.id, deletion.id);
             state.goals = state.goals.filter((item) => item.id !== deletion.id);
@@ -1525,12 +1697,21 @@ async function confirmDeletion() {
         } else {
             await removeBudget(session.user.id, deletion.id);
             state.budgets = state.budgets.filter((item) => item.id !== deletion.id);
+=======
+        } else {
+            await removeGoal(session.user.id, deletion.id);
+            state.goals = state.goals.filter((item) => item.id !== deletion.id);
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         }
         pendingDeletion = null;
         elements.confirmDialog.close();
         renderAll();
         setSyncState("ok");
+<<<<<<< HEAD
         showToast(deletion.kind === "transaction" ? "Movimentação excluída." : deletion.kind === "goal" ? "Plano excluído." : "Limite excluído.");
+=======
+        showToast(deletion.kind === "transaction" ? "Movimentação excluída." : "Plano excluído.");
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     } catch (error) {
         setSyncState("error");
         showToast(friendlyError(error), "error");
@@ -1550,17 +1731,26 @@ function exportTransactionsToCsv() {
         return;
     }
     const rows = [
+<<<<<<< HEAD
         ["Descrição", "Tipo", "Categoria", "Forma", "Data", "Status", "Série", "Valor"],
+=======
+        ["Descrição", "Tipo", "Categoria", "Data", "Status", "Valor"],
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         ...transactions.map((transaction) => [
             transaction.description,
             transaction.type === "income" ? "Receita" : "Despesa",
             transaction.category,
+<<<<<<< HEAD
             PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other,
             transaction.date.split("-").reverse().join("/"),
             transaction.status === "paid" ? "Confirmada" : "Pendente",
             transaction.seriesKind === "installment"
                 ? `Parcela ${transaction.installmentNumber}/${transaction.installmentTotal}`
                 : transaction.seriesKind === "recurring" ? "Recorrente" : "Única",
+=======
+            transaction.date.split("-").reverse().join("/"),
+            transaction.status === "paid" ? "Confirmada" : "Pendente",
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
             Number(transaction.amount).toFixed(2).replace(".", ",")
         ])
     ];
@@ -1587,13 +1777,21 @@ async function importBackupFile(file) {
         if (normalized.rejected > 0) throw new Error(`${normalized.rejected} registro(s) inválido(s) foram encontrados. Nada foi importado.`);
 
         const confirmed = window.confirm(
+<<<<<<< HEAD
             `Este backup possui ${normalized.transactions.length} movimentações, ${normalized.goals.length} planos, ${normalized.budgets.length} limites e ${normalized.contributions.length} aportes.\n\nEle substituirá os dados atuais desta conta. Uma cópia dos dados atuais será baixada antes. Deseja continuar?`
+=======
+            `Este backup possui ${normalized.transactions.length} movimentações e ${normalized.goals.length} planos.\n\nEle substituirá os dados atuais desta conta. Uma cópia dos dados atuais será baixada antes. Deseja continuar?`
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         );
         if (!confirmed) return;
 
         exportBackup("folego-antes-da-restauracao");
         setSyncOverlay(true, "Restaurando o backup com segurança...");
+<<<<<<< HEAD
         await replaceUserSnapshot(normalized.transactions, normalized.goals, normalized.budgets, normalized.contributions);
+=======
+        await replaceUserSnapshot(normalized.transactions, normalized.goals);
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         state.settings = normalized.settings;
         await activateSession(session, { force: true });
         applyTheme(state.settings.theme);
@@ -1728,8 +1926,11 @@ async function refreshFromCloud() {
         const cloud = await loadUserData(session.user.id);
         state.transactions = cloud.transactions.map(normalizeTransaction).filter(Boolean);
         state.goals = cloud.goals.map(normalizeGoal).filter(Boolean);
+<<<<<<< HEAD
         state.budgets = cloud.budgets.map(normalizeBudget).filter(Boolean);
         state.contributions = cloud.contributions.map(normalizeContribution).filter(Boolean);
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         state.profile = cloud.profile;
         lastCloudLoad = Date.now();
         renderAll();
@@ -1766,7 +1967,10 @@ elements.themeToggle.addEventListener("click", toggleTheme);
 elements.monthFilter.addEventListener("change", () => {
     if (!isValidMonth(elements.monthFilter.value)) return;
     state.settings.selectedMonth = elements.monthFilter.value;
+<<<<<<< HEAD
     if (reportState.mode === "month") reportState.referenceDate = `${elements.monthFilter.value}-01`;
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     renderAll();
 });
 
@@ -1775,6 +1979,7 @@ elements.monthFilter.addEventListener("change", () => {
 $("#newGoalButton")?.addEventListener("click", () => openGoalDialog());
 elements.transactionForm.addEventListener("submit", handleTransactionSubmit);
 elements.goalForm.addEventListener("submit", handleGoalSubmit);
+<<<<<<< HEAD
 elements.contributionForm.addEventListener("submit", handleContributionSubmit);
 elements.budgetForm.addEventListener("submit", handleBudgetSubmit);
 elements.transactionForm.querySelectorAll('input[name="transactionType"]').forEach((input) => {
@@ -1784,6 +1989,11 @@ elements.transactionForm.querySelectorAll('input[name="transactionType"]').forEa
     });
 });
 elements.transactionMode.addEventListener("change", updateTransactionModeUI);
+=======
+elements.transactionForm.querySelectorAll('input[name="transactionType"]').forEach((input) => {
+    input.addEventListener("change", () => updateTransactionCategoryOptions(input.value));
+});
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
 elements.transactionSearch.addEventListener("input", () => { filters.search = elements.transactionSearch.value; renderTransactionTable(); });
 elements.typeFilter.addEventListener("change", () => { filters.type = elements.typeFilter.value; renderTransactionTable(); });
@@ -1802,6 +2012,7 @@ elements.goalsGrid.addEventListener("click", (event) => {
     if (!button) return;
     if (button.dataset.action === "edit-goal") openGoalDialog(button.dataset.id);
     if (button.dataset.action === "delete-goal") requestDeletion("goal", button.dataset.id);
+<<<<<<< HEAD
     if (button.dataset.action === "contribute-goal") openContributionDialog(button.dataset.id);
 });
 
@@ -1828,12 +2039,15 @@ elements.budgetList.addEventListener("click", (event) => {
     if (!button) return;
     if (button.dataset.action === "edit-budget") openBudgetDialog(button.dataset.id);
     if (button.dataset.action === "delete-budget") requestDeletion("budget", button.dataset.id);
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 });
 
 document.querySelectorAll("[data-close-dialog]").forEach((button) => {
     button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`)?.close());
 });
 
+<<<<<<< HEAD
 [
     elements.transactionDialog,
     elements.goalDialog,
@@ -1842,6 +2056,9 @@ document.querySelectorAll("[data-close-dialog]").forEach((button) => {
     elements.confirmDialog,
     elements.deleteAccountDialog
 ].forEach((dialog) => dialog.addEventListener("click", closeDialogOnBackdrop));
+=======
+[elements.transactionDialog, elements.goalDialog, elements.confirmDialog].forEach((dialog) => dialog.addEventListener("click", closeDialogOnBackdrop));
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 elements.cancelConfirmButton.addEventListener("click", () => { pendingDeletion = null; elements.confirmDialog.close(); });
 elements.confirmDeleteButton.addEventListener("click", confirmDeletion);
 
@@ -1852,6 +2069,7 @@ elements.signOutButton.addEventListener("click", handleSignOut);
 elements.exportBackupButton.addEventListener("click", () => { exportBackup(); closeAccountMenu(); showToast("Backup completo exportado."); });
 elements.importBackupButton.addEventListener("click", () => { closeAccountMenu(); elements.backupFileInput.click(); });
 elements.backupFileInput.addEventListener("change", () => importBackupFile(elements.backupFileInput.files?.[0]));
+<<<<<<< HEAD
 elements.deleteAccountButton.addEventListener("click", () => {
     closeAccountMenu();
     elements.deleteAccountForm.reset();
@@ -1870,6 +2088,8 @@ elements.installAppButton.addEventListener("click", async () => {
     elements.installAppButton.hidden = true;
     closeAccountMenu();
 });
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
 elements.migrateDataButton.addEventListener("click", migrateLegacyData);
 elements.skipMigrationButton.addEventListener("click", skipLegacyMigration);
@@ -1878,6 +2098,7 @@ elements.downloadLegacyButton.addEventListener("click", downloadLegacyCopy);
 window.addEventListener("online", () => { setSyncState("ok", "Reconectando..."); refreshFromCloud(); });
 window.addEventListener("offline", () => setSyncState("error", "Sem conexão"));
 window.addEventListener("focus", refreshFromCloud);
+<<<<<<< HEAD
 window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
@@ -1888,6 +2109,8 @@ window.addEventListener("appinstalled", () => {
     elements.installAppButton.hidden = true;
     showToast("Fôlego instalado neste aparelho.");
 });
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
 /* ================================================================
    INICIALIZAÇÃO
@@ -1902,12 +2125,15 @@ async function initialize() {
         year: "numeric"
     }).format(new Date()).toUpperCase();
 
+<<<<<<< HEAD
     if ("serviceWorker" in navigator && import.meta.env.PROD) {
         navigator.serviceWorker.register("/sw.js").catch((error) => {
             console.warn("O modo instalável não pôde ser ativado:", error);
         });
     }
 
+=======
+>>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     if (!isSupabaseConfigured) {
         showAuth("signin");
         elements.authConfigWarning.hidden = false;
