@@ -43,6 +43,7 @@ import {
     THEME_STORAGE_KEY,
     toISODate
 } from "./src/domain.js";
+import { generateFinancialReportPdf } from "./src/report-pdf.js";
 
 /* ================================================================
    FÔLEGO V2 — INTERFACE E ORQUESTRAÇÃO
@@ -410,6 +411,23 @@ function downloadText(content, filename, type) {
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function downloadBlob(blob, filename) {
+    if (!(blob instanceof Blob) || blob.size === 0) {
+        throw new Error("O relatório PDF ficou vazio.");
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.rel = "noopener";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 function setSyncState(kind, label) {
@@ -1437,7 +1455,7 @@ async function handleBudgetSubmit(event) {
     }
 }
 
-async function exportReportPdf() {
+function exportReportPdf() {
     const report = getCurrentReport();
     if (!report.transactions.length) {
         showToast("Não há movimentos confirmados neste período para o PDF.", "warning");
@@ -1446,8 +1464,7 @@ async function exportReportPdf() {
 
     elements.exportPdfButton.disabled = true;
     try {
-        const { generateFinancialReportPdf } = await import("./src/report-pdf.js");
-        generateFinancialReportPdf({
+        const { blob, filename } = generateFinancialReportPdf({
             profileName: getDisplayName(),
             email: session?.user?.email || "",
             periodLabel: report.periodLabel,
@@ -1461,6 +1478,7 @@ async function exportReportPdf() {
                 methodLabel: PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other
             }))
         });
+        downloadBlob(blob, filename);
         showToast("Relatório PDF baixado.");
     } catch (error) {
         console.error("Falha ao gerar PDF:", error);
