@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fôlego">
+  <rect width="512" height="512" fill="#11120e"/>
+  <path d="M68 0h122l-35 185H33z" fill="#c8ff3d"/>
+  <path d="M367 512h-91l29-151h91z" fill="#ff4e1a"/>
+  <path d="M126 382 211 96h224l-16 58H269l-19 65h132l-17 58H233l-31 105z" fill="#fffdf5"/>
+  <path d="M108 407h274" stroke="#fffdf5" stroke-width="15"/>
+</svg>

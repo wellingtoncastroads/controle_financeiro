@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fôlego — um livro-caixa pessoal para entender o presente e financiar o futuro.">
+    <meta name="theme-color" content="#eeebe2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Fôlego | Livro-caixa pessoal</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/assets/folego-mark.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- A textura cria a sensação de papel impresso sem usar imagem externa. -->
+    <div class="paper-noise" aria-hidden="true"></div>
+
+    <!-- Abertura curta enquanto o Supabase restaura uma sessão já existente. -->
+    <div class="boot-screen" id="bootScreen" role="status" aria-live="polite">
+        <div class="boot-mark"><span>F</span><i>ôlego</i></div>
+        <p>ABRINDO O LIVRO-CAIXA</p>
+        <div class="boot-line"><i></i></div>
+    </div>
+
+    <!-- =============================================================
+         PORTA DE ENTRADA — LOGIN, CADASTRO E RECUPERAÇÃO
+    ============================================================== -->
+    <main class="auth-shell" id="authShell" aria-label="Acesso ao Fôlego" hidden>
+        <section class="auth-manifesto" aria-labelledby="authManifestoTitle">
+            <header class="auth-brandline">
+                <a href="#" aria-label="Fôlego, página de acesso">
+                    <span>F</span>
+                    <strong>FÔLEGO</strong>
+                </a>
+                <p>LIVRO-CAIXA PESSOAL / EDIÇÃO 02</p>
+            </header>
+
+            <div class="auth-manifesto-copy">
+                <span class="auth-kicker"><i></i> SEU DINHEIRO, NO SEU RITMO</span>
+                <h1 id="authManifestoTitle">Antes dos números,<br>um lugar <em>seu.</em></h1>
+                <p>Entre para continuar de onde parou. Seus registros ficam sincronizados e protegidos por conta.</p>
+            </div>
+
+            <div class="auth-pulse" aria-hidden="true">
+                <span>PRIVADO</span><i></i><span>SINCRONIZADO</span><i></i><span>SEU</span>
+            </div>
+
+            <footer class="auth-editorial-foot">
+                <span id="authToday">HOJE</span>
+                <p>LEIA OS NÚMEROS.<br>MUDE O RITMO.</p>
+                <b>02 / 26</b>
+            </footer>
+        </section>
+
+        <section class="auth-desk" aria-label="Acesso à conta">
+            <div class="auth-ticket">
+                <div class="auth-ticket-top">
+                    <span>ACESSO / CONTA</span>
+                    <b>FÔLEGO®</b>
+                </div>
+
+                <div class="auth-config-warning" id="authConfigWarning" hidden>
+                    <strong>Falta conectar o Supabase.</strong>
+                    <p>Adicione as variáveis do arquivo <code>.env.example</code> para liberar o acesso.</p>
+                </div>
+
+                <div class="auth-view active" data-auth-panel="signin">
+                    <span class="auth-step">01 — VOLTAR AO SEU CAIXA</span>
+                    <h2>Que bom ter<br>você de volta.</h2>
+
+                    <form class="auth-form" id="signInForm">
+                        <label>
+                            <span>E-MAIL</span>
+                            <input type="email" id="signInEmail" autocomplete="email" placeholder="voce@email.com" required>
+                        </label>
+                        <div class="auth-field">
+                            <label for="signInPassword">SENHA</label>
+                            <div class="password-field">
+                                <input type="password" id="signInPassword" autocomplete="current-password" minlength="8" placeholder="Sua senha" required>
+                                <button type="button" data-toggle-password="signInPassword" aria-label="Mostrar senha">VER</button>
+                            </div>
+                        </div>
+                        <button class="auth-primary" type="submit">ENTRAR NO FÔLEGO <span>→</span></button>
+                    </form>
+
+                    <div class="auth-links">
+                        <button type="button" data-auth-view="signup">Criar minha conta</button>
+                        <button type="button" data-auth-view="forgot">Esqueci a senha</button>
+                    </div>
+                </div>
+
+                <div class="auth-view" data-auth-panel="signup" hidden>
+                    <span class="auth-step">02 — PRIMEIRA PÁGINA</span>
+                    <h2>Um começo<br>sem números falsos.</h2>
+
+                    <form class="auth-form" id="signUpForm">
+                        <label>
+                            <span>COMO QUER SER CHAMADO?</span>
+                            <input type="text" id="signUpName" autocomplete="name" maxlength="60" placeholder="Seu primeiro nome" required>
+                        </label>
+                        <label>
+                            <span>E-MAIL</span>
+                            <input type="email" id="signUpEmail" autocomplete="email" placeholder="voce@email.com" required>
+                        </label>
+                        <div class="auth-field">
+                            <label for="signUpPassword">SENHA / MÍNIMO 8 CARACTERES</label>
+                            <div class="password-field">
+                                <input type="password" id="signUpPassword" autocomplete="new-password" minlength="8" placeholder="Crie uma senha" required>
+                                <button type="button" data-toggle-password="signUpPassword" aria-label="Mostrar senha">VER</button>
+                            </div>
+                        </div>
+                        <button class="auth-primary" type="submit">CRIAR CONTA <span>→</span></button>
+                    </form>
+
+                    <div class="auth-links single">
+                        <button type="button" data-auth-view="signin">Já tenho uma conta</button>
+                    </div>
+                </div>
+
+                <div class="auth-view" data-auth-panel="forgot" hidden>
+                    <span class="auth-step">03 — RECUPERAR ACESSO</span>
+                    <h2>Respira.<br>A gente resolve.</h2>
+                    <p class="auth-explanation">Enviaremos um link seguro para você escolher uma senha nova.</p>
+
+                    <form class="auth-form" id="forgotPasswordForm">
+                        <label>
+                            <span>E-MAIL DA CONTA</span>
+                            <input type="email" id="forgotEmail" autocomplete="email" placeholder="voce@email.com" required>
+                        </label>
+                        <button class="auth-primary" type="submit">ENVIAR LINK <span>→</span></button>
+                    </form>
+
+                    <div class="auth-links single">
+                        <button type="button" data-auth-view="signin">Voltar para entrar</button>
+                    </div>
+                </div>
+
+                <div class="auth-view" data-auth-panel="recovery" hidden>
+                    <span class="auth-step">04 — NOVA SENHA</span>
+                    <h2>Abra uma<br>porta nova.</h2>
+
+                    <form class="auth-form" id="updatePasswordForm">
+                        <div class="auth-field">
+                            <label for="newPassword">NOVA SENHA / MÍNIMO 8 CARACTERES</label>
+                            <div class="password-field">
+                                <input type="password" id="newPassword" autocomplete="new-password" minlength="8" placeholder="Sua nova senha" required>
+                                <button type="button" data-toggle-password="newPassword" aria-label="Mostrar senha">VER</button>
+                            </div>
+                        </div>
+                        <button class="auth-primary" type="submit">ATUALIZAR SENHA <span>→</span></button>
+                    </form>
+                </div>
+
+                <p class="auth-status" id="authStatus" role="status" aria-live="polite"></p>
+                <footer class="auth-ticket-foot">SEUS DADOS NÃO SÃO COMPARTILHADOS ENTRE CONTAS</footer>
+            </div>
+        </section>
+    </main>
+
+    <!-- O aplicativo só aparece depois que uma sessão válida é confirmada. -->
+    <div class="app-shell" id="appShell" hidden>
+
+    <!-- Navegação em formato de índice. No celular, ela vira uma barra inferior. -->
+    <aside class="index-rail" aria-label="Índice do sistema">
+        <a class="rail-brand" href="#dashboard" aria-label="Ir para o painel">
+            <span>F</span><i>ôlego</i>
+        </a>
+
+        <nav class="rail-nav">
+            <button class="rail-link active" type="button" data-view="dashboard" aria-current="page">
+                <span>01</span>
+                <strong>Pulso</strong>
+            </button>
+            <button class="rail-link" type="button" data-view="transactions">
+                <span>02</span>
+                <strong>Extrato</strong>
+            </button>
+            <button class="rail-link" type="button" data-view="goals">
+                <span>03</span>
+                <strong>Planos</strong>
+            </button>
+            <button class="rail-link" type="button" data-view="reports">
+                <span>04</span>
+                <strong>Raio-X</strong>
+            </button>
+        </nav>
+
+        <div class="rail-signature" aria-hidden="true">
+            <span>W. ANDRADE</span>
+            <b>2026</b>
+        </div>
+    </aside>
+
+    <div class="app-frame">
+        <!-- Cabeçalho editorial: marca, identificação da tela, mês e ações. -->
+        <header class="masthead" aria-label="Cabeçalho principal">
+            <div class="wordmark">
+                <strong>FÔLEGO</strong>
+                <span>livro-caixa pessoal</span>
+            </div>
+
+            <div class="issue-label">
+                <span id="todayLabel">Hoje</span>
+                <h1 id="pageTitle">Pulso atual</h1>
+            </div>
+
+            <div class="masthead-actions">
+                <div class="account-control">
+                    <button class="account-button" id="accountButton" type="button" aria-expanded="false" aria-controls="accountMenu">
+                        <span id="accountInitials">EU</span>
+                        <span class="account-copy"><strong id="accountName">Minha conta</strong><small id="syncStatus">Sincronizado</small></span>
+                        <i aria-hidden="true">⌄</i>
+                    </button>
+                    <div class="account-menu" id="accountMenu" hidden>
+                        <div class="account-menu-head">
+                            <span>CONTA ATIVA</span>
+                            <strong id="accountEmail">—</strong>
+                        </div>
+                        <button id="exportBackupButton" type="button">Exportar backup <span>.JSON ↓</span></button>
+                        <button id="importBackupButton" type="button">Importar backup <span>.JSON ↑</span></button>
+                        <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
+                        <button id="installAppButton" type="button" hidden>Instalar neste aparelho <span>APP ↓</span></button>
+                        <button class="delete-account-button" id="deleteAccountButton" type="button">Excluir conta e dados <span>×</span></button>
+                        <button class="signout-button" id="signOutButton" type="button">Sair desta conta <span>→</span></button>
+                        <small class="account-version">FÔLEGO / V2.1</small>
+                    </div>
+                </div>
+
+                <label class="month-stamp">
+                    <span>MÊS / ANO</span>
+                    <input type="month" id="monthFilter" aria-label="Escolher mês">
+                </label>
+
+                <button class="invert-button" id="themeToggle" type="button" aria-label="Inverter cores">
+                    <span class="invert-symbol" aria-hidden="true">◐</span>
+                    <span class="invert-copy">Inverter<br>cores</span>
+                </button>
+
+                <button class="register-button" id="topbarNewTransaction" type="button">
+                    <span>+</span>
+                    Registrar
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content" aria-label="Painel financeiro do Fôlego">
+            <!-- =====================================================
+                 01 — PULSO ATUAL
+            ====================================================== -->
+            <section class="view active" id="dashboardView" data-view-section="dashboard">
+                <div class="view-index" aria-hidden="true">
+                    <span>01</span>
+                    <i></i>
+                    <b>AGORA</b>
+                </div>
+
+                <!-- O saldo ocupa o palco principal; ao lado há um recibo do mês. -->
+                <section class="balance-stage">
+                    <div class="balance-field">
+                        <p class="signal-label"><i></i> SALDO CONFIRMADO ATÉ HOJE</p>
+                        <h2 id="greetingTitle">Olá, Wellington.</h2>
+                        <span class="balance-question">Quanto você tem de fôlego hoje?</span>
+                        <strong class="hero-balance" id="currentBalance">R$ 0,00</strong>
+
+                        <div class="balance-footer">
+                            <p id="balanceCaption">Calculando seu mês...</p>
+                            <button class="ink-button" id="bannerNewTransaction" type="button">
+                                <span>+</span> Anotar movimento
+                            </button>
+                        </div>
+
+                        <div class="balance-tape">
+                            <span>PROJEÇÃO / TOTAL</span>
+                            <strong id="bannerBalance">R$ 0,00</strong>
+                            <i>ATUALIZADO AGORA</i>
+                        </div>
+                    </div>
+
+                    <article class="month-receipt">
+                        <header class="receipt-head">
+                            <span>FECHAMENTO PARCIAL</span>
+                            <b>FÔLEGO®</b>
+                        </header>
+
+                        <div class="receipt-mark">//</div>
+
+                        <div class="receipt-line receipt-income">
+                            <div>
+                                <span>ENTROU</span>
+                                <small id="incomeTrend"><b>—</b> mês anterior</small>
+                            </div>
+                            <strong id="monthlyIncome">R$ 0,00</strong>
+                        </div>
+
+                        <div class="receipt-line receipt-expense">
+                            <div>
+                                <span>SAIU</span>
+                                <small id="expenseTrend"><b>—</b> mês anterior</small>
+                            </div>
+                            <strong id="monthlyExpense">R$ 0,00</strong>
+                        </div>
+
+                        <div class="receipt-rule"></div>
+
+                        <div class="receipt-result">
+                            <span>SOBROU NO MÊS</span>
+                            <strong id="monthlySavings">R$ 0,00</strong>
+                            <small id="savingsCaption">Calculando...</small>
+                        </div>
+
+                        <div class="barcode" aria-hidden="true"></div>
+                        <footer>LEIA OS NÚMEROS. MUDE O RITMO.</footer>
+                    </article>
+                </section>
+
+                <!-- Gráfico e distribuição usam uma composição assimétrica. -->
+                <section class="rhythm-layout">
+                    <article class="chart-board">
+                        <header class="board-heading">
+                            <div>
+                                <span class="section-code">A / 06 MESES</span>
+                                <h3>Ritmo do dinheiro</h3>
+                            </div>
+                            <div class="chart-key" role="group" aria-label="Legenda">
+                                <span><i></i> Entrou</span>
+                                <span><i></i> Saiu</span>
+                            </div>
+                        </header>
+
+                        <div class="bar-chart" id="cashFlowChart" role="img" aria-label="Entradas e saídas dos últimos seis meses" aria-describedby="cashFlowSummary"></div>
+                        <p class="sr-only" id="cashFlowSummary"></p>
+
+                        <footer class="board-footnote">
+                            <span>LEITURA</span>
+                            <p>Quanto maior a distância entre as barras, maior o espaço para respirar.</p>
+                        </footer>
+                    </article>
+
+                    <article class="category-board">
+                        <header class="board-heading">
+                            <div>
+                                <span class="section-code">B / PRESSÃO</span>
+                                <h3>O que pesa</h3>
+                            </div>
+                            <div class="category-total">
+                                <span>TOTAL</span>
+                                <strong id="donutTotal">R$ 0</strong>
+                            </div>
+                        </header>
+
+                        <div class="expense-spectrum" id="expenseDonut" role="img" aria-label="Distribuição das despesas por categoria" aria-describedby="expenseSummary"></div>
+                        <p class="sr-only" id="expenseSummary"></p>
+                        <div class="category-ledger" id="categoryLegend"></div>
+                    </article>
+                </section>
+
+                <!-- Extrato recente e diagnóstico financeiro. -->
+                <section class="statement-layout">
+                    <article class="statement-board">
+                        <header class="board-heading">
+                            <div>
+                                <span class="section-code">C / ÚLTIMOS REGISTROS</span>
+                                <h3>O dinheiro deixou rastros</h3>
+                            </div>
+                            <button class="arrow-link" type="button" data-view="transactions">ABRIR EXTRATO <span>↗</span></button>
+                        </header>
+                        <div class="recent-list" id="recentTransactions"></div>
+                    </article>
+
+                    <article class="diagnosis-board">
+                        <header>
+                            <span class="section-code">D / DIAGNÓSTICO</span>
+                            <span class="health-badge" id="healthBadge">Calculando</span>
+                        </header>
+
+                        <div class="health-number">
+                            <strong id="healthScore">0</strong>
+                            <span>/100</span>
+                        </div>
+
+                        <p id="healthMessage">Adicione receitas e despesas para receber uma leitura.</p>
+
+                        <div class="health-ruler" id="healthRing">
+                            <i></i>
+                            <span>0</span><span>50</span><span>100</span>
+                        </div>
+
+                        <div class="commitment-line">
+                            <span>RENDA COMPROMETIDA</span>
+                            <strong id="incomeCommitment">0%</strong>
+                        </div>
+                        <div class="commitment-track"><i id="incomeCommitmentBar"></i></div>
+                    </article>
+                </section>
+
+                <!-- A V2.1 antecipa compromissos e traduz o saldo em tempo. -->
+                <section class="forecast-layout" aria-label="Previsões e agenda financeira">
+                    <article class="breathing-board">
+                        <header>
+                            <span class="section-code">E / AUTONOMIA</span>
+                            <span class="edition-stamp">V2.1</span>
+                        </header>
+                        <p>Com seu ritmo recente, o saldo cobre</p>
+                        <div class="breathing-number"><strong id="breathingDays">—</strong><span>dias<br>de fôlego</span></div>
+                        <small id="breathingCaption">Precisamos de despesas recentes para calcular.</small>
+                        <div class="breathing-rule" aria-hidden="true"><i></i></div>
+                    </article>
+
+                    <article class="projection-board">
+                        <header class="board-heading">
+                            <div>
+                                <span class="section-code">F / ROTA PROVÁVEL</span>
+                                <h3>O caixa que vem pela frente</h3>
+                            </div>
+                            <button class="arrow-link" type="button" data-view="reports">VER RAIO-X <span>↗</span></button>
+                        </header>
+                        <div class="projection-strip">
+                            <div><span>30 DIAS</span><strong id="projection30">R$ 0,00</strong><small id="projection30Date">—</small></div>
+                            <div><span>60 DIAS</span><strong id="projection60">R$ 0,00</strong><small id="projection60Date">—</small></div>
+                            <div><span>90 DIAS</span><strong id="projection90">R$ 0,00</strong><small id="projection90Date">—</small></div>
+                        </div>
+                        <p class="projection-note">Estimativa com lançamentos confirmados futuros e pendências já cadastradas.</p>
+                    </article>
+
+                    <article class="agenda-board">
+                        <header class="board-heading">
+                            <div>
+                                <span class="section-code">G / PRÓXIMOS 14 DIAS</span>
+                                <h3>Agenda do caixa</h3>
+                            </div>
+                            <span class="agenda-count" id="agendaCount">0 ITENS</span>
+                        </header>
+                        <div class="agenda-list" id="agendaList"></div>
+                    </article>
+                </section>
+            </section>
+
+            <!-- =====================================================
+                 02 — EXTRATO COMPLETO
+            ====================================================== -->
+            <section class="view" id="transactionsView" data-view-section="transactions">
+                <div class="view-index" aria-hidden="true">
+                    <span>02</span>
+                    <i></i>
+                    <b>EXTRATO</b>
+                </div>
+
+                <header class="page-intro">
+                    <div>
+                        <span class="section-code">ARQUIVO DE MOVIMENTOS</span>
+                        <h2>Tudo que entrou.<br>Tudo que saiu.</h2>
+                    </div>
+                    <button class="ink-button" id="pageNewTransaction" type="button"><span>+</span> Novo registro</button>
+                </header>
+
+                <section class="ledger-shell">
+                    <div class="filter-strip">
+                        <label class="search-field">
+                            <span>BUSCAR /</span>
+                            <input type="search" id="transactionSearch" placeholder="nome do movimento">
+                        </label>
+
+                        <label class="filter-field">
+                            <span>TIPO /</span>
+                            <select id="typeFilter" aria-label="Filtrar por tipo">
+                                <option value="all">Tudo</option>
+                                <option value="income">Entradas</option>
+                                <option value="expense">Saídas</option>
+                            </select>
+                        </label>
+
+                        <label class="filter-field">
+                            <span>GRUPO /</span>
+                            <select id="categoryFilter" aria-label="Filtrar por categoria">
+                                <option value="all">Todos</option>
+                            </select>
+                        </label>
+
+                        <button class="export-button" id="exportCsvButton" type="button">BAIXAR .CSV ↓</button>
+                    </div>
+
+                    <div class="transaction-table-scroll">
+                        <table class="transaction-table">
+                            <caption class="sr-only">Movimentações do mês selecionado</caption>
+                            <colgroup>
+                                <col class="movement-column">
+                                <col class="category-column">
+                                <col class="date-column">
+                                <col class="status-column">
+                                <col class="amount-column">
+                                <col class="actions-column">
+                            </colgroup>
+                            <thead>
+                                <tr class="transaction-table-head">
+                                    <th scope="col">MOVIMENTO</th>
+                                    <th scope="col">GRUPO</th>
+                                    <th scope="col">DATA</th>
+                                    <th scope="col">ESTADO</th>
+                                    <th scope="col">VALOR</th>
+                                    <th scope="col">AÇÕES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionRows"></tbody>
+                        </table>
+                    </div>
+
+                    <footer class="ledger-footer">
+                        <span id="transactionCount">0 movimentos</span>
+                        <strong id="filteredTotal">Resultado: R$ 0,00</strong>
+                    </footer>
+                </section>
+            </section>
+
+            <!-- =====================================================
+                 03 — PLANOS E METAS
+            ====================================================== -->
+            <section class="view" id="goalsView" data-view-section="goals">
+                <div class="view-index" aria-hidden="true">
+                    <span>03</span>
+                    <i></i>
+                    <b>PLANOS</b>
+                </div>
+
+                <header class="page-intro plan-intro">
+                    <div>
+                        <span class="section-code">DINHEIRO COM DESTINO</span>
+                        <h2>Planos não são sonhos.<br>São números em movimento.</h2>
+                    </div>
+                    <button class="ink-button" id="newGoalButton" type="button"><span>+</span> Criar plano</button>
+                </header>
+
+                <section class="plan-meter">
+                    <div class="plan-meter-total">
+                        <span>JÁ SEPARADO</span>
+                        <strong id="goalsSavedTotal">R$ 0,00</strong>
+                        <small>OBJETIVO / <b id="goalsTargetTotal">R$ 0,00</b></small>
+                    </div>
+                    <div class="plan-meter-progress">
+                        <div>
+                            <span>CAMINHO PERCORRIDO</span>
+                            <strong id="goalsOverallPercent">0%</strong>
+                        </div>
+                        <div class="plan-track"><i id="goalsOverallBar"></i></div>
+                    </div>
+                </section>
+
+                <div class="goals-grid" id="goalsGrid"></div>
+            </section>
+
+            <!-- =====================================================
+                 04 — RAIO-X E RELATÓRIOS
+            ====================================================== -->
+            <section class="view" id="reportsView" data-view-section="reports">
+                <div class="view-index" aria-hidden="true">
+                    <span>04</span>
+                    <i></i>
+                    <b>RAIO-X</b>
+                </div>
+
+                <header class="page-intro report-intro">
+                    <div>
+                        <span class="section-code">LEITURA SEM ACHISMO</span>
+                        <h2>Onde o dinheiro<br>ganha peso.</h2>
+                    </div>
+                    <button class="ink-button" id="exportPdfButton" type="button"><span>↓</span> Baixar relatório PDF</button>
+                </header>
+
+                <section class="report-control" aria-label="Período do relatório">
+                    <div class="period-switch" role="group" aria-label="Agrupar relatório por período">
+                        <button type="button" data-report-period="day">DIA</button>
+                        <button type="button" data-report-period="week">SEMANA</button>
+                        <button class="active" type="button" data-report-period="month">MÊS</button>
+                    </div>
+                    <label>
+                        <span>DATA DE REFERÊNCIA /</span>
+                        <input type="date" id="reportReferenceDate">
+                    </label>
+                    <div class="report-period-copy">
+                        <span>RECORTE ATUAL</span>
+                        <strong id="reportPeriodLabel">—</strong>
+                    </div>
+                </section>
+
+                <section class="report-totals" aria-label="Resumo do período">
+                    <article class="report-total income"><span>ENTROU</span><strong id="reportIncome">R$ 0,00</strong><small id="reportIncomeCount">0 registros</small></article>
+                    <article class="report-total expense"><span>SAIU</span><strong id="reportExpense">R$ 0,00</strong><small id="reportExpenseCount">0 registros</small></article>
+                    <article class="report-total result"><span>RESULTADO</span><strong id="reportResult">R$ 0,00</strong><small>somente confirmados</small></article>
+                </section>
+
+                <section class="ranking-layout">
+                    <article class="ranking-board ranking-primary">
+                        <header class="board-heading">
+                            <div><span class="section-code">01 / POR CATEGORIA</span><h3>O que mais pesou</h3></div>
+                            <span class="ranking-crown">RANKING</span>
+                        </header>
+                        <div class="ranking-list" id="categoryRanking"></div>
+                    </article>
+
+                    <article class="ranking-board">
+                        <header class="board-heading">
+                            <div><span class="section-code">02 / POR COMPRA</span><h3>Maiores saídas</h3></div>
+                        </header>
+                        <div class="ranking-list" id="descriptionRanking"></div>
+                    </article>
+
+                    <article class="ranking-board method-board">
+                        <header class="board-heading">
+                            <div><span class="section-code">03 / COMO PAGOU</span><h3>Meios utilizados</h3></div>
+                        </header>
+                        <div class="method-ledger" id="methodRanking"></div>
+                    </article>
+                </section>
+
+                <section class="budget-board">
+                    <header class="board-heading">
+                        <div>
+                            <span class="section-code">04 / LIMITES DE CATEGORIA</span>
+                            <h3>Uma margem antes do aperto</h3>
+                        </div>
+                        <button class="paper-button" id="newBudgetButton" type="button">+ DEFINIR LIMITE</button>
+                    </header>
+                    <p class="budget-explanation">O limite não bloqueia compras. Ele avisa quando uma categoria chega a 80% ou passa do valor planejado.</p>
+                    <div class="budget-list" id="budgetList"></div>
+                </section>
+            </section>
+        </main>
+    </div>
+    </div>
+
+    <!-- =============================================================
+         FORMULÁRIO DE MOVIMENTAÇÃO
+    ============================================================== -->
+    <dialog class="modal" id="transactionDialog">
+        <form class="modal-sheet" id="transactionForm">
+            <div class="modal-header">
+                <div>
+                    <span>REGISTRO / CAIXA</span>
+                    <h2 id="transactionModalTitle">Novo movimento</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="transactionDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="transactionId">
+
+            <fieldset class="type-switch">
+                <legend>O dinheiro...</legend>
+                <label>
+                    <input type="radio" name="transactionType" value="income">
+                    <span class="income-option">↗ ENTROU</span>
+                </label>
+                <label>
+                    <input type="radio" name="transactionType" value="expense" checked>
+                    <span class="expense-option">↘ SAIU</span>
+                </label>
+            </fieldset>
+
+            <div class="form-grid">
+                <label class="form-field form-field-wide">
+                    <span>DESCRIÇÃO</span>
+                    <input type="text" id="transactionDescription" maxlength="60" placeholder="Ex.: conta de energia" required>
+                </label>
+
+                <label class="form-field">
+                    <span>VALOR</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="transactionAmount" min="0.01" step="0.01" placeholder="0,00" required></span>
+                </label>
+
+                <label class="form-field">
+                    <span>GRUPO</span>
+                    <select id="transactionCategory" required></select>
+                </label>
+
+                <label class="form-field">
+                    <span>DATA</span>
+                    <input type="date" id="transactionDate" required>
+                </label>
+
+                <label class="form-field">
+                    <span>ESTADO</span>
+                    <select id="transactionStatus" required>
+                        <option value="paid">Confirmado</option>
+                        <option value="pending">Pendente</option>
+                    </select>
+                </label>
+
+                <label class="form-field">
+                    <span id="transactionMethodLabel">COMO PAGOU</span>
+                    <select id="transactionPaymentMethod" required>
+                        <option value="pix">Pix</option>
+                        <option value="cash">Dinheiro</option>
+                        <option value="debit_card">Cartão de débito</option>
+                        <option value="credit_card">Cartão de crédito</option>
+                        <option value="bank_transfer">Transferência bancária</option>
+                        <option value="boleto">Boleto</option>
+                        <option value="other">Não informado</option>
+                    </select>
+                </label>
+
+                <label class="form-field">
+                    <span>TIPO DE LANÇAMENTO</span>
+                    <select id="transactionMode">
+                        <option value="single">Uma única vez</option>
+                        <option value="recurring">Recorrente</option>
+                        <option value="installment">Compra parcelada</option>
+                    </select>
+                </label>
+
+                <div class="series-settings form-field-wide" id="recurringFields" hidden>
+                    <label class="form-field">
+                        <span>FREQUÊNCIA</span>
+                        <select id="recurrenceFrequency">
+                            <option value="monthly">Todo mês</option>
+                            <option value="weekly">Toda semana</option>
+                            <option value="yearly">Todo ano</option>
+                        </select>
+                    </label>
+                    <label class="form-field">
+                        <span>QUANTAS VEZES</span>
+                        <input type="number" id="recurrenceCount" min="2" max="60" value="12">
+                    </label>
+                </div>
+
+                <div class="series-settings form-field-wide" id="installmentFields" hidden>
+                    <label class="form-field">
+                        <span>NÚMERO DE PARCELAS</span>
+                        <input type="number" id="installmentCount" min="2" max="120" value="2">
+                    </label>
+                    <p><strong>O valor informado é o total da compra.</strong> O Fôlego divide os centavos e cria as próximas parcelas como pendentes.</p>
+                </div>
+
+                <p class="series-edit-hint form-field-wide" id="seriesEditHint" hidden>Você está editando somente esta ocorrência. As demais permanecem como foram registradas.</p>
+            </div>
+
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="transactionDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Gravar movimento →</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- =============================================================
+         FORMULÁRIO DE META
+    ============================================================== -->
+    <dialog class="modal" id="goalDialog">
+        <form class="modal-sheet" id="goalForm">
+            <div class="modal-header">
+                <div>
+                    <span>PLANO / FUTURO</span>
+                    <h2 id="goalModalTitle">Novo plano</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="goalDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="goalId">
+
+            <div class="form-grid">
+                <label class="form-field form-field-wide">
+                    <span>NOME DO PLANO</span>
+                    <input type="text" id="goalName" maxlength="50" placeholder="Ex.: reserva de emergência" required>
+                </label>
+
+                <label class="form-field">
+                    <span>JÁ GUARDADO</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="goalCurrent" min="0" step="0.01" placeholder="0,00" aria-describedby="goalCurrentHelp" required></span>
+                    <small id="goalCurrentHelp" class="field-help">Atualização manual; não altera seu saldo.</small>
+                </label>
+
+                <label class="form-field">
+                    <span>VALOR FINAL</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="goalTarget" min="0.01" step="0.01" placeholder="0,00" required></span>
+                </label>
+
+                <label class="form-field">
+                    <span>PRAZO</span>
+                    <input type="date" id="goalDeadline" required>
+                </label>
+
+                <label class="form-field">
+                    <span>SÍMBOLO</span>
+                    <select id="goalIcon" required>
+                        <option value="🛡️">🛡️ Reserva</option>
+                        <option value="🏠">🏠 Casa</option>
+                        <option value="✈️">✈️ Viagem</option>
+                        <option value="🚗">🚗 Veículo</option>
+                        <option value="💻">💻 Tecnologia</option>
+                        <option value="🎓">🎓 Estudos</option>
+                        <option value="✨">✨ Outro plano</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="goalDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Gravar plano →</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Aporte registra histórico e atualiza a meta na mesma operação. -->
+    <dialog class="modal" id="contributionDialog">
+        <form class="modal-sheet compact-sheet" id="contributionForm">
+            <div class="modal-header">
+                <div>
+                    <span>PLANO / APORTE</span>
+                    <h2 id="contributionModalTitle">Guardar para a meta</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="contributionDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="contributionGoalId">
+            <p class="modal-lead" id="contributionGoalName">—</p>
+
+            <div class="form-grid">
+                <label class="form-field">
+                    <span>VALOR DO APORTE</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="contributionAmount" min="0.01" step="0.01" placeholder="0,00" required></span>
+                </label>
+                <label class="form-field">
+                    <span>DATA</span>
+                    <input type="date" id="contributionDate" required>
+                </label>
+                <label class="form-field form-field-wide">
+                    <span>NOTA / OPCIONAL</span>
+                    <input type="text" id="contributionNote" maxlength="100" placeholder="Ex.: aporte do salário">
+                </label>
+            </div>
+
+            <p class="form-notice">O aporte atualiza o progresso da meta, mas não cria uma despesa automaticamente.</p>
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="contributionDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Registrar aporte →</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Limites mensais servem como alerta, nunca como bloqueio. -->
+    <dialog class="modal" id="budgetDialog">
+        <form class="modal-sheet compact-sheet" id="budgetForm">
+            <div class="modal-header">
+                <div>
+                    <span>RAIO-X / LIMITE</span>
+                    <h2>Definir uma margem</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="budgetDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="budgetId">
+            <div class="form-grid">
+                <label class="form-field">
+                    <span>MÊS</span>
+                    <input type="month" id="budgetMonth" required>
+                </label>
+                <label class="form-field">
+                    <span>CATEGORIA</span>
+                    <select id="budgetCategory" required></select>
+                </label>
+                <label class="form-field form-field-wide">
+                    <span>VALOR LIMITE</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="budgetAmount" min="0.01" step="0.01" placeholder="0,00" required></span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="budgetDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Salvar limite →</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Confirmação de exclusão. -->
+    <dialog class="modal confirm-modal" id="confirmDialog">
+        <div class="modal-sheet confirm-sheet">
+            <span class="warning-mark">!</span>
+            <span class="section-code">AÇÃO DEFINITIVA</span>
+            <h2 id="confirmTitle">Excluir registro?</h2>
+            <p id="confirmMessage">Esta ação não poderá ser desfeita.</p>
+            <div class="modal-actions">
+                <button class="paper-button" id="cancelConfirmButton" type="button">Voltar</button>
+                <button class="danger-button" id="confirmDeleteButton" type="button">Excluir agora</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Exclusão da conta exige confirmação digitada para evitar acidentes. -->
+    <dialog class="modal confirm-modal" id="deleteAccountDialog">
+        <form class="modal-sheet confirm-sheet account-danger-sheet" id="deleteAccountForm">
+            <span class="warning-mark">!</span>
+            <span class="section-code">SAÍDA DEFINITIVA</span>
+            <h2>Excluir conta e dados?</h2>
+            <p>Movimentações, metas, aportes e limites serão apagados do Supabase. Essa ação não pode ser desfeita.</p>
+            <button class="text-button backup-before-delete" id="deleteAccountBackupButton" type="button">Baixar backup antes de excluir ↓</button>
+            <label class="form-field">
+                <span>DIGITE EXCLUIR PARA CONFIRMAR</span>
+                <input type="text" id="deleteAccountConfirmation" autocomplete="off" required>
+            </label>
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="deleteAccountDialog">Manter minha conta</button>
+                <button class="danger-button" type="submit">Excluir tudo</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Migração explícita: os exemplos da versão antiga nunca entram sozinhos. -->
+    <dialog class="modal migration-modal" id="migrationDialog">
+        <div class="modal-sheet migration-sheet">
+            <span class="migration-number">V1 → V2</span>
+            <span class="section-code">DADOS ENCONTRADOS NESTE NAVEGADOR</span>
+            <h2>O que fazemos com o livro antigo?</h2>
+            <p id="migrationMessage">Encontramos registros locais da versão anterior.</p>
+            <div class="migration-warning">
+                <strong>IMPORTANTE</strong>
+                <p>Esses registros podem incluir a demonstração antiga. Confira a quantidade e escolha conscientemente.</p>
+            </div>
+            <div class="migration-actions">
+                <button class="ink-button" id="migrateDataButton" type="button">Levar para minha conta →</button>
+                <button class="paper-button" id="skipMigrationButton" type="button">Começar com o caixa vazio</button>
+                <button class="text-button" id="downloadLegacyButton" type="button">Baixar cópia original antes de decidir</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Bloqueia novas ações por alguns instantes durante sincronizações críticas. -->
+    <div class="sync-overlay" id="syncOverlay" hidden role="status" aria-live="polite">
+        <div><i></i><strong id="syncOverlayMessage">Sincronizando seus dados...</strong></div>
+    </div>
+
+    <!-- Mensagem curta exibida depois de uma ação. -->
+    <div class="toast" id="toast" role="status" aria-live="polite">
+        <span class="toast-icon">✓</span>
+        <p id="toastMessage">Registro gravado.</p>
+    </div>
+
+    <div class="celebration-layer" id="celebrationLayer" aria-hidden="true"></div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
