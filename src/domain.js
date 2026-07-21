@@ -1,14 +1,9 @@
-<<<<<<< HEAD
 export const BACKUP_VERSION = 3;
-=======
-export const BACKUP_VERSION = 2;
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 export const LEGACY_STORAGE_KEY = "nexo-financas-v1";
 export const THEME_STORAGE_KEY = "folego-theme-v2";
 
 export const INCOME_CATEGORIES = ["Salário", "Freelance", "Vendas", "Investimentos", "Outras receitas"];
 export const EXPENSE_CATEGORIES = ["Moradia", "Alimentação", "Transporte", "Saúde", "Educação", "Lazer", "Assinaturas", "Contas", "Outras despesas"];
-<<<<<<< HEAD
 export const PAYMENT_METHODS = [
     { value: "pix", label: "Pix" },
     { value: "cash", label: "Dinheiro" },
@@ -21,22 +16,15 @@ export const PAYMENT_METHODS = [
 export const PAYMENT_METHOD_LABELS = Object.fromEntries(
     PAYMENT_METHODS.map(({ value, label }) => [value, label])
 );
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
 const VALID_TYPES = new Set(["income", "expense"]);
 const VALID_STATUSES = new Set(["paid", "pending"]);
 const VALID_ICONS = new Set(["🛡️", "🏠", "✈️", "🚗", "💻", "🎓", "✨"]);
-<<<<<<< HEAD
 const VALID_PAYMENT_METHODS = new Set(PAYMENT_METHODS.map(({ value }) => value));
 const VALID_SERIES_KINDS = new Set(["recurring", "installment"]);
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH_PATTERN = /^\d{4}-\d{2}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-=======
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const MONTH_PATTERN = /^\d{4}-\d{2}$/;
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 const MAX_AMOUNT = 999999999999.99;
 
 export function toISODate(date = new Date()) {
@@ -50,7 +38,6 @@ export function currentMonthKey() {
     return toISODate().slice(0, 7);
 }
 
-<<<<<<< HEAD
 function parseISODate(value) {
     const [year, month, day] = value.split("-").map(Number);
     return new Date(year, month - 1, day, 12);
@@ -74,8 +61,6 @@ export function addMonthsToISO(value, months) {
     return toISODate(date);
 }
 
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 export function isValidDate(value) {
     if (typeof value !== "string" || !DATE_PATTERN.test(value)) return false;
     const [year, month, day] = value.split("-").map(Number);
@@ -114,7 +99,6 @@ export function normalizeTransaction(value) {
     const createdAt = typeof value.createdAt === "string"
         ? value.createdAt
         : typeof value.created_at === "string" ? value.created_at : null;
-<<<<<<< HEAD
     const rawPaymentMethod = value.paymentMethod ?? value.payment_method;
     const paymentMethod = VALID_PAYMENT_METHODS.has(rawPaymentMethod) ? rawPaymentMethod : "other";
     const rawSeriesId = value.seriesId ?? value.series_id;
@@ -137,8 +121,6 @@ export function normalizeTransaction(value) {
         installmentTotal = null;
         if (seriesKind === "installment") seriesKind = null;
     }
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
     if (!description || !category || amount === null) return null;
     if (!VALID_TYPES.has(value.type) || !VALID_STATUSES.has(value.status)) return null;
@@ -152,14 +134,11 @@ export function normalizeTransaction(value) {
         category,
         date,
         status: value.status,
-<<<<<<< HEAD
         paymentMethod,
         seriesId: seriesKind ? seriesId : null,
         seriesKind,
         installmentNumber,
         installmentTotal,
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         createdAt
     };
 }
@@ -188,7 +167,6 @@ export function normalizeGoal(value) {
     };
 }
 
-<<<<<<< HEAD
 export function normalizeBudget(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 
@@ -244,16 +222,10 @@ export function normalizeSnapshot(value) {
             rejected: 0,
             settings: {}
         };
-=======
-export function normalizeSnapshot(value) {
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-        return { valid: false, transactions: [], goals: [], rejected: 0, settings: {} };
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     }
 
     const rawTransactions = Array.isArray(value.transactions) ? value.transactions : [];
     const rawGoals = Array.isArray(value.goals) ? value.goals : [];
-<<<<<<< HEAD
     const rawBudgets = Array.isArray(value.budgets) ? value.budgets : [];
     const rawContributions = Array.isArray(value.contributions) ? value.contributions : [];
     const transactions = rawTransactions.map(normalizeTransaction).filter(Boolean);
@@ -267,11 +239,6 @@ export function normalizeSnapshot(value) {
         + (rawGoals.length - goals.length)
         + (rawBudgets.length - budgets.length)
         + (rawContributions.length - contributions.length);
-=======
-    const transactions = rawTransactions.map(normalizeTransaction).filter(Boolean);
-    const goals = rawGoals.map(normalizeGoal).filter(Boolean);
-    const rejected = (rawTransactions.length - transactions.length) + (rawGoals.length - goals.length);
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     const theme = value.settings?.theme === "dark" ? "dark" : "light";
     const selectedMonth = isValidMonth(value.settings?.selectedMonth)
         ? value.settings.selectedMonth
@@ -281,11 +248,8 @@ export function normalizeSnapshot(value) {
         valid: Array.isArray(value.transactions) && Array.isArray(value.goals),
         transactions,
         goals,
-<<<<<<< HEAD
         budgets,
         contributions,
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         rejected,
         settings: { theme, selectedMonth }
     };
@@ -303,39 +267,27 @@ export function readLegacySnapshot(storage = window.localStorage) {
     }
 }
 
-<<<<<<< HEAD
 export function createBackup({ transactions, goals, budgets = [], contributions = [], settings }) {
-=======
-export function createBackup({ transactions, goals, settings }) {
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     return {
         app: "Fôlego",
         schemaVersion: BACKUP_VERSION,
         exportedAt: new Date().toISOString(),
-<<<<<<< HEAD
         transactions: transactions.map(({
             id, description, amount, type, category, date, status, paymentMethod,
             seriesId, seriesKind, installmentNumber, installmentTotal, createdAt
         }) => ({
             id, description, amount, type, category, date, status, paymentMethod,
             seriesId, seriesKind, installmentNumber, installmentTotal, createdAt
-=======
-        transactions: transactions.map(({ id, description, amount, type, category, date, status, createdAt }) => ({
-            id, description, amount, type, category, date, status, createdAt
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         })),
         goals: goals.map(({ id, name, current, target, deadline, icon, createdAt }) => ({
             id, name, current, target, deadline, icon, createdAt
         })),
-<<<<<<< HEAD
         budgets: budgets.map(({ id, month, category, amount, createdAt }) => ({
             id, month, category, amount, createdAt
         })),
         contributions: contributions.map(({ id, goalId, amount, date, note, createdAt }) => ({
             id, goalId, amount, date, note, createdAt
         })),
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         settings: {
             theme: settings.theme === "dark" ? "dark" : "light",
             selectedMonth: isValidMonth(settings.selectedMonth) ? settings.selectedMonth : currentMonthKey()
@@ -356,7 +308,6 @@ export function getBalanceAsOf(transactions, isoDate = toISODate()) {
         ), 0);
 }
 
-<<<<<<< HEAD
 export function getPeriodRange(mode = "month", referenceDate = toISODate()) {
     const safeDate = isValidDate(referenceDate) ? referenceDate : toISODate();
 
@@ -542,8 +493,6 @@ export function buildTransactionSeries(transaction, options = {}, uuid = () => c
     return [{ ...normalized, id: normalized.id || "" }];
 }
 
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 export function prefersReducedMotion() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }

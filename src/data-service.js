@@ -18,14 +18,11 @@ function transactionFromRow(row) {
         category: row.category,
         date: row.occurred_on,
         status: row.status,
-<<<<<<< HEAD
         paymentMethod: row.payment_method ?? "other",
         seriesId: row.series_id ?? null,
         seriesKind: row.series_kind ?? null,
         installmentNumber: row.installment_number ?? null,
         installmentTotal: row.installment_total ?? null,
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
         createdAt: row.created_at,
         updatedAt: row.updated_at
     };
@@ -44,7 +41,6 @@ function goalFromRow(row) {
     };
 }
 
-<<<<<<< HEAD
 function budgetFromRow(row) {
     return {
         id: row.id,
@@ -68,8 +64,6 @@ function contributionFromRow(row) {
     };
 }
 
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 function transactionToRow(userId, transaction) {
     return {
         ...(transaction.id ? { id: transaction.id } : {}),
@@ -79,16 +73,12 @@ function transactionToRow(userId, transaction) {
         type: transaction.type,
         category: transaction.category,
         occurred_on: transaction.date,
-<<<<<<< HEAD
         status: transaction.status,
         payment_method: transaction.paymentMethod ?? "other",
         series_id: transaction.seriesId ?? null,
         series_kind: transaction.seriesKind ?? null,
         installment_number: transaction.installmentNumber ?? null,
         installment_total: transaction.installmentTotal ?? null
-=======
-        status: transaction.status
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     };
 }
 
@@ -104,7 +94,6 @@ function goalToRow(userId, goal) {
     };
 }
 
-<<<<<<< HEAD
 function budgetToRow(userId, budget) {
     return {
         ...(budget.id ? { id: budget.id } : {}),
@@ -123,35 +112,20 @@ export async function loadUserData(userId) {
         client.from("profiles").select("*").eq("id", userId).maybeSingle(),
         client.from("category_budgets").select("*").eq("user_id", userId).order("month_start", { ascending: false }),
         client.from("goal_contributions").select("*").eq("user_id", userId).order("contributed_on", { ascending: false })
-=======
-export async function loadUserData(userId) {
-    const client = requireClient();
-    const [transactionsResult, goalsResult, profileResult] = await Promise.all([
-        client.from("transactions").select("*").eq("user_id", userId).order("occurred_on", { ascending: false }),
-        client.from("goals").select("*").eq("user_id", userId).order("created_at", { ascending: true }),
-        client.from("profiles").select("*").eq("id", userId).maybeSingle()
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     ]);
 
     throwIfError(transactionsResult.error);
     throwIfError(goalsResult.error);
     throwIfError(profileResult.error);
-<<<<<<< HEAD
     throwIfError(budgetsResult.error);
     throwIfError(contributionsResult.error);
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 
     return {
         transactions: transactionsResult.data.map(transactionFromRow),
         goals: goalsResult.data.map(goalFromRow),
-<<<<<<< HEAD
         profile: profileResult.data,
         budgets: budgetsResult.data.map(budgetFromRow),
         contributions: contributionsResult.data.map(contributionFromRow)
-=======
-        profile: profileResult.data
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     };
 }
 
@@ -165,7 +139,6 @@ export async function saveTransaction(userId, transaction) {
     return transactionFromRow(data);
 }
 
-<<<<<<< HEAD
 export async function saveTransactions(userId, transactions) {
     if (!Array.isArray(transactions) || transactions.length === 0) return [];
     const rows = transactions.map((transaction) => transactionToRow(userId, transaction));
@@ -174,8 +147,6 @@ export async function saveTransactions(userId, transactions) {
     return data.map(transactionFromRow);
 }
 
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 export async function removeTransaction(userId, id) {
     const { error } = await requireClient().from("transactions").delete().eq("id", id).eq("user_id", userId);
     throwIfError(error);
@@ -196,7 +167,6 @@ export async function removeGoal(userId, id) {
     throwIfError(error);
 }
 
-<<<<<<< HEAD
 export async function saveBudget(userId, budget) {
     const { data, error } = await requireClient()
         .from("category_budgets")
@@ -227,8 +197,6 @@ export async function addGoalContribution(goalId, amount, date, note = "") {
     return goalFromRow(data);
 }
 
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
 export async function saveProfile(userId, values) {
     const { data, error } = await requireClient()
         .from("profiles")
@@ -242,17 +210,13 @@ export async function saveProfile(userId, values) {
 function rpcSnapshot(transactions, goals) {
     return {
         p_transactions: transactions.map((transaction) => ({
-<<<<<<< HEAD
             id: transaction.id,
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
             description: transaction.description,
             amount: transaction.amount,
             type: transaction.type,
             category: transaction.category,
             occurred_on: transaction.date,
             status: transaction.status,
-<<<<<<< HEAD
             payment_method: transaction.paymentMethod ?? "other",
             series_id: transaction.seriesId,
             series_kind: transaction.seriesKind,
@@ -262,11 +226,6 @@ function rpcSnapshot(transactions, goals) {
         })),
         p_goals: goals.map((goal) => ({
             id: goal.id,
-=======
-            created_at: transaction.createdAt
-        })),
-        p_goals: goals.map((goal) => ({
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
             name: goal.name,
             current_amount: goal.current,
             target_amount: goal.target,
@@ -283,7 +242,6 @@ export async function importLegacySnapshot(transactions, goals) {
     return data;
 }
 
-<<<<<<< HEAD
 export async function replaceUserSnapshot(transactions, goals, budgets = [], contributions = []) {
     const snapshot = rpcSnapshot(transactions, goals);
     const { data, error } = await requireClient().rpc("replace_user_snapshot_v3", {
@@ -304,19 +262,12 @@ export async function replaceUserSnapshot(transactions, goals, budgets = [], con
             created_at: contribution.createdAt
         }))
     });
-=======
-export async function replaceUserSnapshot(transactions, goals) {
-    const { data, error } = await requireClient().rpc("replace_user_snapshot", rpcSnapshot(transactions, goals));
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     throwIfError(error);
     return data;
 }
 
-<<<<<<< HEAD
 export async function deleteAccount() {
     const { error } = await requireClient().rpc("delete_my_account");
     throwIfError(error);
 }
 
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3

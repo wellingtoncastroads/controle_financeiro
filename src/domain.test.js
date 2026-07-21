@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-<<<<<<< HEAD
     buildTransactionSeries,
     getBalanceProjection,
     getBalanceAsOf,
@@ -9,11 +8,6 @@ import {
     isValidDate,
     normalizeSnapshot,
     rankExpenses,
-=======
-    getBalanceAsOf,
-    isValidDate,
-    normalizeSnapshot,
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     sanitizeCsvCell
 } from "./domain.js";
 
@@ -37,11 +31,8 @@ describe("normalização de backup", () => {
 
         expect(result.transactions).toHaveLength(1);
         expect(result.rejected).toBe(1);
-<<<<<<< HEAD
         expect(result.transactions[0].paymentMethod).toBe("other");
         expect(result.budgets).toEqual([]);
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
     });
 });
 
@@ -65,7 +56,6 @@ describe("saldo de hoje", () => {
         expect(getBalanceAsOf(transactions, "2026-07-16")).toBe(800);
     });
 });
-<<<<<<< HEAD
 
 describe("parcelamento", () => {
     it("divide o total sem perder nem criar centavos", () => {
@@ -122,5 +112,3 @@ describe("previsão financeira", () => {
         expect(result.days).toBe(90);
     });
 });
-=======
->>>>>>> 0198491fb4050be7c72f487434fe5edd4b5fe8e3
