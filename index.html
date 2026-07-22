@@ -173,16 +173,20 @@
                 <span>01</span>
                 <strong>Pulso</strong>
             </button>
-            <button class="rail-link" type="button" data-view="transactions">
+            <button class="rail-link" type="button" data-view="accounts">
                 <span>02</span>
+                <strong>Contas</strong>
+            </button>
+            <button class="rail-link" type="button" data-view="transactions">
+                <span>03</span>
                 <strong>Extrato</strong>
             </button>
             <button class="rail-link" type="button" data-view="goals">
-                <span>03</span>
+                <span>04</span>
                 <strong>Planos</strong>
             </button>
             <button class="rail-link" type="button" data-view="reports">
-                <span>04</span>
+                <span>05</span>
                 <strong>Raio-X</strong>
             </button>
         </nav>
@@ -224,7 +228,7 @@
                         <button id="installAppButton" type="button" hidden>Instalar neste aparelho <span>APP ↓</span></button>
                         <button class="delete-account-button" id="deleteAccountButton" type="button">Excluir conta e dados <span>×</span></button>
                         <button class="signout-button" id="signOutButton" type="button">Sair desta conta <span>→</span></button>
-                        <small class="account-version">FÔLEGO / V2.1</small>
+                        <small class="account-version">FÔLEGO / V2.2</small>
                     </div>
                 </div>
 
@@ -315,6 +319,17 @@
                     </article>
                 </section>
 
+                <section class="account-glance" aria-labelledby="accountGlanceTitle">
+                    <header class="board-heading">
+                        <div>
+                            <span class="section-code">CONTAS / ONDE ESTÁ</span>
+                            <h3 id="accountGlanceTitle">Seu dinheiro, sem misturar</h3>
+                        </div>
+                        <button class="arrow-link" type="button" data-view="accounts">VER MINHAS CONTAS <span>↗</span></button>
+                    </header>
+                    <div class="account-glance-list" id="dashboardAccounts"></div>
+                </section>
+
                 <!-- Gráfico e distribuição usam uma composição assimétrica. -->
                 <section class="rhythm-layout">
                     <article class="chart-board">
@@ -395,12 +410,12 @@
                     </article>
                 </section>
 
-                <!-- A V2.1 antecipa compromissos e traduz o saldo em tempo. -->
+                <!-- A V2.2 antecipa compromissos e separa os saldos por conta. -->
                 <section class="forecast-layout" aria-label="Previsões e agenda financeira">
                     <article class="breathing-board">
                         <header>
                             <span class="section-code">E / AUTONOMIA</span>
-                            <span class="edition-stamp">V2.1</span>
+                            <span class="edition-stamp">V2.2</span>
                         </header>
                         <p>Com seu ritmo recente, o saldo cobre</p>
                         <div class="breathing-number"><strong id="breathingDays">—</strong><span>dias<br>de fôlego</span></div>
@@ -438,11 +453,61 @@
             </section>
 
             <!-- =====================================================
-                 02 — EXTRATO COMPLETO
+                 02 — MINHAS CONTAS
+            ====================================================== -->
+            <section class="view" id="accountsView" data-view-section="accounts">
+                <div class="view-index" aria-hidden="true">
+                    <span>02</span>
+                    <i></i>
+                    <b>CONTAS</b>
+                </div>
+
+                <header class="page-intro accounts-intro">
+                    <div>
+                        <span class="section-code">ONDE O DINHEIRO ESTÁ</span>
+                        <h2>Pix é o caminho.<br>A conta é o destino.</h2>
+                    </div>
+                    <div class="accounts-intro-actions">
+                        <button class="paper-button" id="newTransferButton" type="button">↔ TRANSFERIR</button>
+                        <button class="ink-button" id="newAccountButton" type="button"><span>+</span> Adicionar conta</button>
+                    </div>
+                </header>
+
+                <div class="accounts-schema-notice" id="accountsSchemaNotice" hidden role="status">
+                    <strong>ATUALIZAÇÃO PENDENTE</strong>
+                    <p>A estrutura de contas ainda não foi ativada no banco de dados. Seus lançamentos atuais continuam intactos.</p>
+                </div>
+
+                <section class="accounts-summary" aria-label="Resumo das contas">
+                    <article><span>SALDO DISTRIBUÍDO</span><strong id="accountsTotalBalance">R$ 0,00</strong><small>soma de todas as contas</small></article>
+                    <article><span>CONTAS ATIVAS</span><strong id="accountsCount">0</strong><small>bancos e carteiras</small></article>
+                    <article class="unassigned-summary"><span>SEM CONTA DEFINIDA</span><strong id="unassignedBalance">R$ 0,00</strong><small id="unassignedCount">0 lançamentos antigos</small></article>
+                </section>
+
+                <section class="accounts-board">
+                    <header class="board-heading">
+                        <div><span class="section-code">A / MINHAS CONTAS</span><h3>Cada saldo no seu lugar</h3></div>
+                        <span class="accounts-board-note">SALDO INICIAL + MOVIMENTOS + TRANSFERÊNCIAS</span>
+                    </header>
+                    <div class="accounts-grid" id="accountsGrid"></div>
+                </section>
+
+                <section class="transfers-board">
+                    <header class="board-heading">
+                        <div><span class="section-code">B / ENTRE CONTAS</span><h3>Transferências não viram renda</h3></div>
+                        <span class="transfer-count" id="transferCount">0 TRANSFERÊNCIAS</span>
+                    </header>
+                    <p class="transfer-explanation">Mover dinheiro de uma conta para outra altera os dois saldos, mas não aumenta receitas nem despesas.</p>
+                    <div class="transfer-list" id="transferList"></div>
+                </section>
+            </section>
+
+            <!-- =====================================================
+                 03 — EXTRATO COMPLETO
             ====================================================== -->
             <section class="view" id="transactionsView" data-view-section="transactions">
                 <div class="view-index" aria-hidden="true">
-                    <span>02</span>
+                    <span>03</span>
                     <i></i>
                     <b>EXTRATO</b>
                 </div>
@@ -478,6 +543,13 @@
                             </select>
                         </label>
 
+                        <label class="filter-field account-filter-field">
+                            <span>CONTA /</span>
+                            <select id="accountFilter" aria-label="Filtrar por conta">
+                                <option value="all">Todas</option>
+                            </select>
+                        </label>
+
                         <button class="export-button" id="exportCsvButton" type="button">BAIXAR .CSV ↓</button>
                     </div>
 
@@ -487,6 +559,7 @@
                             <colgroup>
                                 <col class="movement-column">
                                 <col class="category-column">
+                                <col class="account-column">
                                 <col class="date-column">
                                 <col class="status-column">
                                 <col class="amount-column">
@@ -496,6 +569,7 @@
                                 <tr class="transaction-table-head">
                                     <th scope="col">MOVIMENTO</th>
                                     <th scope="col">GRUPO</th>
+                                    <th scope="col">CONTA</th>
                                     <th scope="col">DATA</th>
                                     <th scope="col">ESTADO</th>
                                     <th scope="col">VALOR</th>
@@ -514,11 +588,11 @@
             </section>
 
             <!-- =====================================================
-                 03 — PLANOS E METAS
+                 04 — PLANOS E METAS
             ====================================================== -->
             <section class="view" id="goalsView" data-view-section="goals">
                 <div class="view-index" aria-hidden="true">
-                    <span>03</span>
+                    <span>04</span>
                     <i></i>
                     <b>PLANOS</b>
                 </div>
@@ -550,11 +624,11 @@
             </section>
 
             <!-- =====================================================
-                 04 — RAIO-X E RELATÓRIOS
+                 05 — RAIO-X E RELATÓRIOS
             ====================================================== -->
             <section class="view" id="reportsView" data-view-section="reports">
                 <div class="view-index" aria-hidden="true">
-                    <span>04</span>
+                    <span>05</span>
                     <i></i>
                     <b>RAIO-X</b>
                 </div>
@@ -686,6 +760,13 @@
                 </label>
 
                 <label class="form-field">
+                    <span>CONTA / ONDE ESTÁ</span>
+                    <select id="transactionAccount">
+                        <option value="">Conta não definida</option>
+                    </select>
+                </label>
+
+                <label class="form-field">
                     <span id="transactionMethodLabel">COMO PAGOU</span>
                     <select id="transactionPaymentMethod" required>
                         <option value="pix">Pix</option>
@@ -736,6 +817,111 @@
             <div class="modal-actions">
                 <button class="paper-button" type="button" data-close-dialog="transactionDialog">Cancelar</button>
                 <button class="ink-button" type="submit">Gravar movimento →</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Contas são separadas do meio de pagamento. -->
+    <dialog class="modal" id="accountDialog">
+        <form class="modal-sheet account-sheet" id="accountForm">
+            <div class="modal-header">
+                <div>
+                    <span>CONTA / DESTINO</span>
+                    <h2 id="accountModalTitle">Adicionar uma conta</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="accountDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="financialAccountId">
+            <input type="hidden" id="selectedBankCode" value="nubank">
+
+            <fieldset class="bank-picker">
+                <legend>ESCOLHA O BANCO OU CARTEIRA</legend>
+                <div class="bank-options" id="bankOptions"></div>
+            </fieldset>
+
+            <div class="form-grid account-form-grid">
+                <label class="form-field form-field-wide" id="customInstitutionField" hidden>
+                    <span>NOME DA INSTITUIÇÃO</span>
+                    <input type="text" id="customInstitutionName" maxlength="60" placeholder="Ex.: banco da minha cidade">
+                </label>
+
+                <label class="form-field">
+                    <span>COMO IDENTIFICAR</span>
+                    <input type="text" id="financialAccountName" maxlength="60" placeholder="Ex.: Nubank pessoal" required>
+                </label>
+
+                <label class="form-field">
+                    <span>TIPO DE CONTA</span>
+                    <select id="financialAccountType" required>
+                        <option value="checking">Conta corrente</option>
+                        <option value="savings">Poupança</option>
+                        <option value="payment">Conta de pagamento</option>
+                        <option value="wallet">Carteira digital</option>
+                        <option value="cash">Dinheiro em espécie</option>
+                        <option value="other">Outra conta</option>
+                    </select>
+                </label>
+
+                <label class="form-field form-field-wide">
+                    <span>SALDO INICIAL</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="financialAccountInitialBalance" step="0.01" value="0" required></span>
+                    <small>Use o valor que já existia antes dos lançamentos registrados no Fôlego.</small>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="accountDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Salvar conta →</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Transferências redistribuem o saldo sem criar receita ou despesa. -->
+    <dialog class="modal" id="transferDialog">
+        <form class="modal-sheet compact-sheet" id="transferForm">
+            <div class="modal-header">
+                <div>
+                    <span>CONTAS / TRANSFERÊNCIA</span>
+                    <h2 id="transferModalTitle">Mover dinheiro</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="transferDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="transferId">
+            <div class="form-grid">
+                <label class="form-field">
+                    <span>SAI DA CONTA</span>
+                    <select id="transferFromAccount" required></select>
+                </label>
+                <label class="form-field">
+                    <span>VAI PARA A CONTA</span>
+                    <select id="transferToAccount" required></select>
+                </label>
+                <label class="form-field">
+                    <span>VALOR</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="transferAmount" min="0.01" step="0.01" placeholder="0,00" required></span>
+                </label>
+                <label class="form-field">
+                    <span>DATA</span>
+                    <input type="date" id="transferDate" required>
+                </label>
+                <label class="form-field">
+                    <span>ESTADO</span>
+                    <select id="transferStatus" required>
+                        <option value="paid">Confirmada</option>
+                        <option value="pending">Pendente</option>
+                    </select>
+                </label>
+                <label class="form-field">
+                    <span>NOTA / OPCIONAL</span>
+                    <input type="text" id="transferNote" maxlength="100" placeholder="Ex.: reserva do mês">
+                </label>
+            </div>
+            <p class="form-notice">Esta transferência só reorganiza o saldo. Ela não aparece como receita nem como despesa.</p>
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="transferDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Confirmar transferência →</button>
             </div>
         </form>
     </dialog>
@@ -889,7 +1075,7 @@
             <span class="warning-mark">!</span>
             <span class="section-code">SAÍDA DEFINITIVA</span>
             <h2>Excluir conta e dados?</h2>
-            <p>Movimentações, metas, aportes e limites serão apagados do Supabase. Essa ação não pode ser desfeita.</p>
+            <p>Movimentações, contas financeiras, transferências, metas, aportes e limites serão apagados do Supabase. Essa ação não pode ser desfeita.</p>
             <button class="text-button backup-before-delete" id="deleteAccountBackupButton" type="button">Baixar backup antes de excluir ↓</button>
             <label class="form-field">
                 <span>DIGITE EXCLUIR PARA CONFIRMAR</span>
