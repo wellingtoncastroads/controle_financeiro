@@ -35,7 +35,7 @@ export function generateFinancialReportPdf(report) {
         doc.setFont("courier", "normal");
         doc.setFontSize(7.5);
         doc.setTextColor(...GRAY);
-        doc.text("FÔLEGO V2.1 / RELATÓRIO PESSOAL", margin, pageHeight - 8);
+        doc.text("FÔLEGO V2.2 / RELATÓRIO PESSOAL", margin, pageHeight - 8);
         doc.text(String(pageNumber).padStart(2, "0"), pageWidth - margin, pageHeight - 8, { align: "right" });
     };
 
@@ -108,7 +108,7 @@ export function generateFinancialReportPdf(report) {
         return y + Math.min(items.length, 8) * 10 + 4;
     };
 
-    drawPageHeader("RAIO-X / V2.1");
+    drawPageHeader("RAIO-X / V2.2");
     pageNumber += 1;
 
     doc.setFont("courier", "bold");
@@ -181,10 +181,42 @@ export function generateFinancialReportPdf(report) {
     y = rankingBlock(report.descriptionRanking, margin, y, usableWidth, "Não há saídas para ordenar.");
     y += 7;
     y = sectionTitle("03 / MEIOS", "Como o dinheiro circulou", y);
-    rankingBlock(report.methodRanking, margin, y, usableWidth, "Nenhuma forma de pagamento registrada.");
+    y = rankingBlock(report.methodRanking, margin, y, usableWidth, "Nenhuma forma de pagamento registrada.");
+
+    y = addPage("CONTAS / SALDOS");
+    y = sectionTitle("04 / CONTAS", "Onde o dinheiro está", y);
+    if (!report.accounts?.length) {
+        doc.setFont("courier", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(...GRAY);
+        doc.text("Nenhuma conta financeira cadastrada.", margin, y + 5);
+    } else {
+        report.accounts.forEach((account) => {
+            if (y > pageHeight - 28) {
+                y = addPage("CONTAS / CONTINUAÇÃO");
+                y = sectionTitle("04 / CONTAS", "Onde o dinheiro está", y);
+            }
+            doc.setDrawColor(210, 208, 199);
+            doc.setLineWidth(0.3);
+            doc.rect(margin, y, usableWidth, 18, "S");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(...BLACK);
+            doc.text(doc.splitTextToSize(account.name, 92)[0], margin + 4, y + 7);
+            doc.setFont("courier", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...GRAY);
+            doc.text(doc.splitTextToSize(account.institutionName, 92)[0], margin + 4, y + 12);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...BLACK);
+            doc.text(currency(account.balance), pageWidth - margin - 4, y + 10, { align: "right" });
+            y += 22;
+        });
+    }
 
     y = addPage("EXTRATO DO PERÍODO");
-    y = sectionTitle("04 / ARQUIVO", "Movimentos confirmados", y);
+    y = sectionTitle("05 / ARQUIVO", "Movimentos confirmados", y);
     const columns = { date: margin, description: margin + 23, type: margin + 105, value: pageWidth - margin };
 
     const drawTableHeader = () => {
@@ -194,7 +226,7 @@ export function generateFinancialReportPdf(report) {
         doc.setFontSize(7);
         doc.setTextColor(255, 255, 255);
         doc.text("DATA", columns.date + 2, y + 5.2);
-        doc.text("MOVIMENTO / CATEGORIA", columns.description, y + 5.2);
+        doc.text("MOVIMENTO / GRUPO + CONTA", columns.description, y + 5.2);
         doc.text("TIPO / MEIO", columns.type, y + 5.2);
         doc.text("VALOR", columns.value - 2, y + 5.2, { align: "right" });
         y += 11;
@@ -214,7 +246,7 @@ export function generateFinancialReportPdf(report) {
             }
 
             const description = doc.splitTextToSize(transaction.description, 74)[0];
-            const category = doc.splitTextToSize(transaction.category, 74)[0];
+            const category = doc.splitTextToSize(`${transaction.category} / ${transaction.accountLabel}`, 74)[0];
             doc.setFont("courier", "normal");
             doc.setFontSize(7.4);
             doc.setTextColor(...BLACK);
@@ -242,4 +274,3 @@ export function generateFinancialReportPdf(report) {
     const blob = doc.output("blob");
     return { blob, filename };
 }
-

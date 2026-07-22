@@ -1,4 +1,4 @@
-export const BACKUP_VERSION = 3;
+export const BACKUP_VERSION = 4;
 export const LEGACY_STORAGE_KEY = "nexo-financas-v1";
 export const THEME_STORAGE_KEY = "folego-theme-v2";
 
@@ -16,11 +16,23 @@ export const PAYMENT_METHODS = [
 export const PAYMENT_METHOD_LABELS = Object.fromEntries(
     PAYMENT_METHODS.map(({ value, label }) => [value, label])
 );
+export const ACCOUNT_TYPES = [
+    { value: "checking", label: "Conta corrente" },
+    { value: "savings", label: "Poupança" },
+    { value: "payment", label: "Conta de pagamento" },
+    { value: "wallet", label: "Carteira digital" },
+    { value: "cash", label: "Dinheiro em espécie" },
+    { value: "other", label: "Outra conta" }
+];
+export const ACCOUNT_TYPE_LABELS = Object.fromEntries(
+    ACCOUNT_TYPES.map(({ value, label }) => [value, label])
+);
 
 const VALID_TYPES = new Set(["income", "expense"]);
 const VALID_STATUSES = new Set(["paid", "pending"]);
 const VALID_ICONS = new Set(["🛡️", "🏠", "✈️", "🚗", "💻", "🎓", "✨"]);
 const VALID_PAYMENT_METHODS = new Set(PAYMENT_METHODS.map(({ value }) => value));
+const VALID_ACCOUNT_TYPES = new Set(ACCOUNT_TYPES.map(({ value }) => value));
 const VALID_SERIES_KINDS = new Set(["recurring", "installment"]);
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH_PATTERN = /^\d{4}-\d{2}$/;
@@ -89,6 +101,18 @@ function cleanAmount(value, allowZero = false) {
     return Math.round((amount + Number.EPSILON) * 100) / 100;
 }
 
+function cleanSignedAmount(value) {
+    if (value === null || value === undefined || value === "") return 0;
+    const amount = Number(value);
+    if (!Number.isFinite(amount) || Math.abs(amount) > MAX_AMOUNT) return null;
+    return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
+
+function cleanUuid(value, allowEmpty = true) {
+    if ((value === null || value === undefined || value === "") && allowEmpty) return null;
+    return typeof value === "string" && UUID_PATTERN.test(value) ? value : null;
+}
+
 export function normalizeTransaction(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 
@@ -101,6 +125,7 @@ export function normalizeTransaction(value) {
         : typeof value.created_at === "string" ? value.created_at : null;
     const rawPaymentMethod = value.paymentMethod ?? value.payment_method;
     const paymentMethod = VALID_PAYMENT_METHODS.has(rawPaymentMethod) ? rawPaymentMethod : "other";
+    const accountId = cleanUuid(value.accountId ?? value.account_id);
     const rawSeriesId = value.seriesId ?? value.series_id;
     const seriesId = typeof rawSeriesId === "string" && UUID_PATTERN.test(rawSeriesId) ? rawSeriesId : null;
     const rawSeriesKind = value.seriesKind ?? value.series_kind;
@@ -135,11 +160,76 @@ export function normalizeTransaction(value) {
         date,
         status: value.status,
         paymentMethod,
+        accountId,
         seriesId: seriesKind ? seriesId : null,
         seriesKind,
         installmentNumber,
         installmentTotal,
         createdAt
+    };
+}
+
+export function normalizeFinancialAccount(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+    const bankCode = cleanText(value.bankCode ?? value.bank_code, 40).toLowerCase();
+    const institutionName = cleanText(value.institutionName ?? value.institution_name, 60);
+    const name = cleanText(value.name, 60);
+    const accountType = value.accountType ?? value.account_type;
+    const initialBalance = cleanSignedAmount(value.initialBalance ?? value.initial_balance);
+    const color = typeof value.color === "string" && /^#[0-9a-f]{6}$/i.test(value.color)
+        ? value.color.toLowerCase()
+        : "#11120e";
+
+    if (typeof value.id === "string" && value.id && !UUID_PATTERN.test(value.id)) return null;
+    if (!bankCode || !institutionName || !name || initialBalance === null) return null;
+    if (!VALID_ACCOUNT_TYPES.has(accountType)) return null;
+
+    return {
+        id: typeof value.id === "string" ? value.id : "",
+        bankCode,
+        institutionName,
+        name,
+        accountType,
+        initialBalance,
+        color,
+        createdAt: typeof value.createdAt === "string"
+            ? value.createdAt
+            : typeof value.created_at === "string" ? value.created_at : null,
+        updatedAt: typeof value.updatedAt === "string"
+            ? value.updatedAt
+            : typeof value.updated_at === "string" ? value.updated_at : null
+    };
+}
+
+export function normalizeTransfer(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+    const fromAccountId = cleanUuid(value.fromAccountId ?? value.from_account_id, false);
+    const toAccountId = cleanUuid(value.toAccountId ?? value.to_account_id, false);
+    const amount = cleanAmount(value.amount);
+    const date = value.date ?? value.occurred_on;
+    const status = VALID_STATUSES.has(value.status) ? value.status : "paid";
+    const note = cleanText(value.note ?? "", 100);
+
+    if (typeof value.id === "string" && value.id && !UUID_PATTERN.test(value.id)) return null;
+    if (!fromAccountId || !toAccountId || fromAccountId === toAccountId) return null;
+    if (amount === null || !isValidDate(date)) return null;
+
+    return {
+        id: typeof value.id === "string" ? value.id : "",
+        fromAccountId,
+        toAccountId,
+        amount,
+        date,
+        status,
+        note,
+        createdAt: typeof value.createdAt === "string"
+            ? value.createdAt
+            : typeof value.created_at === "string" ? value.created_at : null,
+        updatedAt: typeof value.updatedAt === "string"
+            ? value.updatedAt
+            : typeof value.updated_at === "string" ? value.updated_at : null
     };
 }
 
@@ -219,6 +309,8 @@ export function normalizeSnapshot(value) {
             goals: [],
             budgets: [],
             contributions: [],
+            accounts: [],
+            transfers: [],
             rejected: 0,
             settings: {}
         };
@@ -228,6 +320,8 @@ export function normalizeSnapshot(value) {
     const rawGoals = Array.isArray(value.goals) ? value.goals : [];
     const rawBudgets = Array.isArray(value.budgets) ? value.budgets : [];
     const rawContributions = Array.isArray(value.contributions) ? value.contributions : [];
+    const rawAccounts = Array.isArray(value.accounts) ? value.accounts : [];
+    const rawTransfers = Array.isArray(value.transfers) ? value.transfers : [];
     const transactions = rawTransactions.map(normalizeTransaction).filter(Boolean);
     const goals = rawGoals.map(normalizeGoal).filter(Boolean);
     const budgets = rawBudgets.map(normalizeBudget).filter(Boolean);
@@ -235,10 +329,22 @@ export function normalizeSnapshot(value) {
     const contributions = rawContributions
         .map(normalizeContribution)
         .filter((contribution) => contribution && goalIds.has(contribution.goalId));
+    const accounts = rawAccounts.map(normalizeFinancialAccount).filter(Boolean);
+    const accountIds = new Set(accounts.map(({ id }) => id).filter(Boolean));
+    transactions.forEach((transaction) => {
+        if (transaction.accountId && !accountIds.has(transaction.accountId)) transaction.accountId = null;
+    });
+    const transfers = rawTransfers
+        .map(normalizeTransfer)
+        .filter((transfer) => transfer
+            && accountIds.has(transfer.fromAccountId)
+            && accountIds.has(transfer.toAccountId));
     const rejected = (rawTransactions.length - transactions.length)
         + (rawGoals.length - goals.length)
         + (rawBudgets.length - budgets.length)
-        + (rawContributions.length - contributions.length);
+        + (rawContributions.length - contributions.length)
+        + (rawAccounts.length - accounts.length)
+        + (rawTransfers.length - transfers.length);
     const theme = value.settings?.theme === "dark" ? "dark" : "light";
     const selectedMonth = isValidMonth(value.settings?.selectedMonth)
         ? value.settings.selectedMonth
@@ -250,6 +356,8 @@ export function normalizeSnapshot(value) {
         goals,
         budgets,
         contributions,
+        accounts,
+        transfers,
         rejected,
         settings: { theme, selectedMonth }
     };
@@ -267,16 +375,16 @@ export function readLegacySnapshot(storage = window.localStorage) {
     }
 }
 
-export function createBackup({ transactions, goals, budgets = [], contributions = [], settings }) {
+export function createBackup({ transactions, goals, budgets = [], contributions = [], accounts = [], transfers = [], settings }) {
     return {
         app: "Fôlego",
         schemaVersion: BACKUP_VERSION,
         exportedAt: new Date().toISOString(),
         transactions: transactions.map(({
-            id, description, amount, type, category, date, status, paymentMethod,
+            id, description, amount, type, category, date, status, paymentMethod, accountId,
             seriesId, seriesKind, installmentNumber, installmentTotal, createdAt
         }) => ({
-            id, description, amount, type, category, date, status, paymentMethod,
+            id, description, amount, type, category, date, status, paymentMethod, accountId,
             seriesId, seriesKind, installmentNumber, installmentTotal, createdAt
         })),
         goals: goals.map(({ id, name, current, target, deadline, icon, createdAt }) => ({
@@ -287,6 +395,16 @@ export function createBackup({ transactions, goals, budgets = [], contributions 
         })),
         contributions: contributions.map(({ id, goalId, amount, date, note, createdAt }) => ({
             id, goalId, amount, date, note, createdAt
+        })),
+        accounts: accounts.map(({
+            id, bankCode, institutionName, name, accountType, initialBalance, color, createdAt
+        }) => ({
+            id, bankCode, institutionName, name, accountType, initialBalance, color, createdAt
+        })),
+        transfers: transfers.map(({
+            id, fromAccountId, toAccountId, amount, date, status, note, createdAt
+        }) => ({
+            id, fromAccountId, toAccountId, amount, date, status, note, createdAt
         })),
         settings: {
             theme: settings.theme === "dark" ? "dark" : "light",
@@ -300,12 +418,49 @@ export function sanitizeCsvCell(value) {
     return /^[\t\r\n ]*[=+\-@]/.test(text) ? `'${text}` : text;
 }
 
-export function getBalanceAsOf(transactions, isoDate = toISODate()) {
-    return transactions
+export function getBalanceAsOf(transactions, isoDate = toISODate(), accounts = [], transfers = []) {
+    const transactionBalance = transactions
         .filter((transaction) => transaction.status === "paid" && transaction.date <= isoDate)
         .reduce((total, transaction) => (
             total + (transaction.type === "income" ? Number(transaction.amount) : -Number(transaction.amount))
         ), 0);
+    const initialBalance = accounts.reduce((total, account) => total + Number(account.initialBalance || 0), 0);
+    // Transferências só redistribuem o saldo. Por isso não entram no total geral.
+    return transactionBalance + initialBalance;
+}
+
+export function getAccountBalances(accounts, transactions, transfers, isoDate = toISODate()) {
+    const balances = new Map(accounts.map((account) => [account.id, Number(account.initialBalance || 0)]));
+    let undefinedBalance = 0;
+
+    transactions
+        .filter((transaction) => transaction.status === "paid" && transaction.date <= isoDate)
+        .forEach((transaction) => {
+            const change = transaction.type === "income" ? Number(transaction.amount) : -Number(transaction.amount);
+            if (transaction.accountId && balances.has(transaction.accountId)) {
+                balances.set(transaction.accountId, balances.get(transaction.accountId) + change);
+            } else {
+                undefinedBalance += change;
+            }
+        });
+
+    transfers
+        .filter((transfer) => transfer.status === "paid" && transfer.date <= isoDate)
+        .forEach((transfer) => {
+            const amount = Number(transfer.amount);
+            if (balances.has(transfer.fromAccountId)) {
+                balances.set(transfer.fromAccountId, balances.get(transfer.fromAccountId) - amount);
+            }
+            if (balances.has(transfer.toAccountId)) {
+                balances.set(transfer.toAccountId, balances.get(transfer.toAccountId) + amount);
+            }
+        });
+
+    return {
+        accounts: accounts.map((account) => ({ ...account, balance: balances.get(account.id) ?? 0 })),
+        undefinedBalance,
+        total: [...balances.values()].reduce((sum, balance) => sum + balance, 0) + undefinedBalance
+    };
 }
 
 export function getPeriodRange(mode = "month", referenceDate = toISODate()) {
@@ -360,9 +515,9 @@ export function rankExpenses(transactions, range, groupBy = "category") {
         .sort((a, b) => b.amount - a.amount || a.label.localeCompare(b.label, "pt-BR"));
 }
 
-export function getBalanceProjection(transactions, horizonDays, isoDate = toISODate()) {
+export function getBalanceProjection(transactions, horizonDays, isoDate = toISODate(), accounts = [], transfers = []) {
     const endDate = addDaysToISO(isoDate, horizonDays);
-    const balanceToday = getBalanceAsOf(transactions, isoDate);
+    const balanceToday = getBalanceAsOf(transactions, isoDate, accounts, transfers);
     const scheduledChange = transactions
         .filter((transaction) => (
             transaction.date <= endDate
@@ -384,7 +539,7 @@ export function getBalanceProjection(transactions, horizonDays, isoDate = toISOD
     };
 }
 
-export function getBreathingDays(transactions, isoDate = toISODate(), lookbackDays = 90) {
+export function getBreathingDays(transactions, isoDate = toISODate(), lookbackDays = 90, accounts = [], transfers = []) {
     const safeLookback = Number.isInteger(lookbackDays) && lookbackDays > 0 ? lookbackDays : 90;
     const startDate = addDaysToISO(isoDate, -(safeLookback - 1));
     const expenses = transactions
@@ -398,7 +553,7 @@ export function getBreathingDays(transactions, isoDate = toISODate(), lookbackDa
 
     if (expenses <= 0) return null;
 
-    const balance = getBalanceAsOf(transactions, isoDate);
+    const balance = getBalanceAsOf(transactions, isoDate, accounts, transfers);
     const dailyAverage = expenses / safeLookback;
     return {
         days: Math.max(0, Math.floor(balance / dailyAverage)),

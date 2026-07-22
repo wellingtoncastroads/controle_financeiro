@@ -6,21 +6,27 @@ import {
     deleteAccount,
     importLegacySnapshot,
     loadUserData,
+    removeAccountTransfer,
     removeBudget,
+    removeFinancialAccount,
     removeGoal,
     removeTransaction,
     replaceUserSnapshot,
+    saveAccountTransfer,
     saveBudget,
+    saveFinancialAccount,
     saveGoal,
     saveProfile,
     saveTransaction,
     saveTransactions
 } from "./src/data-service.js";
 import {
+    ACCOUNT_TYPE_LABELS,
     buildTransactionSeries,
     createBackup,
     currentMonthKey,
     EXPENSE_CATEGORIES,
+    getAccountBalances,
     getBalanceAsOf,
     getBalanceProjection,
     getBreathingDays,
@@ -32,9 +38,11 @@ import {
     isValidMonth,
     normalizeBudget,
     normalizeContribution,
+    normalizeFinancialAccount,
     normalizeGoal,
     normalizeSnapshot,
     normalizeTransaction,
+    normalizeTransfer,
     PAYMENT_METHOD_LABELS,
     prefersReducedMotion,
     rankExpenses,
@@ -43,6 +51,7 @@ import {
     THEME_STORAGE_KEY,
     toISODate
 } from "./src/domain.js";
+import { BANK_CATALOG, getBankDefinition } from "./src/banks.js";
 import { generateFinancialReportPdf } from "./src/report-pdf.js";
 
 /* ================================================================
@@ -175,10 +184,23 @@ const elements = {
     projection90Date: $("#projection90Date"),
     agendaCount: $("#agendaCount"),
     agendaList: $("#agendaList"),
+    dashboardAccounts: $("#dashboardAccounts"),
+
+    accountsSchemaNotice: $("#accountsSchemaNotice"),
+    accountsTotalBalance: $("#accountsTotalBalance"),
+    accountsCount: $("#accountsCount"),
+    unassignedBalance: $("#unassignedBalance"),
+    unassignedCount: $("#unassignedCount"),
+    accountsGrid: $("#accountsGrid"),
+    newAccountButton: $("#newAccountButton"),
+    newTransferButton: $("#newTransferButton"),
+    transferCount: $("#transferCount"),
+    transferList: $("#transferList"),
 
     transactionSearch: $("#transactionSearch"),
     typeFilter: $("#typeFilter"),
     categoryFilter: $("#categoryFilter"),
+    accountFilter: $("#accountFilter"),
     exportCsvButton: $("#exportCsvButton"),
     transactionRows: $("#transactionRows"),
     transactionCount: $("#transactionCount"),
@@ -213,6 +235,7 @@ const elements = {
     transactionCategory: $("#transactionCategory"),
     transactionDate: $("#transactionDate"),
     transactionStatus: $("#transactionStatus"),
+    transactionAccount: $("#transactionAccount"),
     transactionPaymentMethod: $("#transactionPaymentMethod"),
     transactionMethodLabel: $("#transactionMethodLabel"),
     transactionMode: $("#transactionMode"),
@@ -222,6 +245,29 @@ const elements = {
     installmentFields: $("#installmentFields"),
     installmentCount: $("#installmentCount"),
     seriesEditHint: $("#seriesEditHint"),
+
+    accountDialog: $("#accountDialog"),
+    accountForm: $("#accountForm"),
+    accountModalTitle: $("#accountModalTitle"),
+    financialAccountId: $("#financialAccountId"),
+    selectedBankCode: $("#selectedBankCode"),
+    bankOptions: $("#bankOptions"),
+    customInstitutionField: $("#customInstitutionField"),
+    customInstitutionName: $("#customInstitutionName"),
+    financialAccountName: $("#financialAccountName"),
+    financialAccountType: $("#financialAccountType"),
+    financialAccountInitialBalance: $("#financialAccountInitialBalance"),
+
+    transferDialog: $("#transferDialog"),
+    transferForm: $("#transferForm"),
+    transferModalTitle: $("#transferModalTitle"),
+    transferId: $("#transferId"),
+    transferFromAccount: $("#transferFromAccount"),
+    transferToAccount: $("#transferToAccount"),
+    transferAmount: $("#transferAmount"),
+    transferDate: $("#transferDate"),
+    transferStatus: $("#transferStatus"),
+    transferNote: $("#transferNote"),
 
     goalDialog: $("#goalDialog"),
     goalForm: $("#goalForm"),
@@ -280,7 +326,7 @@ let pendingDeletion = null;
 let legacySnapshot = null;
 let toastTimer = null;
 let lastCloudLoad = 0;
-let filters = { search: "", type: "all", category: "all" };
+let filters = { search: "", type: "all", category: "all", account: "all" };
 let reportState = { mode: "month", referenceDate: toISODate() };
 let deferredInstallPrompt = null;
 
@@ -289,6 +335,9 @@ let state = {
     goals: [],
     budgets: [],
     contributions: [],
+    accounts: [],
+    transfers: [],
+    accountsEnabled: false,
     profile: null,
     settings: {
         theme: localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light",
@@ -358,6 +407,48 @@ function categoryDetails(category) {
     return CATEGORY_DETAILS[category] || { icon: "spark", color: "#8a8ea3" };
 }
 
+function getFinancialAccount(accountId) {
+    return state.accounts.find((account) => account.id === accountId) || null;
+}
+
+function getAccountLabel(accountId) {
+    return getFinancialAccount(accountId)?.name || "Conta não definida";
+}
+
+function getAccountVisual(account) {
+    const bank = getBankDefinition(account?.bankCode);
+    const fallbackMark = String(account?.institutionName || "?")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+    return {
+        mark: account?.bankCode === "other" ? fallbackMark : bank.mark,
+        color: account?.color || bank.color,
+        foreground: bank.foreground
+    };
+}
+
+function bankLogoMarkup(account, className = "bank-logo") {
+    const visual = getAccountVisual(account);
+    return `<span class="${className}" style="--bank-color:${escapeHTML(visual.color)};--bank-ink:${escapeHTML(visual.foreground)}"><b>${escapeHTML(visual.mark)}</b></span>`;
+}
+
+function renderAccountSelect(select, selectedValue = "", { includeUndefined = true } = {}) {
+    const options = [
+        ...(includeUndefined ? ['<option value="">Conta não definida</option>'] : []),
+        ...state.accounts.map((account) => `<option value="${escapeHTML(account.id)}">${escapeHTML(account.name)} — ${escapeHTML(account.institutionName)}</option>`)
+    ];
+    select.innerHTML = options.join("");
+    select.value = state.accounts.some((account) => account.id === selectedValue) ? selectedValue : includeUndefined ? "" : state.accounts[0]?.id || "";
+}
+
+function getAccountBalanceSnapshot(isoDate = toISODate()) {
+    return getAccountBalances(state.accounts, state.transactions, state.transfers, isoDate);
+}
+
 function totalByType(transactions, type) {
     return transactions
         .filter((transaction) => transaction.type === type)
@@ -371,6 +462,7 @@ function signedCurrency(transaction) {
 
 function transactionContext(transaction) {
     const parts = [transaction.type === "income" ? "Receita" : "Despesa"];
+    parts.push(getAccountLabel(transaction.accountId));
     parts.push(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other);
     if (transaction.seriesKind === "installment" && transaction.installmentNumber && transaction.installmentTotal) {
         parts.push(`parcela ${transaction.installmentNumber}/${transaction.installmentTotal}`);
@@ -465,6 +557,9 @@ function friendlyError(error) {
     if (message.includes("password") && message.includes("characters")) return "A senha precisa ter pelo menos 8 caracteres.";
     if (message.includes("rate limit")) return "Muitas tentativas seguidas. Aguarde um pouco e tente novamente.";
     if (message.includes("failed to fetch") || message.includes("network")) return "Não foi possível alcançar o servidor. Confira sua conexão.";
+    if (message.includes("financial_accounts") || message.includes("account_transfers") || message.includes("replace_user_snapshot_v4") || message.includes("account_id")) {
+        return "A atualização de contas ainda precisa ser ativada no Supabase com o arquivo v2_2_accounts.sql.";
+    }
     if (message.includes("relation") || message.includes("schema cache") || message.includes("function public")) {
         return "O banco precisa da atualização V2.1. Execute supabase/migrations/v2_1_additive.sql no SQL Editor do Supabase.";
     }
@@ -533,6 +628,9 @@ async function activateSession(nextSession, { force = false } = {}) {
             goals: cloud.goals.map(normalizeGoal).filter(Boolean),
             budgets: cloud.budgets.map(normalizeBudget).filter(Boolean),
             contributions: cloud.contributions.map(normalizeContribution).filter(Boolean),
+            accounts: cloud.accounts.map(normalizeFinancialAccount).filter(Boolean),
+            transfers: cloud.transfers.map(normalizeTransfer).filter(Boolean),
+            accountsEnabled: cloud.accountsEnabled,
             profile: cloud.profile,
             settings: {
                 theme: cloud.profile?.theme === "dark" ? "dark" : state.settings.theme,
@@ -553,7 +651,7 @@ async function activateSession(nextSession, { force = false } = {}) {
         setSyncState("ok");
 
         const initialView = window.location.hash.replace("#", "");
-        switchView(["dashboard", "transactions", "goals", "reports"].includes(initialView) ? initialView : "dashboard", false);
+        switchView(["dashboard", "accounts", "transactions", "goals", "reports"].includes(initialView) ? initialView : "dashboard", false);
         window.setTimeout(offerLegacyMigration, 180);
     } catch (error) {
         console.error("Falha ao carregar a conta:", error);
@@ -572,6 +670,9 @@ function clearSessionView() {
     state.goals = [];
     state.budgets = [];
     state.contributions = [];
+    state.accounts = [];
+    state.transfers = [];
+    state.accountsEnabled = false;
     state.profile = null;
     closeAccountMenu();
     showAuth("signin");
@@ -702,8 +803,8 @@ function renderSummary() {
     const currentConfirmed = confirmed.filter((transaction) => transaction.date.slice(0, 7) === selectedMonth);
     const previousConfirmed = confirmed.filter((transaction) => transaction.date.slice(0, 7) === previousMonth);
 
-    const balanceToday = getBalanceAsOf(state.transactions, today);
-    const projectedBalance = totalByType(confirmed, "income") - totalByType(confirmed, "expense");
+    const balanceToday = getBalanceAsOf(state.transactions, today, state.accounts, state.transfers);
+    const projectedBalance = getBalanceAsOf(state.transactions, "9999-12-31", state.accounts, state.transfers);
     const income = totalByType(currentConfirmed, "income");
     const expense = totalByType(currentConfirmed, "expense");
     const savings = income - expense;
@@ -847,10 +948,143 @@ function renderRecentTransactions() {
         return `
             <div class="recent-item">
                 <span class="transaction-icon">${renderIcon(details.icon)}</span>
-                <div class="transaction-main"><strong>${escapeHTML(transaction.description)}</strong><span>${escapeHTML(transaction.category)} • ${escapeHTML(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other)}${pendingText}</span></div>
+                <div class="transaction-main"><strong>${escapeHTML(transaction.description)}</strong><span>${escapeHTML(transaction.category)} • ${escapeHTML(getAccountLabel(transaction.accountId))} • ${escapeHTML(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other)}${pendingText}</span></div>
                 <span class="recent-date">${escapeHTML(formatDate(transaction.date, { day: "2-digit", month: "short" }))}</span>
                 <strong class="recent-value ${valueClass}">${escapeHTML(signedCurrency(transaction))}</strong>
             </div>
+        `;
+    }).join("");
+}
+
+function renderDashboardAccounts() {
+    if (!state.accountsEnabled) {
+        elements.dashboardAccounts.innerHTML = `
+            <button class="account-glance-empty" type="button" data-action="open-accounts-view">
+                <span>!</span><strong>Contas aguardando ativação</strong><small>Seus lançamentos continuam funcionando normalmente.</small>
+            </button>
+        `;
+        return;
+    }
+
+    const snapshot = getAccountBalanceSnapshot();
+    const unassignedCount = state.transactions.filter((transaction) => !transaction.accountId).length;
+    const items = snapshot.accounts.map((account) => ({ ...account, undefined: false }));
+    if (unassignedCount) {
+        items.push({
+            id: "",
+            name: "Conta não definida",
+            institutionName: `${unassignedCount} ${unassignedCount === 1 ? "lançamento" : "lançamentos"}`,
+            bankCode: "other",
+            color: "#747168",
+            balance: snapshot.undefinedBalance,
+            undefined: true
+        });
+    }
+
+    if (!items.length) {
+        elements.dashboardAccounts.innerHTML = `
+            <button class="account-glance-empty" type="button" data-action="new-account">
+                <span>+</span><strong>Adicione sua primeira conta</strong><small>Nubank, Caixa, Banpará, dinheiro e outras.</small>
+            </button>
+        `;
+        return;
+    }
+
+    elements.dashboardAccounts.innerHTML = items.slice(0, 4).map((account) => `
+        <button class="account-glance-item" type="button" data-action="open-accounts-view">
+            ${bankLogoMarkup(account, "bank-logo compact")}
+            <span><strong>${escapeHTML(account.name)}</strong><small>${escapeHTML(account.institutionName)}</small></span>
+            <b class="${account.balance < 0 ? "negative" : ""}">${escapeHTML(formatCurrency(account.balance))}</b>
+        </button>
+    `).join("");
+}
+
+function renderAccounts() {
+    const enabled = state.accountsEnabled;
+    const snapshot = getAccountBalanceSnapshot();
+    const unassignedTransactions = state.transactions.filter((transaction) => !transaction.accountId);
+    elements.accountsSchemaNotice.hidden = enabled;
+    elements.newAccountButton.disabled = !enabled;
+    elements.newTransferButton.disabled = !enabled || state.accounts.length < 2;
+    elements.accountsTotalBalance.textContent = formatCurrency(snapshot.total);
+    elements.accountsTotalBalance.classList.toggle("negative", snapshot.total < 0);
+    elements.accountsCount.textContent = String(state.accounts.length);
+    elements.unassignedBalance.textContent = formatCurrency(snapshot.undefinedBalance);
+    elements.unassignedBalance.classList.toggle("negative", snapshot.undefinedBalance < 0);
+    elements.unassignedCount.textContent = `${unassignedTransactions.length} ${unassignedTransactions.length === 1 ? "lançamento antigo" : "lançamentos antigos"}`;
+
+    const cards = snapshot.accounts.map((account) => {
+        const movementCount = state.transactions.filter((transaction) => transaction.accountId === account.id).length;
+        const transferCount = state.transfers.filter((transfer) => transfer.fromAccountId === account.id || transfer.toAccountId === account.id).length;
+        return `
+            <article class="financial-account-card" style="--account-color:${escapeHTML(account.color)}">
+                <header>
+                    ${bankLogoMarkup(account)}
+                    <div><span>${escapeHTML(account.institutionName)}</span><h3>${escapeHTML(account.name)}</h3></div>
+                    <div class="account-card-actions">
+                        <button class="row-action" type="button" data-action="edit-account" data-id="${escapeHTML(account.id)}" aria-label="Editar ${escapeHTML(account.name)}" title="Editar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>
+                        <button class="row-action delete" type="button" data-action="delete-account" data-id="${escapeHTML(account.id)}" aria-label="Excluir ${escapeHTML(account.name)}" title="Excluir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/></svg></button>
+                    </div>
+                </header>
+                <div class="account-card-balance"><span>SALDO CONFIRMADO</span><strong class="${account.balance < 0 ? "negative" : ""}">${escapeHTML(formatCurrency(account.balance))}</strong></div>
+                <footer>
+                    <span>${escapeHTML(ACCOUNT_TYPE_LABELS[account.accountType] || ACCOUNT_TYPE_LABELS.other)}</span>
+                    <span>${movementCount} ${movementCount === 1 ? "movimento" : "movimentos"}</span>
+                    <span>${transferCount} ${transferCount === 1 ? "transferência" : "transferências"}</span>
+                </footer>
+            </article>
+        `;
+    });
+
+    if (unassignedTransactions.length) {
+        cards.push(`
+            <article class="financial-account-card undefined-account-card">
+                <header>
+                    ${bankLogoMarkup({ bankCode: "other", institutionName: "Conta não definida", color: "#747168" })}
+                    <div><span>REGISTROS PRESERVADOS</span><h3>Conta não definida</h3></div>
+                </header>
+                <div class="account-card-balance"><span>SALDO CONFIRMADO</span><strong class="${snapshot.undefinedBalance < 0 ? "negative" : ""}">${escapeHTML(formatCurrency(snapshot.undefinedBalance))}</strong></div>
+                <p>Edite os lançamentos antigos quando quiser e escolha a conta correta. Nada foi alterado automaticamente.</p>
+                <footer><span>${unassignedTransactions.length} ${unassignedTransactions.length === 1 ? "movimento" : "movimentos"}</span><button type="button" data-action="filter-unassigned">ORGANIZAR →</button></footer>
+            </article>
+        `);
+    }
+
+    if (!cards.length) {
+        elements.accountsGrid.innerHTML = `
+            <button class="accounts-empty-card" type="button" data-action="new-account" ${enabled ? "" : "disabled"}>
+                <span>+</span><strong>Sua primeira conta começa aqui</strong><p>Adicione somente os bancos e carteiras que você usa.</p>
+            </button>
+        `;
+    } else {
+        elements.accountsGrid.innerHTML = cards.join("");
+    }
+
+    const transfers = [...state.transfers]
+        .sort((a, b) => b.date.localeCompare(a.date) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    elements.transferCount.textContent = `${transfers.length} ${transfers.length === 1 ? "TRANSFERÊNCIA" : "TRANSFERÊNCIAS"}`;
+    if (!transfers.length) {
+        elements.transferList.innerHTML = `<div class="transfer-empty"><span>↔</span><p>Nenhuma transferência registrada entre suas contas.</p></div>`;
+        return;
+    }
+
+    elements.transferList.innerHTML = transfers.map((transfer) => {
+        const from = getFinancialAccount(transfer.fromAccountId);
+        const to = getFinancialAccount(transfer.toAccountId);
+        if (!from || !to) return "";
+        return `
+            <article class="transfer-item ${transfer.status === "pending" ? "pending" : ""}">
+                <div class="transfer-route">
+                    ${bankLogoMarkup(from, "bank-logo mini")}
+                    <span><strong>${escapeHTML(from.name)}</strong><i>→</i><strong>${escapeHTML(to.name)}</strong><small>${escapeHTML(formatDate(transfer.date))}${transfer.note ? ` • ${escapeHTML(transfer.note)}` : ""}</small></span>
+                    ${bankLogoMarkup(to, "bank-logo mini")}
+                </div>
+                <div class="transfer-value"><span>${transfer.status === "paid" ? "CONFIRMADA" : "PENDENTE"}</span><strong>${escapeHTML(formatCurrency(transfer.amount))}</strong></div>
+                <div class="row-actions">
+                    <button class="row-action" type="button" data-action="edit-transfer" data-id="${escapeHTML(transfer.id)}" aria-label="Editar transferência" title="Editar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>
+                    <button class="row-action delete" type="button" data-action="delete-transfer" data-id="${escapeHTML(transfer.id)}" aria-label="Excluir transferência" title="Excluir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/></svg></button>
+                </div>
+            </article>
         `;
     }).join("");
 }
@@ -896,8 +1130,23 @@ function getFilteredTransactions() {
         .filter((transaction) => transaction.date.slice(0, 7) === state.settings.selectedMonth)
         .filter((transaction) => filters.type === "all" || transaction.type === filters.type)
         .filter((transaction) => filters.category === "all" || transaction.category === filters.category)
-        .filter((transaction) => !search || `${transaction.description} ${transaction.category}`.toLocaleLowerCase("pt-BR").includes(search))
+        .filter((transaction) => filters.account === "all"
+            || (filters.account === "undefined" ? !transaction.accountId : transaction.accountId === filters.account))
+        .filter((transaction) => !search || `${transaction.description} ${transaction.category} ${getAccountLabel(transaction.accountId)}`.toLocaleLowerCase("pt-BR").includes(search))
         .sort((a, b) => b.date.localeCompare(a.date) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+}
+
+function renderAccountFilter() {
+    const selected = filters.account;
+    const hasUndefined = state.transactions.some((transaction) => !transaction.accountId);
+    elements.accountFilter.innerHTML = [
+        '<option value="all">Todas</option>',
+        ...state.accounts.map((account) => `<option value="${escapeHTML(account.id)}">${escapeHTML(account.name)}</option>`),
+        ...(hasUndefined ? ['<option value="undefined">Conta não definida</option>'] : [])
+    ].join("");
+    const validValues = new Set(["all", ...state.accounts.map(({ id }) => id), ...(hasUndefined ? ["undefined"] : [])]);
+    filters.account = validValues.has(selected) ? selected : "all";
+    elements.accountFilter.value = filters.account;
 }
 
 function renderCategoryFilter() {
@@ -916,7 +1165,7 @@ function renderTransactionTable() {
     const transactions = getFilteredTransactions();
     if (!transactions.length) {
         elements.transactionRows.innerHTML = `
-            <tr class="empty-table-row"><td colspan="6"><div class="empty-state"><span class="empty-icon">${renderIcon("search")}</span><strong>Nada encontrado</strong><p>Altere os filtros ou registre um movimento em ${escapeHTML(formatMonthLabel(state.settings.selectedMonth))}.</p></div></td></tr>
+            <tr class="empty-table-row"><td colspan="7"><div class="empty-state"><span class="empty-icon">${renderIcon("search")}</span><strong>Nada encontrado</strong><p>Altere os filtros ou registre um movimento em ${escapeHTML(formatMonthLabel(state.settings.selectedMonth))}.</p></div></td></tr>
         `;
     } else {
         elements.transactionRows.innerHTML = transactions.map((transaction) => {
@@ -938,6 +1187,7 @@ function renderTransactionTable() {
                         </div>
                     </td>
                     <td class="category-cell">${escapeHTML(transaction.category)}</td>
+                    <td class="account-cell">${escapeHTML(getAccountLabel(transaction.accountId))}</td>
                     <td class="date-cell">${escapeHTML(formatDate(transaction.date, { day: "2-digit", month: "short" }))}</td>
                     <td class="status-cell"><i class="status-pill ${transaction.status === "pending" ? "pending" : ""}">${statusText}</i></td>
                     <td class="value-cell ${isIncome ? "income-value" : "expense-value"}"><strong>${escapeHTML(signedCurrency(transaction))}</strong></td>
@@ -1012,7 +1262,7 @@ function renderGoals() {
 
 function renderForecast() {
     const today = toISODate();
-    const breathing = getBreathingDays(state.transactions, today, 90);
+    const breathing = getBreathingDays(state.transactions, today, 90, state.accounts, state.transfers);
     if (!breathing) {
         elements.breathingDays.textContent = "—";
         elements.breathingCaption.textContent = "Registre despesas confirmadas para calcular sua média de 90 dias.";
@@ -1022,7 +1272,7 @@ function renderForecast() {
     }
 
     [30, 60, 90].forEach((days) => {
-        const projection = getBalanceProjection(state.transactions, days, today);
+        const projection = getBalanceProjection(state.transactions, days, today, state.accounts, state.transfers);
         const valueElement = elements[`projection${days}`];
         const dateElement = elements[`projection${days}Date`];
         valueElement.textContent = formatCurrency(projection.projectedBalance);
@@ -1162,7 +1412,10 @@ function renderAll() {
     renderCashFlowChart();
     renderExpenseSpectrum();
     renderRecentTransactions();
+    renderDashboardAccounts();
+    renderAccounts();
     renderCategoryFilter();
+    renderAccountFilter();
     renderTransactionTable();
     renderGoals();
     renderForecast();
@@ -1174,9 +1427,9 @@ function renderAll() {
 ================================================================ */
 
 function switchView(viewName, scroll = true) {
-    const validViews = ["dashboard", "transactions", "goals", "reports"];
+    const validViews = ["dashboard", "accounts", "transactions", "goals", "reports"];
     const selectedView = validViews.includes(viewName) ? viewName : "dashboard";
-    const titles = { dashboard: "Pulso atual", transactions: "Extrato completo", goals: "Planos futuros", reports: "Raio-X financeiro" };
+    const titles = { dashboard: "Pulso atual", accounts: "Minhas contas", transactions: "Extrato completo", goals: "Planos futuros", reports: "Raio-X financeiro" };
     document.querySelectorAll("[data-view-section]").forEach((section) => section.classList.toggle("active", section.dataset.viewSection === selectedView));
     document.querySelectorAll(".rail-link[data-view]").forEach((button) => {
         const active = button.dataset.view === selectedView;
@@ -1232,6 +1485,9 @@ function openTransactionDialog(transactionId = null) {
     elements.transactionAmount.value = transaction?.amount || "";
     elements.transactionDate.value = transaction?.date || defaultDateForSelectedMonth();
     elements.transactionStatus.value = transaction?.status || "paid";
+    const preferredAccount = transaction?.accountId || (!transaction && state.accounts.length === 1 ? state.accounts[0].id : "");
+    renderAccountSelect(elements.transactionAccount, preferredAccount);
+    elements.transactionAccount.disabled = !state.accountsEnabled;
     elements.transactionPaymentMethod.value = transaction?.paymentMethod || "other";
     elements.transactionMode.value = "single";
     elements.recurrenceFrequency.value = "monthly";
@@ -1246,6 +1502,11 @@ async function handleTransactionSubmit(event) {
     event.preventDefault();
     if (!session?.user) return;
     const original = state.transactions.find((transaction) => transaction.id === elements.transactionId.value);
+    if (!original && state.accountsEnabled && state.accounts.length > 0 && !elements.transactionAccount.value) {
+        showToast("Escolha em qual conta esse dinheiro entrou ou saiu.", "warning");
+        elements.transactionAccount.focus();
+        return;
+    }
     const data = normalizeTransaction({
         id: elements.transactionId.value,
         description: elements.transactionDescription.value,
@@ -1255,6 +1516,7 @@ async function handleTransactionSubmit(event) {
         date: elements.transactionDate.value,
         status: elements.transactionStatus.value,
         paymentMethod: elements.transactionPaymentMethod.value,
+        accountId: elements.transactionAccount.value || null,
         seriesId: original?.seriesId,
         seriesKind: original?.seriesKind,
         installmentNumber: original?.installmentNumber,
@@ -1270,7 +1532,7 @@ async function handleTransactionSubmit(event) {
     setSyncState("busy");
     try {
         if (editing) {
-            const saved = await saveTransaction(session.user.id, data);
+            const saved = await saveTransaction(session.user.id, data, state.accountsEnabled);
             state.transactions = state.transactions.map((item) => item.id === saved.id ? saved : item);
         } else {
             const series = buildTransactionSeries(data, {
@@ -1280,8 +1542,8 @@ async function handleTransactionSubmit(event) {
                 installments: elements.installmentCount.value
             });
             const saved = series.length > 1
-                ? await saveTransactions(session.user.id, series)
-                : [await saveTransaction(session.user.id, series[0])];
+                ? await saveTransactions(session.user.id, series, state.accountsEnabled)
+                : [await saveTransaction(session.user.id, series[0], state.accountsEnabled)];
             state.transactions.push(...saved);
         }
         renderAll();
@@ -1300,6 +1562,153 @@ async function handleTransactionSubmit(event) {
         showToast(friendlyError(error), "error");
     } finally {
         setButtonBusy(elements.transactionForm, false);
+    }
+}
+
+function renderBankOptions(selectedCode = "nubank") {
+    elements.bankOptions.innerHTML = BANK_CATALOG.map((bank) => `
+        <button class="bank-option ${bank.code === selectedCode ? "selected" : ""}" type="button" data-bank-code="${escapeHTML(bank.code)}" aria-pressed="${bank.code === selectedCode}">
+            ${bankLogoMarkup({ bankCode: bank.code, institutionName: bank.name, color: bank.color }, "bank-logo picker-logo")}
+            <strong>${escapeHTML(bank.name)}</strong>
+        </button>
+    `).join("");
+}
+
+function selectBank(bankCode, { suggestValues = true } = {}) {
+    const bank = getBankDefinition(bankCode);
+    elements.selectedBankCode.value = bank.code;
+    elements.bankOptions.querySelectorAll("[data-bank-code]").forEach((button) => {
+        const selected = button.dataset.bankCode === bank.code;
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-pressed", String(selected));
+    });
+    const custom = bank.code === "other";
+    elements.customInstitutionField.hidden = !custom;
+    elements.customInstitutionName.required = custom;
+    if (suggestValues) {
+        elements.financialAccountName.value = bank.code === "cash" ? "Dinheiro em espécie" : bank.code === "other" ? "" : bank.name;
+        elements.financialAccountType.value = bank.defaultType;
+        if (!custom) elements.customInstitutionName.value = "";
+    }
+}
+
+function openAccountDialog(accountId = null) {
+    if (!state.accountsEnabled) {
+        showToast("A atualização de contas ainda precisa ser ativada no banco de dados.", "warning");
+        return;
+    }
+    const account = getFinancialAccount(accountId);
+    elements.accountForm.reset();
+    elements.financialAccountId.value = account?.id || "";
+    elements.accountModalTitle.textContent = account ? "Editar conta" : "Adicionar uma conta";
+    const bankCode = account?.bankCode || "nubank";
+    renderBankOptions(bankCode);
+    selectBank(bankCode, { suggestValues: !account });
+    if (account) {
+        elements.financialAccountName.value = account.name;
+        elements.financialAccountType.value = account.accountType;
+        elements.financialAccountInitialBalance.value = account.initialBalance;
+        if (bankCode === "other") elements.customInstitutionName.value = account.institutionName;
+    } else {
+        elements.financialAccountInitialBalance.value = "0";
+    }
+    elements.accountDialog.showModal();
+}
+
+async function handleAccountSubmit(event) {
+    event.preventDefault();
+    if (!session?.user || !state.accountsEnabled) return;
+    const bank = getBankDefinition(elements.selectedBankCode.value);
+    const account = normalizeFinancialAccount({
+        id: elements.financialAccountId.value,
+        bankCode: bank.code,
+        institutionName: bank.code === "other" ? elements.customInstitutionName.value : bank.name,
+        name: elements.financialAccountName.value,
+        accountType: elements.financialAccountType.value,
+        initialBalance: elements.financialAccountInitialBalance.value,
+        color: bank.color
+    });
+    if (!account) {
+        showToast("Revise o banco, o nome, o tipo e o saldo inicial.", "warning");
+        return;
+    }
+
+    const editing = Boolean(account.id);
+    setButtonBusy(elements.accountForm, true, "SALVANDO");
+    setSyncState("busy");
+    try {
+        const saved = await saveFinancialAccount(session.user.id, account);
+        state.accounts = editing
+            ? state.accounts.map((item) => item.id === saved.id ? saved : item)
+            : [...state.accounts, saved];
+        renderAll();
+        elements.accountDialog.close();
+        setSyncState("ok");
+        showToast(editing ? "Conta atualizada." : "Conta adicionada. Agora cada saldo fica no seu lugar.");
+    } catch (error) {
+        setSyncState("error");
+        showToast(friendlyError(error), "error");
+    } finally {
+        setButtonBusy(elements.accountForm, false);
+    }
+}
+
+function openTransferDialog(transferId = null) {
+    if (!state.accountsEnabled) {
+        showToast("A atualização de contas ainda precisa ser ativada no banco de dados.", "warning");
+        return;
+    }
+    if (state.accounts.length < 2) {
+        showToast("Adicione pelo menos duas contas para fazer uma transferência.", "warning");
+        return;
+    }
+    const transfer = state.transfers.find((item) => item.id === transferId);
+    elements.transferForm.reset();
+    elements.transferId.value = transfer?.id || "";
+    elements.transferModalTitle.textContent = transfer ? "Editar transferência" : "Mover dinheiro";
+    renderAccountSelect(elements.transferFromAccount, transfer?.fromAccountId || state.accounts[0].id, { includeUndefined: false });
+    renderAccountSelect(elements.transferToAccount, transfer?.toAccountId || state.accounts[1].id, { includeUndefined: false });
+    elements.transferAmount.value = transfer?.amount || "";
+    elements.transferDate.value = transfer?.date || defaultDateForSelectedMonth();
+    elements.transferStatus.value = transfer?.status || "paid";
+    elements.transferNote.value = transfer?.note || "";
+    elements.transferDialog.showModal();
+}
+
+async function handleTransferSubmit(event) {
+    event.preventDefault();
+    if (!session?.user || !state.accountsEnabled) return;
+    const transfer = normalizeTransfer({
+        id: elements.transferId.value,
+        fromAccountId: elements.transferFromAccount.value,
+        toAccountId: elements.transferToAccount.value,
+        amount: elements.transferAmount.value,
+        date: elements.transferDate.value,
+        status: elements.transferStatus.value,
+        note: elements.transferNote.value
+    });
+    if (!transfer) {
+        showToast("Escolha duas contas diferentes e revise valor e data.", "warning");
+        return;
+    }
+
+    const editing = Boolean(transfer.id);
+    setButtonBusy(elements.transferForm, true, "SALVANDO");
+    setSyncState("busy");
+    try {
+        const saved = await saveAccountTransfer(session.user.id, transfer);
+        state.transfers = editing
+            ? state.transfers.map((item) => item.id === saved.id ? saved : item)
+            : [...state.transfers, saved];
+        renderAll();
+        elements.transferDialog.close();
+        setSyncState("ok");
+        showToast(editing ? "Transferência atualizada." : "Transferência registrada sem contar como receita.");
+    } catch (error) {
+        setSyncState("error");
+        showToast(friendlyError(error), "error");
+    } finally {
+        setButtonBusy(elements.transferForm, false);
     }
 }
 
@@ -1388,6 +1797,9 @@ async function handleContributionSubmit(event) {
         state.goals = cloud.goals.map(normalizeGoal).filter(Boolean);
         state.budgets = cloud.budgets.map(normalizeBudget).filter(Boolean);
         state.contributions = cloud.contributions.map(normalizeContribution).filter(Boolean);
+        state.accounts = cloud.accounts.map(normalizeFinancialAccount).filter(Boolean);
+        state.transfers = cloud.transfers.map(normalizeTransfer).filter(Boolean);
+        state.accountsEnabled = cloud.accountsEnabled;
         state.profile = cloud.profile;
         elements.contributionDialog.close();
         renderAll();
@@ -1457,6 +1869,7 @@ async function handleBudgetSubmit(event) {
 
 function exportReportPdf() {
     const report = getCurrentReport();
+    const accountSnapshot = getAccountBalanceSnapshot();
     if (!report.transactions.length) {
         showToast("Não há movimentos confirmados neste período para o PDF.", "warning");
         return;
@@ -1473,9 +1886,22 @@ function exportReportPdf() {
             categoryRanking: report.categoryRanking,
             descriptionRanking: report.descriptionRanking,
             methodRanking: report.methodRanking,
+            accounts: [
+                ...accountSnapshot.accounts.map((account) => ({
+                    name: account.name,
+                    institutionName: account.institutionName,
+                    balance: account.balance
+                })),
+                ...(state.transactions.some((transaction) => !transaction.accountId) ? [{
+                    name: "Conta não definida",
+                    institutionName: "Lançamentos preservados sem conta",
+                    balance: accountSnapshot.undefinedBalance
+                }] : [])
+            ],
             transactions: report.transactions.map((transaction) => ({
                 ...transaction,
-                methodLabel: PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other
+                methodLabel: PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other,
+                accountLabel: getAccountLabel(transaction.accountId)
             }))
         });
         downloadBlob(blob, filename);
@@ -1513,16 +1939,40 @@ async function handleDeleteAccount(event) {
 }
 
 function requestDeletion(kind, id) {
-    const item = kind === "transaction"
-        ? state.transactions.find((transaction) => transaction.id === id)
-        : kind === "goal"
-            ? state.goals.find((goal) => goal.id === id)
-            : state.budgets.find((budget) => budget.id === id);
+    const collections = {
+        transaction: state.transactions,
+        goal: state.goals,
+        budget: state.budgets,
+        account: state.accounts,
+        transfer: state.transfers
+    };
+    const item = collections[kind]?.find((entry) => entry.id === id);
     if (!item) return;
-    const titles = { transaction: "Excluir movimentação?", goal: "Excluir plano?", budget: "Excluir limite?" };
-    const itemName = kind === "transaction" ? item.description : kind === "goal" ? item.name : item.category;
+
+    if (kind === "account") {
+        const linkedTransfers = state.transfers.filter((transfer) => transfer.fromAccountId === id || transfer.toAccountId === id);
+        if (linkedTransfers.length) {
+            showToast("Exclua primeiro as transferências ligadas a esta conta.", "warning");
+            return;
+        }
+    }
+
+    const titles = {
+        transaction: "Excluir movimentação?",
+        goal: "Excluir plano?",
+        budget: "Excluir limite?",
+        account: "Excluir conta financeira?",
+        transfer: "Excluir transferência?"
+    };
+    const itemName = kind === "transaction"
+        ? item.description
+        : kind === "goal" || kind === "account"
+            ? item.name
+            : kind === "budget" ? item.category : "Transferência entre contas";
     elements.confirmTitle.textContent = titles[kind];
-    elements.confirmMessage.textContent = `“${itemName}” será removido do seu caixa sincronizado.`;
+    elements.confirmMessage.textContent = kind === "account"
+        ? `“${itemName}” será removida. Seus lançamentos permanecerão preservados em “Conta não definida”, mas o saldo inicial desta conta deixará de compor o total.`
+        : `“${itemName}” será removido do seu caixa sincronizado.`;
     pendingDeletion = { kind, id };
     elements.confirmDialog.showModal();
 }
@@ -1540,15 +1990,31 @@ async function confirmDeletion() {
             await removeGoal(session.user.id, deletion.id);
             state.goals = state.goals.filter((item) => item.id !== deletion.id);
             state.contributions = state.contributions.filter((item) => item.goalId !== deletion.id);
-        } else {
+        } else if (deletion.kind === "budget") {
             await removeBudget(session.user.id, deletion.id);
             state.budgets = state.budgets.filter((item) => item.id !== deletion.id);
+        } else if (deletion.kind === "account") {
+            await removeFinancialAccount(session.user.id, deletion.id);
+            state.accounts = state.accounts.filter((item) => item.id !== deletion.id);
+            state.transactions = state.transactions.map((transaction) => (
+                transaction.accountId === deletion.id ? { ...transaction, accountId: null } : transaction
+            ));
+        } else if (deletion.kind === "transfer") {
+            await removeAccountTransfer(session.user.id, deletion.id);
+            state.transfers = state.transfers.filter((item) => item.id !== deletion.id);
         }
         pendingDeletion = null;
         elements.confirmDialog.close();
         renderAll();
         setSyncState("ok");
-        showToast(deletion.kind === "transaction" ? "Movimentação excluída." : deletion.kind === "goal" ? "Plano excluído." : "Limite excluído.");
+        const messages = {
+            transaction: "Movimentação excluída.",
+            goal: "Plano excluído.",
+            budget: "Limite excluído.",
+            account: "Conta removida. Os lançamentos foram preservados.",
+            transfer: "Transferência excluída."
+        };
+        showToast(messages[deletion.kind]);
     } catch (error) {
         setSyncState("error");
         showToast(friendlyError(error), "error");
@@ -1568,11 +2034,12 @@ function exportTransactionsToCsv() {
         return;
     }
     const rows = [
-        ["Descrição", "Tipo", "Categoria", "Forma", "Data", "Status", "Série", "Valor"],
+        ["Descrição", "Tipo", "Categoria", "Conta", "Forma", "Data", "Status", "Série", "Valor"],
         ...transactions.map((transaction) => [
             transaction.description,
             transaction.type === "income" ? "Receita" : "Despesa",
             transaction.category,
+            getAccountLabel(transaction.accountId),
             PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other,
             transaction.date.split("-").reverse().join("/"),
             transaction.status === "paid" ? "Confirmada" : "Pendente",
@@ -1603,15 +2070,26 @@ async function importBackupFile(file) {
         const normalized = normalizeSnapshot(parsed);
         if (!normalized.valid) throw new Error("O arquivo não possui a estrutura de um backup do Fôlego.");
         if (normalized.rejected > 0) throw new Error(`${normalized.rejected} registro(s) inválido(s) foram encontrados. Nada foi importado.`);
+        if (!state.accountsEnabled && (normalized.accounts.length || normalized.transfers.length)) {
+            throw new Error("Este backup possui contas da V2.2, mas a atualização do banco de dados ainda não foi ativada.");
+        }
 
         const confirmed = window.confirm(
-            `Este backup possui ${normalized.transactions.length} movimentações, ${normalized.goals.length} planos, ${normalized.budgets.length} limites e ${normalized.contributions.length} aportes.\n\nEle substituirá os dados atuais desta conta. Uma cópia dos dados atuais será baixada antes. Deseja continuar?`
+            `Este backup possui ${normalized.transactions.length} movimentações, ${normalized.accounts.length} contas, ${normalized.transfers.length} transferências, ${normalized.goals.length} planos, ${normalized.budgets.length} limites e ${normalized.contributions.length} aportes.\n\nEle substituirá os dados atuais desta conta. Uma cópia dos dados atuais será baixada antes. Deseja continuar?`
         );
         if (!confirmed) return;
 
         exportBackup("folego-antes-da-restauracao");
         setSyncOverlay(true, "Restaurando o backup com segurança...");
-        await replaceUserSnapshot(normalized.transactions, normalized.goals, normalized.budgets, normalized.contributions);
+        await replaceUserSnapshot(
+            normalized.transactions,
+            normalized.goals,
+            normalized.budgets,
+            normalized.contributions,
+            normalized.accounts,
+            normalized.transfers,
+            state.accountsEnabled
+        );
         state.settings = normalized.settings;
         await activateSession(session, { force: true });
         applyTheme(state.settings.theme);
@@ -1748,6 +2226,9 @@ async function refreshFromCloud() {
         state.goals = cloud.goals.map(normalizeGoal).filter(Boolean);
         state.budgets = cloud.budgets.map(normalizeBudget).filter(Boolean);
         state.contributions = cloud.contributions.map(normalizeContribution).filter(Boolean);
+        state.accounts = cloud.accounts.map(normalizeFinancialAccount).filter(Boolean);
+        state.transfers = cloud.transfers.map(normalizeTransfer).filter(Boolean);
+        state.accountsEnabled = cloud.accountsEnabled;
         state.profile = cloud.profile;
         lastCloudLoad = Date.now();
         renderAll();
@@ -1791,7 +2272,11 @@ elements.monthFilter.addEventListener("change", () => {
 [$("#topbarNewTransaction"), $("#bannerNewTransaction"), $("#pageNewTransaction")]
     .forEach((button) => button?.addEventListener("click", () => openTransactionDialog()));
 $("#newGoalButton")?.addEventListener("click", () => openGoalDialog());
+elements.newAccountButton.addEventListener("click", () => openAccountDialog());
+elements.newTransferButton.addEventListener("click", () => openTransferDialog());
 elements.transactionForm.addEventListener("submit", handleTransactionSubmit);
+elements.accountForm.addEventListener("submit", handleAccountSubmit);
+elements.transferForm.addEventListener("submit", handleTransferSubmit);
 elements.goalForm.addEventListener("submit", handleGoalSubmit);
 elements.contributionForm.addEventListener("submit", handleContributionSubmit);
 elements.budgetForm.addEventListener("submit", handleBudgetSubmit);
@@ -1806,7 +2291,52 @@ elements.transactionMode.addEventListener("change", updateTransactionModeUI);
 elements.transactionSearch.addEventListener("input", () => { filters.search = elements.transactionSearch.value; renderTransactionTable(); });
 elements.typeFilter.addEventListener("change", () => { filters.type = elements.typeFilter.value; renderTransactionTable(); });
 elements.categoryFilter.addEventListener("change", () => { filters.category = elements.categoryFilter.value; renderTransactionTable(); });
+elements.accountFilter.addEventListener("change", () => { filters.account = elements.accountFilter.value; renderTransactionTable(); });
 elements.exportCsvButton.addEventListener("click", exportTransactionsToCsv);
+
+elements.dashboardAccounts.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    if (button.dataset.action === "new-account") openAccountDialog();
+    else switchView("accounts");
+});
+
+elements.accountsGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    if (button.dataset.action === "new-account") openAccountDialog();
+    if (button.dataset.action === "edit-account") openAccountDialog(button.dataset.id);
+    if (button.dataset.action === "delete-account") requestDeletion("account", button.dataset.id);
+    if (button.dataset.action === "filter-unassigned") {
+        filters.account = "undefined";
+        renderAccountFilter();
+        renderTransactionTable();
+        switchView("transactions");
+    }
+});
+
+elements.transferList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    if (button.dataset.action === "edit-transfer") openTransferDialog(button.dataset.id);
+    if (button.dataset.action === "delete-transfer") requestDeletion("transfer", button.dataset.id);
+});
+
+elements.bankOptions.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-bank-code]");
+    if (button) selectBank(button.dataset.bankCode);
+});
+
+elements.transferFromAccount.addEventListener("change", () => {
+    if (elements.transferFromAccount.value === elements.transferToAccount.value) {
+        elements.transferToAccount.value = state.accounts.find((account) => account.id !== elements.transferFromAccount.value)?.id || "";
+    }
+});
+elements.transferToAccount.addEventListener("change", () => {
+    if (elements.transferFromAccount.value === elements.transferToAccount.value) {
+        elements.transferFromAccount.value = state.accounts.find((account) => account.id !== elements.transferToAccount.value)?.id || "";
+    }
+});
 
 elements.transactionRows.addEventListener("click", (event) => {
     const button = event.target.closest("[data-action]");
@@ -1854,6 +2384,8 @@ document.querySelectorAll("[data-close-dialog]").forEach((button) => {
 
 [
     elements.transactionDialog,
+    elements.accountDialog,
+    elements.transferDialog,
     elements.goalDialog,
     elements.contributionDialog,
     elements.budgetDialog,
