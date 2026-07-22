@@ -1,8 +1,8 @@
 -- ============================================================================
 -- FÔLEGO V2 — BASE DO BANCO, AUTENTICAÇÃO E POLÍTICAS DE SEGURANÇA
 -- Use este arquivo somente em instalações novas. Depois, execute também
--- supabase/migrations/v2_1_additive.sql para completar a estrutura da V2.1.
--- Em uma conta já em uso, execute APENAS a migração aditiva da V2.1.
+-- supabase/migrations/v2_1_additive.sql e depois v2_2_accounts.sql.
+-- Em uma conta na V2.1, execute APENAS a migração aditiva v2_2_accounts.sql.
 -- ============================================================================
 
 create extension if not exists pgcrypto;
@@ -309,4 +309,3 @@ grant execute on function public.replace_user_snapshot(jsonb, jsonb) to authenti
 grant select, insert, update on public.profiles to authenticated;
 grant select, insert, update, delete on public.transactions to authenticated;
 grant select, insert, update, delete on public.goals to authenticated;
-
