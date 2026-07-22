@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
     buildTransactionSeries,
+    createBackup,
+    getAccountBalances,
     getBalanceProjection,
     getBalanceAsOf,
     getBreathingDays,
     getPeriodRange,
     isValidDate,
     normalizeSnapshot,
+    normalizeTransfer,
     rankExpenses,
     sanitizeCsvCell
 } from "./domain.js";
@@ -54,6 +57,80 @@ describe("saldo de hoje", () => {
         ];
 
         expect(getBalanceAsOf(transactions, "2026-07-16")).toBe(800);
+    });
+});
+
+describe("contas e transferências", () => {
+    const nubankId = "123e4567-e89b-42d3-a456-426614174000";
+    const caixaId = "223e4567-e89b-42d3-a456-426614174000";
+
+    it("separa os saldos e mantém transferências fora do total geral", () => {
+        const accounts = [
+            { id: nubankId, name: "Nubank", initialBalance: 100 },
+            { id: caixaId, name: "Caixa", initialBalance: 200 }
+        ];
+        const transactions = [
+            { accountId: nubankId, amount: 50, type: "income", status: "paid", date: "2026-07-01" },
+            { accountId: caixaId, amount: 20, type: "expense", status: "paid", date: "2026-07-02" },
+            { accountId: null, amount: 10, type: "expense", status: "paid", date: "2026-07-03" },
+            { accountId: nubankId, amount: 999, type: "income", status: "pending", date: "2026-07-04" }
+        ];
+        const transfers = [
+            { fromAccountId: nubankId, toAccountId: caixaId, amount: 30, status: "paid", date: "2026-07-05" },
+            { fromAccountId: caixaId, toAccountId: nubankId, amount: 50, status: "pending", date: "2026-07-06" }
+        ];
+
+        const result = getAccountBalances(accounts, transactions, transfers, "2026-07-10");
+        expect(result.accounts.map(({ balance }) => balance)).toEqual([120, 210]);
+        expect(result.undefinedBalance).toBe(-10);
+        expect(result.total).toBe(320);
+        expect(getBalanceAsOf(transactions, "2026-07-10", accounts, transfers)).toBe(320);
+    });
+
+    it("recusa uma transferência para a mesma conta", () => {
+        expect(normalizeTransfer({
+            fromAccountId: nubankId,
+            toAccountId: nubankId,
+            amount: 10,
+            date: "2026-07-10",
+            status: "paid"
+        })).toBeNull();
+    });
+
+    it("mantém compatibilidade com backup antigo e inclui contas no backup novo", () => {
+        const legacy = normalizeSnapshot({
+            transactions: [{
+                description: "Salário",
+                amount: 1000,
+                type: "income",
+                category: "Salário",
+                date: "2026-07-05",
+                status: "paid"
+            }],
+            goals: []
+        });
+        expect(legacy.accounts).toEqual([]);
+        expect(legacy.transfers).toEqual([]);
+        expect(legacy.transactions[0].accountId).toBeNull();
+
+        const backup = createBackup({
+            transactions: [{ ...legacy.transactions[0], accountId: nubankId }],
+            goals: [],
+            accounts: [{
+                id: nubankId,
+                bankCode: "nubank",
+                institutionName: "Nubank",
+                name: "Nubank pessoal",
+                accountType: "payment",
+                initialBalance: 0,
+                color: "#820ad1"
+            }],
+            transfers: [],
+            settings: { theme: "light", selectedMonth: "2026-07" }
+        });
+        expect(backup.schemaVersion).toBe(4);
+        expect(backup.accounts).toHaveLength(1);
+        expect(backup.transactions[0].accountId).toBe(nubankId);
     });
 });
 
