@@ -1,10 +1,12 @@
 {
   "name": "folego-financas",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "module",
   "scripts": {
+    "predev": "node tools/apply-pix-cash-split.mjs",
     "dev": "vite",
+    "prebuild": "node tools/apply-pix-cash-split.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
