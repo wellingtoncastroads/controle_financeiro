@@ -1,12 +1,12 @@
 {
   "name": "folego-financas",
   "private": true,
-  "version": "2.1.3",
+  "version": "2.1.4",
   "type": "module",
   "scripts": {
-    "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs",
+    "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs",
     "dev": "vite",
-    "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs",
+    "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
