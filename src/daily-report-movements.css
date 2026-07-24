@@ -1,0 +1,170 @@
+/* FÔLEGO — MOVIMENTAÇÕES DO DIA V2.3.1 */
+.daily-movements-board {
+    margin: 30px 0;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: 8px 8px 0 var(--ink);
+}
+
+.daily-movements-board[hidden] { display: none; }
+
+.daily-movements-heading {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: end;
+    padding: 24px;
+    border-bottom: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.daily-movements-heading h3 {
+    margin: 6px 0 0;
+    font-size: clamp(1.6rem, 3vw, 2.7rem);
+    line-height: .95;
+}
+
+.daily-movements-reference {
+    min-width: 220px;
+    text-align: right;
+    font-family: var(--mono);
+}
+
+.daily-movements-reference span,
+.daily-movements-reference small {
+    display: block;
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    opacity: .72;
+}
+
+.daily-movements-reference strong {
+    display: block;
+    margin: 6px 0;
+    color: var(--acid);
+    font-size: 1rem;
+}
+
+.daily-movements-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px solid var(--ink);
+}
+
+.daily-movements-summary > div {
+    padding: 18px 22px;
+    border-right: 1px solid var(--ink);
+}
+
+.daily-movements-summary > div:last-child { border-right: 0; }
+.daily-movements-summary .result { background: var(--acid); color: #11120e; }
+
+.daily-movements-summary span {
+    display: block;
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .12em;
+}
+
+.daily-movements-summary strong {
+    display: block;
+    margin-top: 7px;
+    font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+}
+
+.daily-movements-summary strong.negative { color: var(--orange); }
+
+.daily-movement-item {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) 130px 150px;
+    gap: 16px;
+    align-items: center;
+    min-height: 84px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--ink);
+}
+
+.daily-movement-item:last-child { border-bottom: 0; }
+.daily-movement-item:hover { background: color-mix(in srgb, var(--acid) 10%, transparent); }
+.daily-movement-item.pending { opacity: .68; }
+
+.daily-movement-index {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: .72rem;
+}
+
+.daily-movement-copy strong,
+.daily-movement-copy small,
+.daily-movement-status span,
+.daily-movement-status small {
+    display: block;
+}
+
+.daily-movement-copy strong { font-size: 1rem; }
+.daily-movement-copy small,
+.daily-movement-status {
+    margin-top: 5px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .04em;
+}
+
+.daily-movement-status { margin-top: 0; text-align: right; }
+.daily-movement-status small { margin-top: 5px; font-weight: 800; }
+.daily-movement-value { text-align: right; font-size: 1.05rem; }
+.daily-movement-item.income .daily-movement-value { color: var(--green-dark); }
+.daily-movement-item.expense .daily-movement-value { color: var(--orange); }
+
+.daily-movements-empty {
+    padding: 42px 24px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.daily-movements-empty span,
+.daily-movements-empty strong,
+.daily-movements-empty p { display: block; }
+.daily-movements-empty strong { margin: 8px 0; color: var(--ink); }
+.daily-movements-empty p { margin: 0; }
+
+html[data-theme="dark"] .daily-movements-board {
+    background: var(--paper-light);
+    border-color: var(--paper);
+    box-shadow: 8px 8px 0 var(--paper);
+}
+
+html[data-theme="dark"] .daily-movements-heading {
+    background: var(--paper);
+    color: var(--ink);
+    border-bottom-color: var(--paper);
+}
+
+html[data-theme="dark"] .daily-movements-summary,
+html[data-theme="dark"] .daily-movement-item,
+html[data-theme="dark"] .daily-movements-summary > div,
+html[data-theme="dark"] .daily-movement-index {
+    border-color: var(--ink);
+}
+
+@media (max-width: 760px) {
+    .daily-movements-heading { grid-template-columns: 1fr; }
+    .daily-movements-reference { min-width: 0; text-align: left; }
+    .daily-movements-summary { grid-template-columns: 1fr 1fr; }
+    .daily-movements-summary .result { grid-column: 1 / -1; border-top: 1px solid var(--ink); }
+    .daily-movements-summary > div:nth-child(2) { border-right: 0; }
+    .daily-movement-item {
+        grid-template-columns: 42px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 14px;
+    }
+    .daily-movement-status { grid-column: 2; text-align: left; }
+    .daily-movement-value { grid-column: 3; grid-row: 1 / span 2; }
+}
