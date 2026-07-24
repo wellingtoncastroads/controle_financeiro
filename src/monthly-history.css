@@ -1,0 +1,170 @@
+/* FÔLEGO V2.3 — HISTÓRICO MENSAL AUTOMÁTICO */
+.monthly-history-board {
+    margin-top: 34px;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: 8px 8px 0 var(--ink);
+}
+
+.monthly-history-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px 26px;
+    border-bottom: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.monthly-history-heading h3 {
+    margin: 5px 0 0;
+    font-size: clamp(1.45rem, 3vw, 2.5rem);
+    line-height: .95;
+}
+
+.monthly-history-heading p {
+    max-width: 430px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    line-height: 1.5;
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    opacity: .72;
+}
+
+.monthly-history-list {
+    display: grid;
+}
+
+.monthly-history-item {
+    display: grid;
+    grid-template-columns: 92px minmax(180px, 1fr) repeat(3, minmax(125px, .55fr)) 150px;
+    align-items: stretch;
+    min-height: 112px;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease;
+}
+
+.monthly-history-item:last-child { border-bottom: 0; }
+.monthly-history-item:hover,
+.monthly-history-item:focus-visible {
+    background: var(--acid);
+    color: #11120e;
+    outline: 0;
+}
+
+.monthly-history-item > span,
+.monthly-history-item > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 17px 19px;
+    border-right: 1px solid currentColor;
+}
+
+.monthly-history-item > :last-child { border-right: 0; }
+.monthly-history-index {
+    align-items: center;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    font-weight: 900;
+}
+
+.monthly-history-copy strong {
+    font-family: var(--font-display);
+    font-size: 1.18rem;
+    text-transform: uppercase;
+}
+
+.monthly-history-copy small,
+.monthly-history-stat span,
+.monthly-history-action small {
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .68;
+}
+
+.monthly-history-stat strong {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+}
+
+.monthly-history-stat.result strong.negative { color: var(--orange); }
+
+.monthly-history-stamp {
+    align-items: center;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: .66rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.monthly-history-stamp b {
+    display: inline-block;
+    padding: 6px 8px;
+    border: 2px solid currentColor;
+    transform: rotate(-2deg);
+}
+
+.monthly-history-item.current .monthly-history-stamp b {
+    background: var(--acid);
+    color: #11120e;
+    border-color: #11120e;
+}
+
+.monthly-history-empty {
+    padding: 44px 26px;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+@media (max-width: 980px) {
+    .monthly-history-item {
+        grid-template-columns: 66px 1.2fr repeat(3, .7fr) 110px;
+    }
+    .monthly-history-item > span,
+    .monthly-history-item > div { padding: 14px 12px; }
+}
+
+@media (max-width: 720px) {
+    .monthly-history-heading { align-items: flex-start; flex-direction: column; }
+    .monthly-history-heading p { text-align: left; }
+    .monthly-history-item {
+        grid-template-columns: 58px 1fr 105px;
+        min-height: 96px;
+    }
+    .monthly-history-stat { display: none !important; }
+    .monthly-history-copy strong { font-size: 1rem; }
+    .monthly-history-index { font-size: 1.2rem; }
+}
+
+html[data-theme="dark"] .monthly-history-board {
+    border-color: var(--paper);
+    box-shadow: 8px 8px 0 var(--paper);
+}
+
+html[data-theme="dark"] .monthly-history-heading {
+    border-bottom-color: var(--paper);
+}
+
+html[data-theme="dark"] .monthly-history-item {
+    border-bottom-color: var(--paper);
+}
