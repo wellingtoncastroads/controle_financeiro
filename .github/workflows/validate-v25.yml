@@ -25,7 +25,24 @@ jobs:
       - name: Apply interface
         run: npm run prebuild
       - name: Validate HTML
-        run: npm run validate:html
+        shell: bash
+        run: |
+          set +e
+          npx html-validate index.html --formatter json > html-report.json 2>&1
+          code=$?
+          echo "$code" > html-exit-code.txt
+          exit 0
+      - name: Upload HTML diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-diagnostic
+          path: |
+            html-report.json
+            html-exit-code.txt
+            index.html
+      - name: Stop on invalid HTML
+        shell: bash
+        run: test "$(cat html-exit-code.txt)" = "0"
       - name: Run tests
         run: npm test
       - name: Build Vite
