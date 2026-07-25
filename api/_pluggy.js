@@ -95,15 +95,14 @@ export async function pluggyRequest(pathOrUrl, { method = "GET", body, apiKey } 
 
 export async function collectPluggyPages(path, apiKey, maxPages = 30) {
     const results = [];
-    let next = path;
+    let next = new URL(path, PLUGGY_API).toString();
     let pages = 0;
     while (next && pages < maxPages) {
-        const payload = await pluggyRequest(next, { apiKey });
+        const current = new URL(next, PLUGGY_API);
+        const payload = await pluggyRequest(current.toString(), { apiKey });
         if (Array.isArray(payload.results)) results.push(...payload.results);
         if (!payload.next) break;
-        next = payload.next.startsWith("http")
-            ? payload.next
-            : `${PLUGGY_API}${payload.next.startsWith("/") ? "" : "/transactions"}${payload.next}`;
+        next = new URL(payload.next, current).toString();
         pages += 1;
     }
     return results;
