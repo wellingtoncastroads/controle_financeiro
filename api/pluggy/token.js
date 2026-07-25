@@ -1,5 +1,6 @@
 import {
     allowMethods,
+    assertItemOwnership,
     getPluggyApiKey,
     handleApiError,
     pluggyRequest,
@@ -15,6 +16,8 @@ export default async function handler(request, response) {
         const body = await readJson(request);
         const itemId = typeof body.itemId === "string" ? body.itemId : undefined;
         const apiKey = await getPluggyApiKey();
+        if (itemId) await assertItemOwnership(itemId, user.id, apiKey);
+
         const payload = await pluggyRequest("/connect_token", {
             method: "POST",
             apiKey,
@@ -22,8 +25,7 @@ export default async function handler(request, response) {
                 ...(itemId ? { itemId } : {}),
                 options: {
                     clientUserId: user.id,
-                    avoidDuplicates: true,
-                    products: ["ACCOUNTS", "TRANSACTIONS", "CREDIT_CARDS"]
+                    avoidDuplicates: true
                 }
             }
         });
