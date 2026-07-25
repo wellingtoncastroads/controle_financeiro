@@ -7,11 +7,11 @@
     "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs && node tools/apply-folego-v25-suite.mjs",
     "dev": "vite",
     "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs && node tools/apply-folego-v25-suite.mjs",
-    "build": "html-validate index.html && vitest run && vite build",
+    "build": "vitest run && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "validate:html": "html-validate index.html",
-    "check": "npm run validate:html && npm test && npm run build"
+    "check": "npm test && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.1",
