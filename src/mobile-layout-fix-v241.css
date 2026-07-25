@@ -1,0 +1,183 @@
+/* ==================================================================
+   FÔLEGO V2.4.1 — ACABAMENTO MOBILE
+   Corrige a navegação com seis páginas e preserva a hierarquia
+   tipográfica editorial dos valores financeiros.
+================================================================== */
+
+/* Valores financeiros usam a família serifada da marca, enquanto
+   datas, índices e legendas permanecem monoespaçados. */
+#projection30,
+#projection60,
+#projection90,
+.planning-summary strong,
+.planning-receipt-result strong,
+.planning-simulator-result strong,
+.planning-route-item > b {
+    font-family: Georgia, "Times New Roman", serif;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+
+#projection30,
+#projection60,
+#projection90 {
+    display: block;
+    min-width: 0;
+    line-height: 0.92;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+
+#projection30Date,
+#projection60Date,
+#projection90Date,
+.projection-strip > div > span,
+.rail-link > span {
+    font-family: "Courier New", Courier, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+    /* A barra inferior passa a ter duas linhas reais. Não existe mais
+       um sexto item solto abaixo dos cinco primeiros. */
+    .index-rail {
+        height: 132px !important;
+        min-height: 132px;
+        overflow: visible;
+    }
+
+    .index-rail .rail-nav {
+        display: grid !important;
+        width: 100%;
+        height: 132px;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        grid-template-rows: repeat(2, 66px);
+        overflow: hidden;
+        border-bottom: 0;
+    }
+
+    .index-rail:has(.rail-link[data-view="planning"]) .rail-link,
+    .index-rail .rail-link {
+        display: flex;
+        width: 100%;
+        height: 66px;
+        min-height: 66px !important;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+        padding: 7px 4px 8px;
+        border-right: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+        border-bottom: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+        line-height: 1;
+    }
+
+    .index-rail .rail-link:nth-child(3n) {
+        border-right: 0;
+    }
+
+    .index-rail .rail-link:nth-child(n + 4) {
+        border-bottom: 0;
+    }
+
+    .index-rail .rail-link > span {
+        margin: 0;
+        font-size: 0.58rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        line-height: 1;
+    }
+
+    .index-rail .rail-link > strong {
+        margin: 0;
+        font-size: 0.68rem;
+        font-weight: 900;
+        letter-spacing: 0.015em;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    /* Libera espaço real para a navegação de duas linhas. */
+    .app-frame,
+    .main-content {
+        padding-bottom: 154px;
+    }
+
+    /* O botão de registro continua acima da barra, sem cobrir a Rota. */
+    .register-button {
+        bottom: 148px !important;
+    }
+
+    /* No celular, cada previsão usa duas colunas: período e conteúdo.
+       O valor deixa de disputar espaço com a data e não quebra centavos. */
+    .projection-strip > div {
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        column-gap: 16px;
+        row-gap: 8px;
+        align-items: center;
+        min-width: 0;
+        padding: 23px 17px;
+    }
+
+    .projection-strip > div > span {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        align-self: center;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+    }
+
+    #projection30,
+    #projection60,
+    #projection90 {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        margin: 0;
+        font-size: clamp(1.55rem, 7vw, 2rem);
+        text-align: left;
+    }
+
+    #projection30Date,
+    #projection60Date,
+    #projection90Date {
+        grid-column: 2;
+        grid-row: 2;
+        width: 100%;
+        margin: 0;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        line-height: 1.35;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .projection-note {
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 380px) {
+    .index-rail .rail-link > strong {
+        font-size: 0.62rem;
+    }
+
+    .projection-strip > div {
+        grid-template-columns: 70px minmax(0, 1fr);
+        column-gap: 12px;
+        padding-inline: 14px;
+    }
+
+    #projection30,
+    #projection60,
+    #projection90 {
+        font-size: 1.5rem;
+    }
+}
