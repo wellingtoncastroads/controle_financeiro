@@ -1,0 +1,30 @@
+/* ==================================================================
+   FÔLEGO V2.4.3 — TIPOGRAFIA NUMÉRICA DA ROTA
+   Mantém todos os valores financeiros da página Rota na mesma família
+   monoespaçada usada pelo saldo, recibos e demais números do sistema.
+================================================================== */
+
+#planningView .planning-summary strong,
+#planningView .planning-receipt dd,
+#planningView .planning-receipt-result strong,
+#planningView .planning-route-item > b,
+#planningView .planning-budget-values b,
+#planningView .planning-simulator-result strong,
+#planningView .planning-simulation-schedule strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-weight: 600;
+    letter-spacing: -0.055em;
+}
+
+#planningView .planning-summary strong,
+#planningView .planning-receipt-result strong,
+#planningView .planning-simulator-result strong {
+    line-height: 0.95;
+}
+
+#planningView .planning-route-item > b,
+#planningView .planning-budget-values b,
+#planningView .planning-simulation-schedule strong {
+    letter-spacing: -0.035em;
+}
