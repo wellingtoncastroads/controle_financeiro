@@ -65,7 +65,7 @@ export function paymentMethodFor(transaction, account) {
     return "other";
 }
 
-export function categoryFor(transaction, account) {
+export function categoryFor(transaction) {
     if (isBillPayment(transaction)) return TRANSFER_CATEGORY;
     const text = normalizeText([
         transaction?.category,
@@ -94,7 +94,7 @@ function currentMonthKey(now = new Date()) {
 
 function cardFromAccount(account) {
     const limit = Number(account?.creditData?.creditLimit || 0);
-    if (account?.type !== "CREDIT" || limit <= 0) return null;
+    if (account?.type !== "CREDIT" || String(account.currencyCode || "BRL") !== "BRL" || limit <= 0) return null;
     const close = String(account?.creditData?.balanceCloseDate || "").slice(8, 10);
     const due = String(account?.creditData?.balanceDueDate || "").slice(8, 10);
     return {
@@ -140,6 +140,7 @@ export function mapPluggyPayload(payload, { userId, now = new Date() } = {}) {
     transactions.forEach((transaction) => {
         const account = accountMap.get(transaction.accountId);
         if (!account || !transaction?.id || !transaction?.date) return;
+        if (String(transaction.currencyCode || account.currencyCode || "BRL") !== "BRL") return;
         if (account.type === "CREDIT" && transaction.type === "CREDIT") return;
         const date = brazilDate(transaction.date);
         if (!date) return;
@@ -149,19 +150,22 @@ export function mapPluggyPayload(payload, { userId, now = new Date() } = {}) {
             .replace(/\s+/g, " ")
             .trim()
             .slice(0, 80);
+        const installmentNumber = Number(transaction.creditCardMetadata?.installmentNumber || 0);
+        const installmentTotal = Number(transaction.creditCardMetadata?.totalInstallments || 0);
+        const validInstallment = installmentTotal >= 2 && installmentTotal <= 120 && installmentNumber >= 1 && installmentNumber <= installmentTotal;
         const row = {
             user_id: userId,
             description,
             amount: Math.abs(Number(transaction.amount || 0)),
             type,
-            category: categoryFor(transaction, account),
+            category: categoryFor(transaction),
             occurred_on: date,
             status: creditPurchase ? (date.slice(0, 7) < month ? "paid" : "pending") : transaction.status === "PENDING" ? "pending" : "paid",
             payment_method: paymentMethodFor(transaction, account),
             series_id: transaction.id,
-            series_kind: "pluggy_import",
-            installment_number: transaction.creditCardMetadata?.installmentNumber || null,
-            installment_total: transaction.creditCardMetadata?.totalInstallments || null,
+            series_kind: validInstallment ? "installment" : null,
+            installment_number: validInstallment ? installmentNumber : null,
+            installment_total: validInstallment ? installmentTotal : null,
             _accountId: account.id,
             _accountType: account.type,
             _transferHint: looksLikeTransfer(transaction)
@@ -174,9 +178,10 @@ export function mapPluggyPayload(payload, { userId, now = new Date() } = {}) {
     pairInternalTransfers(rows);
 
     const cleanRows = rows.map(({ _accountId, _accountType, _transferHint, _paired, ...row }) => row);
-    const cards = accounts.map(cardFromAccount).filter(Boolean);
-    const bankAccounts = accounts.filter((account) => account.type === "BANK");
-    const creditAccounts = accounts.filter((account) => account.type === "CREDIT");
+    const brlAccounts = accounts.filter((account) => String(account.currencyCode || "BRL") === "BRL");
+    const cards = brlAccounts.map(cardFromAccount).filter(Boolean);
+    const bankAccounts = brlAccounts.filter((account) => account.type === "BANK");
+    const creditAccounts = brlAccounts.filter((account) => account.type === "CREDIT");
 
     return {
         rows: cleanRows,
