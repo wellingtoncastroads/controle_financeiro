@@ -1,0 +1,27 @@
+/* FÔLEGO V2.5.1 — TIPOGRAFIA NUMÉRICA DA ROTA
+   Mantém títulos serifados e devolve aos valores a linguagem monoespaçada do livro-caixa. */
+
+#planningView #projection30,
+#planningView #projection60,
+#planningView #projection90,
+#planningView .planning-summary strong,
+#planningView .planning-receipt dd,
+#planningView .planning-receipt-result strong,
+#planningView .planning-route-item > b,
+#planningView .planning-budget-values b,
+#planningView .planning-simulator-result strong,
+#planningView .planning-simulation-schedule strong {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace !important;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: -0.065em;
+}
+
+#planningView #projection30,
+#planningView #projection60,
+#planningView #projection90 {
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
