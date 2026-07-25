@@ -1,0 +1,97 @@
+/* ==================================================================
+   FÔLEGO V2.4.2 — MENU MOBILE EM CARROSSEL
+   Mantém a navegação compacta, horizontal e com respiro editorial.
+================================================================== */
+
+@media (max-width: 760px) {
+    .index-rail {
+        height: 74px !important;
+        min-height: 74px;
+        overflow: hidden;
+    }
+
+    .index-rail .rail-nav {
+        display: flex !important;
+        width: 100%;
+        height: 74px;
+        align-items: stretch;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-bottom: 0;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 0;
+        scrollbar-width: none;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .index-rail .rail-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .index-rail:has(.rail-link[data-view="planning"]) .rail-link,
+    .index-rail .rail-link {
+        display: flex;
+        flex: 0 0 clamp(104px, 25vw, 132px);
+        width: auto;
+        height: 74px;
+        min-height: 74px !important;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 5px;
+        padding: 8px 14px 9px;
+        border-right: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+        border-bottom: 0;
+        scroll-snap-align: start;
+        line-height: 1;
+    }
+
+    .index-rail .rail-link:last-child {
+        border-right: 0;
+    }
+
+    .index-rail .rail-link > span {
+        margin: 0;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.58rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 900;
+        letter-spacing: 0.13em;
+        line-height: 1;
+    }
+
+    .index-rail .rail-link > strong {
+        margin: 0;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.015em;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .index-rail .rail-link.active {
+        min-width: clamp(112px, 27vw, 138px);
+    }
+
+    .app-frame,
+    .main-content {
+        padding-bottom: 96px;
+    }
+
+    .register-button {
+        bottom: 90px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .index-rail:has(.rail-link[data-view="planning"]) .rail-link,
+    .index-rail .rail-link {
+        flex-basis: 102px;
+        padding-inline: 10px;
+    }
+
+    .index-rail .rail-link > strong {
+        font-size: 0.66rem;
+    }
+}
