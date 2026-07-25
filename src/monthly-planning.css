@@ -1,1 +1,986 @@
-/* FÔLEGO V2.4 — planejamento mensal */
+/* ==================================================================
+   FÔLEGO V2.4 — ROTA E PLANEJAMENTO MENSAL
+   Livro-caixa editorial: papel, tinta, carimbos e linhas de leitura.
+================================================================== */
+
+.index-rail:has(.rail-link[data-view="planning"]) .rail-link {
+    min-height: 84px;
+}
+
+.planning-intro {
+    align-items: flex-end;
+}
+
+.planning-edition-stamp,
+.planning-dry-stamp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--ink);
+    padding: 10px 13px;
+    background: var(--acid);
+    color: #11120e;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transform: rotate(-1.5deg);
+}
+
+.planning-control {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1.2fr) auto;
+    align-items: stretch;
+    margin-bottom: 28px;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: 7px 7px 0 var(--ink);
+}
+
+.planning-control > label,
+.planning-control-copy {
+    display: grid;
+    align-content: center;
+    gap: 7px;
+    min-height: 88px;
+    padding: 16px 20px;
+    border-right: 1px solid var(--ink);
+}
+
+.planning-control span,
+.planning-summary span,
+.planning-summary small,
+.planning-receipt dt,
+.planning-receipt footer,
+.planning-simulator-board footer {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.planning-control input {
+    width: 100%;
+    border: 0;
+    border-bottom: 2px solid var(--ink);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.planning-control-copy strong {
+    font-size: clamp(0.82rem, 1.4vw, 1.05rem);
+    letter-spacing: 0.04em;
+}
+
+.planning-control .paper-button {
+    min-width: 205px;
+    border-left: 1px solid var(--ink);
+    border-radius: 0;
+}
+
+.planning-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 32px;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    box-shadow: var(--hard-shadow);
+}
+
+.planning-summary article {
+    position: relative;
+    display: grid;
+    align-content: space-between;
+    min-width: 0;
+    min-height: 150px;
+    padding: 22px;
+    border-right: 1px solid var(--ink);
+}
+
+.planning-summary article:last-child {
+    border-right: 0;
+}
+
+.planning-summary article::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 42px;
+    height: 6px;
+    background: var(--blue);
+}
+
+.planning-summary .commitments::before {
+    background: var(--orange);
+}
+
+.planning-summary .closing {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.planning-summary .closing::before {
+    width: 100%;
+    background: #11120e;
+}
+
+.planning-summary strong {
+    display: block;
+    margin: 18px 0 12px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.25rem, 2.25vw, 2rem);
+    line-height: 0.95;
+    overflow-wrap: anywhere;
+}
+
+.planning-summary small {
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.planning-summary .closing small {
+    color: #11120e;
+}
+
+.planning-summary strong.negative,
+.planning-receipt strong.negative,
+.planning-simulator-result strong.negative {
+    color: var(--orange);
+}
+
+.planning-route-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
+    gap: 28px;
+    align-items: stretch;
+    margin-bottom: 32px;
+}
+
+.planning-route-board,
+.planning-budget-board {
+    border-top: 3px solid var(--ink);
+    padding-top: 18px;
+}
+
+.planning-route-count {
+    align-self: flex-start;
+    border: 1px solid var(--ink);
+    padding: 7px 9px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.planning-route-list {
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+}
+
+.planning-route-item {
+    display: grid;
+    grid-template-columns: 36px 72px minmax(0, 1fr) auto minmax(116px, auto);
+    align-items: center;
+    gap: 14px;
+    min-height: 78px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--ink);
+}
+
+.planning-route-item:last-child {
+    border-bottom: 0;
+}
+
+.planning-route-item.income {
+    box-shadow: inset 5px 0 0 var(--acid);
+}
+
+.planning-route-item.expense {
+    box-shadow: inset 5px 0 0 var(--orange);
+}
+
+.planning-route-index,
+.planning-route-item time,
+.planning-route-status,
+.planning-route-item small {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.planning-route-index {
+    color: var(--muted);
+}
+
+.planning-route-item time {
+    font-weight: 900;
+}
+
+.planning-route-item div {
+    min-width: 0;
+}
+
+.planning-route-item div strong,
+.planning-route-item div small {
+    display: block;
+}
+
+.planning-route-item div strong {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.planning-route-item div small {
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.planning-route-status {
+    border: 1px solid currentColor;
+    padding: 5px 7px;
+    white-space: nowrap;
+}
+
+.planning-route-item.income .planning-route-status {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.planning-route-item.expense .planning-route-status {
+    color: var(--orange);
+}
+
+.planning-route-item > b {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.planning-route-item.income > b {
+    color: var(--green);
+}
+
+html[data-theme="dark"] .planning-route-item.income > b {
+    color: var(--acid);
+}
+
+.planning-route-item.expense > b {
+    color: var(--orange);
+}
+
+.planning-empty {
+    display: flex;
+    min-height: 150px;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 28px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.planning-empty > span {
+    color: var(--orange);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2rem;
+    font-style: italic;
+    font-weight: 900;
+}
+
+.planning-empty p {
+    max-width: 480px;
+    margin: 0;
+}
+
+.planning-receipt {
+    position: relative;
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 9px 9px 0 var(--acid);
+}
+
+.planning-receipt::after {
+    content: "";
+    position: absolute;
+    right: 18px;
+    bottom: 12px;
+    width: 52px;
+    height: 26px;
+    opacity: 0.35;
+    background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px);
+}
+
+.planning-receipt > header {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid currentColor;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.67rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+}
+
+.planning-receipt-month {
+    padding: 22px 18px 14px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+    font-style: italic;
+    font-weight: 700;
+    line-height: 0.95;
+}
+
+.planning-receipt dl {
+    margin: 0;
+    padding: 8px 18px 16px;
+}
+
+.planning-receipt dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px dotted currentColor;
+}
+
+.planning-receipt dd {
+    margin: 0;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-align: right;
+}
+
+.planning-receipt-result {
+    margin-top: auto;
+    padding: 20px 18px;
+    background: var(--acid);
+    color: #11120e;
+}
+
+.planning-receipt-result span,
+.planning-receipt-result strong {
+    display: block;
+}
+
+.planning-receipt-result span {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.64rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.planning-receipt-result strong {
+    margin-top: 8px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.5rem, 2.7vw, 2.25rem);
+}
+
+.planning-receipt footer {
+    padding: 13px 18px 18px;
+}
+
+.planning-budget-board {
+    margin-bottom: 34px;
+}
+
+.planning-budget-heading {
+    align-items: end;
+}
+
+.planning-budget-heading > p {
+    max-width: 500px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    text-align: right;
+}
+
+.planning-budget-list {
+    display: grid;
+    gap: 12px;
+}
+
+.planning-budget-item {
+    display: grid;
+    grid-template-columns: 44px minmax(150px, 0.65fr) minmax(320px, 1.35fr);
+    gap: 18px;
+    align-items: center;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    padding: 18px;
+}
+
+.planning-budget-item.warning {
+    box-shadow: inset 7px 0 0 #e2b93b;
+}
+
+.planning-budget-item.forecast-exceeded,
+.planning-budget-item.exceeded {
+    box-shadow: inset 7px 0 0 var(--orange);
+}
+
+.planning-budget-index {
+    color: var(--muted);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.planning-budget-name strong,
+.planning-budget-name span {
+    display: block;
+}
+
+.planning-budget-name strong {
+    margin-bottom: 8px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.25rem;
+}
+
+.planning-budget-name span {
+    width: fit-content;
+    border: 1px solid currentColor;
+    padding: 4px 6px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.planning-budget-item.safe .planning-budget-name span {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.planning-budget-item.warning .planning-budget-name span {
+    background: #e2b93b;
+    color: #11120e;
+}
+
+.planning-budget-item.forecast-exceeded .planning-budget-name span,
+.planning-budget-item.exceeded .planning-budget-name span {
+    background: var(--orange);
+    color: #fffdf5;
+}
+
+.planning-budget-values {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+}
+
+.planning-budget-values p {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 11px 12px;
+    background: var(--paper-light);
+}
+
+.planning-budget-values span,
+.planning-budget-item footer {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+}
+
+.planning-budget-values b {
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+}
+
+.planning-budget-track {
+    position: relative;
+    grid-column: 2 / -1;
+    height: 12px;
+    border: 1px solid var(--ink);
+    background: color-mix(in srgb, var(--muted) 18%, transparent);
+}
+
+.planning-budget-track i {
+    display: block;
+    height: 100%;
+    background: var(--acid);
+}
+
+.planning-budget-item.warning .planning-budget-track i {
+    background: #e2b93b;
+}
+
+.planning-budget-item.forecast-exceeded .planning-budget-track i,
+.planning-budget-item.exceeded .planning-budget-track i {
+    background: var(--orange);
+}
+
+.planning-budget-track b {
+    position: absolute;
+    top: -5px;
+    width: 2px;
+    height: 20px;
+    background: var(--ink);
+    transform: translateX(-1px);
+}
+
+.planning-budget-item footer {
+    grid-column: 2 / -1;
+    display: flex;
+    justify-content: space-between;
+    margin-top: -9px;
+}
+
+.planning-budget-empty {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    gap: 22px;
+    align-items: center;
+    min-height: 130px;
+    border: 2px dashed var(--ink);
+    padding: 22px;
+}
+
+.planning-budget-empty > span {
+    color: var(--orange);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 3rem;
+    font-style: italic;
+    font-weight: 900;
+}
+
+.planning-budget-empty strong {
+    font-size: 1rem;
+}
+
+.planning-budget-empty p {
+    max-width: 650px;
+    margin: 7px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.planning-simulator-board {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 10px 10px 0 var(--orange);
+    padding: 28px;
+}
+
+.planning-simulator-board::before {
+    content: "?";
+    position: absolute;
+    top: -54px;
+    right: 24px;
+    color: color-mix(in srgb, currentColor 9%, transparent);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16rem;
+    font-style: italic;
+    font-weight: 900;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.planning-simulator-heading {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.planning-simulator-heading h3 {
+    margin: 8px 0 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.7rem, 3vw, 3rem);
+    font-style: italic;
+    line-height: 0.95;
+}
+
+.planning-dry-stamp {
+    border-color: currentColor;
+    background: transparent;
+    color: currentColor;
+}
+
+.planning-simulator-form {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.25fr 1fr 0.65fr 1fr;
+    gap: 1px;
+    border: 1px solid currentColor;
+    background: currentColor;
+}
+
+.planning-simulator-form label {
+    display: grid;
+    align-content: center;
+    gap: 9px;
+    min-width: 0;
+    min-height: 94px;
+    padding: 14px 16px;
+    background: var(--ink);
+}
+
+.planning-simulator-form label > span:first-child {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.61rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.planning-simulator-form input,
+.planning-simulator-form select {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    border-radius: 0;
+    background: transparent;
+    color: currentColor;
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+.planning-simulator-form select option {
+    background: var(--paper-light);
+    color: var(--ink);
+}
+
+.planning-money-field {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.planning-money-field b {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.78rem;
+}
+
+.planning-simulator-result {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr minmax(260px, 0.8fr);
+    border: 1px solid currentColor;
+    border-top: 0;
+}
+
+.planning-simulator-result > div,
+.planning-simulator-result > p {
+    min-width: 0;
+    margin: 0;
+    padding: 18px;
+    border-right: 1px solid currentColor;
+}
+
+.planning-simulator-result > p {
+    display: grid;
+    align-content: center;
+    border-right: 0;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.planning-simulator-result .after {
+    background: var(--acid);
+    color: #11120e;
+}
+
+.planning-simulator-result span,
+.planning-simulator-result strong {
+    display: block;
+}
+
+.planning-simulator-result span {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.59rem;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+}
+
+.planning-simulator-result strong {
+    margin-top: 8px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    overflow-wrap: anywhere;
+}
+
+.planning-simulation-schedule {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin-top: 18px;
+    border-top: 1px solid currentColor;
+    border-left: 1px solid currentColor;
+}
+
+.planning-simulation-schedule > div {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    padding: 13px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+}
+
+.planning-simulation-schedule span,
+.planning-simulation-schedule small {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.57rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+}
+
+.planning-simulation-schedule strong {
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+.planning-simulation-schedule > p {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 11px 13px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.62rem;
+}
+
+.planning-simulator-board > footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+    opacity: 0.72;
+}
+
+@media (max-width: 1220px) {
+    .planning-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .planning-summary article:nth-child(2) {
+        border-right: 0;
+    }
+
+    .planning-summary article:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--ink);
+    }
+
+    .planning-route-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .planning-receipt {
+        min-height: 480px;
+    }
+
+    .planning-simulator-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .planning-simulator-result {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .planning-simulator-result > p {
+        grid-column: 1 / -1;
+        border-top: 1px solid currentColor;
+    }
+
+    .planning-simulation-schedule {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .planning-control {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .planning-control-copy {
+        border-right: 0;
+    }
+
+    .planning-control .paper-button {
+        grid-column: 1 / -1;
+        min-height: 58px;
+        border-top: 1px solid var(--ink);
+        border-left: 0;
+    }
+
+    .planning-route-item {
+        grid-template-columns: 34px 64px minmax(0, 1fr) auto;
+    }
+
+    .planning-route-status {
+        display: none;
+    }
+
+    .planning-budget-item {
+        grid-template-columns: 38px minmax(0, 1fr);
+    }
+
+    .planning-budget-values,
+    .planning-budget-track,
+    .planning-budget-item footer {
+        grid-column: 2;
+    }
+
+    .planning-budget-empty {
+        grid-template-columns: 54px 1fr;
+    }
+
+    .planning-budget-empty .paper-button {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+
+@media (max-width: 680px) {
+    .index-rail:has(.rail-link[data-view="planning"]) .rail-link {
+        min-height: 0;
+    }
+
+    .planning-edition-stamp {
+        margin-top: 12px;
+        align-self: flex-start;
+    }
+
+    .planning-control,
+    .planning-summary,
+    .planning-simulator-form,
+    .planning-simulator-result {
+        grid-template-columns: 1fr;
+    }
+
+    .planning-control > label,
+    .planning-control-copy {
+        min-height: 76px;
+        border-right: 0;
+        border-bottom: 1px solid var(--ink);
+    }
+
+    .planning-summary article,
+    .planning-summary article:nth-child(2) {
+        min-height: 128px;
+        border-right: 0;
+        border-bottom: 1px solid var(--ink);
+    }
+
+    .planning-summary article:last-child {
+        border-bottom: 0;
+    }
+
+    .planning-route-item {
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        gap: 9px;
+        padding: 13px 11px;
+    }
+
+    .planning-route-item time {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .planning-route-item div {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .planning-route-index {
+        grid-row: 1 / 3;
+    }
+
+    .planning-route-item > b {
+        grid-column: 3;
+        grid-row: 1 / 3;
+        font-size: 0.82rem;
+    }
+
+    .planning-budget-heading {
+        display: block;
+    }
+
+    .planning-budget-heading > p {
+        margin-top: 12px;
+        text-align: left;
+    }
+
+    .planning-budget-item {
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 12px;
+        padding: 15px 12px;
+    }
+
+    .planning-budget-values {
+        grid-template-columns: 1fr;
+    }
+
+    .planning-budget-values p {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+    }
+
+    .planning-budget-empty {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+
+    .planning-budget-empty .paper-button {
+        grid-column: 1;
+    }
+
+    .planning-simulator-board {
+        padding: 20px 16px;
+    }
+
+    .planning-simulator-heading {
+        display: block;
+    }
+
+    .planning-dry-stamp {
+        margin-top: 18px;
+    }
+
+    .planning-simulator-result > div,
+    .planning-simulator-result > p {
+        border-right: 0;
+        border-bottom: 1px solid currentColor;
+    }
+
+    .planning-simulator-result > p {
+        grid-column: auto;
+        border-top: 0;
+    }
+
+    .planning-simulation-schedule {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
