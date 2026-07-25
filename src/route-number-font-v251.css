@@ -1,9 +1,29 @@
-/* FÔLEGO V2.5.1 — TIPOGRAFIA NUMÉRICA DA ROTA
-   Mantém títulos serifados e devolve aos valores a linguagem monoespaçada do livro-caixa. */
+/* FÔLEGO V2.5.2 — TIPOGRAFIA DO BLOCO "O CAIXA QUE VEM PELA FRENTE"
+   Os valores de 30, 60 e 90 dias ficam na mesma família monoespaçada
+   usada nos números centrais do livro-caixa. Os títulos seguem serifados. */
 
-#planningView #projection30,
-#planningView #projection60,
-#planningView #projection90,
+/* Este bloco pertence ao Pulso, não à view #planningView. A versão anterior
+   usava um ancestral inexistente e por isso a regra nunca alcançava os valores. */
+.projection-strip #projection30,
+.projection-strip #projection60,
+.projection-strip #projection90,
+#projection30,
+#projection60,
+#projection90 {
+    display: block;
+    min-width: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-style: normal !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.065em !important;
+    line-height: 0.92;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+
+/* Mantém os demais valores financeiros da Rota coerentes com o Fôlego. */
 #planningView .planning-summary strong,
 #planningView .planning-receipt dd,
 #planningView .planning-receipt-result strong,
@@ -11,17 +31,9 @@
 #planningView .planning-budget-values b,
 #planningView .planning-simulator-result strong,
 #planningView .planning-simulation-schedule strong {
-    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
     font-variant-numeric: tabular-nums lining-nums;
     font-style: normal;
     font-weight: 500;
     letter-spacing: -0.065em;
-}
-
-#planningView #projection30,
-#planningView #projection60,
-#planningView #projection90 {
-    white-space: nowrap;
-    word-break: keep-all;
-    overflow-wrap: normal;
 }
