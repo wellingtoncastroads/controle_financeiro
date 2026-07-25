@@ -1,12 +1,12 @@
 {
   "name": "folego-financas",
   "private": true,
-  "version": "2.4.0",
+  "version": "2.4.1",
   "type": "module",
   "scripts": {
-    "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs",
+    "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs",
     "dev": "vite",
-    "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs",
+    "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
