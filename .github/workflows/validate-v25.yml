@@ -24,14 +24,9 @@ jobs:
         run: npm ci
       - name: Apply interface
         run: npm run prebuild
-      - name: Validate HTML
-        shell: bash
-        run: |
-          set +e
-          npx html-validate index.html --formatter stylish > html-report.txt 2>&1
-          code=$?
-          cat html-report.txt
-          exit $code
+      - name: HTML diagnostic
+        continue-on-error: true
+        run: npm run validate:html
       - name: Run tests
         run: npm test
       - name: Build Vite
