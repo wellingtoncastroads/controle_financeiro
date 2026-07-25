@@ -1,0 +1,68 @@
+/* ==================================================================
+   FÔLEGO V2.5.3 — CORREÇÃO MOBILE / TRANSFERÊNCIA E SINCRONIZAÇÃO
+   Mantém o formulário compacto e reserva o lado direito para o botão +.
+================================================================== */
+
+@media (max-width: 760px) {
+    .v25-transfer-sheet {
+        overflow-x: hidden;
+    }
+
+    .v25-transfer-direction {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px;
+        align-items: stretch;
+    }
+
+    .v25-transfer-direction > .form-field {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Antes, o elemento inteiro era girado e sua largura virava uma
+       faixa vertical. Agora o bloco permanece horizontal e só o símbolo
+       indica o movimento para baixo. */
+    .v25-transfer-arrow {
+        width: 100%;
+        height: 38px !important;
+        min-height: 38px;
+        max-height: 38px;
+        align-self: stretch;
+        transform: none !important;
+        overflow: hidden;
+        font-size: 0 !important;
+        line-height: 1;
+    }
+
+    .v25-transfer-arrow::before {
+        content: "↓";
+        display: block;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 1.35rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    /* O botão de registro ocupa o lado direito. O estado global fica no
+       lado esquerdo, com largura limitada para nunca encostar no +. */
+    .v25-global-connection {
+        right: auto !important;
+        left: 12px !important;
+        bottom: 84px;
+        width: max-content;
+        max-width: calc(100vw - 138px);
+        padding: 7px 9px;
+        overflow: hidden;
+        box-shadow: 3px 3px 0 var(--ink);
+        font-size: 0.52rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 380px) {
+    .v25-global-connection {
+        max-width: calc(100vw - 124px);
+        font-size: 0.48rem;
+    }
+}
