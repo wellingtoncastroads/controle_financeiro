@@ -12,7 +12,7 @@ jobs:
   diagnose-console:
     runs-on: ubuntu-latest
     steps:
-      - name: Print compact failure
+      - name: Print compact test failure
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -21,6 +21,7 @@ jobs:
           git clone --quiet --depth 1 --branch agent/folego-v27-transferencias-internas "https://x-access-token:${GH_TOKEN}@github.com/wellingtoncastroads/folego.git" app
           cd app || exit 0
           npm ci --silent >/dev/null 2>&1
-          npm run predev > /tmp/v27-console.log 2>&1
-          tail -n 35 /tmp/v27-console.log
+          npm run predev >/dev/null 2>&1
+          npm test > /tmp/v27-console.log 2>&1
+          tail -n 45 /tmp/v27-console.log
           exit 0
