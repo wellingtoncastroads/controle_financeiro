@@ -5,15 +5,22 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   diagnose-console:
     runs-on: ubuntu-latest
     steps:
       - name: Print compact failure
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git clone --quiet --depth 1 --branch agent/folego-v27-transferencias-internas https://github.com/wellingtoncastroads/folego.git app
-          cd app
+          set +e
+          git clone --quiet --depth 1 --branch agent/folego-v27-transferencias-internas "https://x-access-token:${GH_TOKEN}@github.com/wellingtoncastroads/folego.git" app
+          cd app || exit 0
           npm ci --silent >/dev/null 2>&1
-          npm run predev 2>&1 | tail -n 35
+          npm run predev > /tmp/v27-console.log 2>&1
+          tail -n 35 /tmp/v27-console.log
           exit 0
