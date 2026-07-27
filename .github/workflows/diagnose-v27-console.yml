@@ -1,0 +1,19 @@
+name: Diagnose V2.7 Console
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  diagnose-console:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print compact failure
+        shell: bash
+        run: |
+          git clone --quiet --depth 1 --branch agent/folego-v27-transferencias-internas https://github.com/wellingtoncastroads/folego.git app
+          cd app
+          npm ci --silent >/dev/null 2>&1
+          npm run predev 2>&1 | tail -n 35
+          exit 0
