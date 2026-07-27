@@ -1,0 +1,24 @@
+name: Diagnose Folego V2.7
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply and inspect
+        run: |
+          node tools/run-internal-transfer-v27.mjs
+          if [ -f public/v27-diagnostic.txt ]; then
+            echo "::error title=Falha V2.7::$(tr '\n' ' ' < public/v27-diagnostic.txt)"
+            cat public/v27-diagnostic.txt
+            exit 1
+          fi
+          echo "V2.7 aplicada sem diagnóstico."
