@@ -1,0 +1,115 @@
+/* FÔLEGO V2.7 / TRANSFERÊNCIA INTERNA */
+.transfer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.transfer-button {
+    border: 1px solid var(--line, #23231f);
+    background: transparent;
+    color: var(--ink, #11120e);
+    min-height: 44px;
+    padding: 0 16px;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.transfer-button:hover,
+.transfer-button:focus-visible {
+    background: var(--ink, #11120e);
+    color: var(--paper, #fffdf5);
+}
+
+.transfer-flow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
+    align-items: end;
+    gap: 10px;
+    grid-column: 1 / -1;
+}
+
+.transfer-arrow {
+    display: grid;
+    place-items: center;
+    min-height: 49px;
+    border: 1px solid var(--line, #23231f);
+    background: var(--ink, #11120e);
+    color: var(--paper, #fffdf5);
+    font-size: 1.3rem;
+    font-weight: 900;
+}
+
+.transfer-notice {
+    grid-column: 1 / -1;
+    margin: 0;
+    border-left: 5px solid #2456d8;
+    padding: 12px 14px;
+    background: color-mix(in srgb, #2456d8 9%, transparent);
+    color: var(--muted, #747168);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.transfer-notice strong {
+    color: var(--ink, #11120e);
+}
+
+.transaction-row.transfer-row .transaction-icon,
+.recent-item.transfer-item .transaction-icon {
+    background: #2456d8;
+    color: #fff;
+}
+
+.transfer-value {
+    color: #2456d8 !important;
+}
+
+.transfer-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid currentColor;
+    padding: 2px 7px;
+    color: #2456d8;
+    font-size: 0.62rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+    .page-intro .transfer-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .page-intro .transfer-actions > button {
+        flex: 1 1 150px;
+    }
+
+    .balance-footer .transfer-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .balance-footer .transfer-actions > button {
+        flex: 1 1 100%;
+    }
+
+    .transfer-flow {
+        grid-template-columns: 1fr;
+    }
+
+    .transfer-arrow {
+        min-height: 38px;
+        transform: rotate(90deg);
+    }
+}
