@@ -17,6 +17,11 @@ fs.writeFileSync(temporaryPath, source, "utf8");
 
 try {
     await import(pathToFileURL(temporaryPath).href);
+    fs.rmSync("public/v27-diagnostic.txt", { force: true });
+} catch (error) {
+    const diagnostic = String(error?.stack || error?.message || error);
+    fs.writeFileSync("public/v27-diagnostic.txt", diagnostic, "utf8");
+    console.error("Diagnóstico V2.7:", diagnostic);
 } finally {
     fs.rmSync(temporaryPath, { force: true });
 }
