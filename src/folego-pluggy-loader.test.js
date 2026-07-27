@@ -19,7 +19,7 @@ describe("Pluggy Connect loader", () => {
     });
 
     it("renova o cache da PWA e mantém a política de segurança necessária", () => {
-        expect(read("public/sw.js")).toContain('folego-v2.7.2');
+        expect(read("public/sw.js")).toContain('folego-v2.7.3');
         const vercel = read("vercel.json");
         expect(vercel).toContain("script-src 'self' https://cdn.pluggy.ai");
         expect(vercel).toContain("frame-src https://*.pluggy.ai");

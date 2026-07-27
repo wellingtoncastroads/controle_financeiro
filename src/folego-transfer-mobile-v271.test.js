@@ -18,8 +18,8 @@ describe("layout mobile da transferência", () => {
   });
 
   it("renova a versão e o cache", () => {
-    expect(read("package.json")).toContain('"version": "2.7.2"');
-    expect(read("index.html")).toContain("FÔLEGO / V2.7.2");
-    expect(read("public/sw.js")).toContain("folego-v2.7.2");
+    expect(read("package.json")).toContain('"version": "2.7.3"');
+    expect(read("index.html")).toContain("FÔLEGO / V2.7.3");
+    expect(read("public/sw.js")).toContain("folego-v2.7.3");
   });
 });

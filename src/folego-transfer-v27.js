@@ -1,4 +1,5 @@
 export const TRANSFER_CATEGORY = "Transferência interna";
+export const LEGACY_TRANSFER_CATEGORY = "Transferência";
 
 export const POCKET_LABELS = Object.freeze({
     pix: "Pix",
@@ -6,6 +7,7 @@ export const POCKET_LABELS = Object.freeze({
 });
 
 const VALID_POCKETS = new Set(Object.keys(POCKET_LABELS));
+const TRANSFER_CATEGORIES = new Set([TRANSFER_CATEGORY, LEGACY_TRANSFER_CATEGORY]);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function cleanDescription(value, from, to) {
@@ -19,12 +21,14 @@ function cleanAmount(value) {
     return Math.round((amount + Number.EPSILON) * 100) / 100;
 }
 
+function hasValidSeriesId(transaction) {
+    return typeof transaction?.seriesId === "string" && UUID_PATTERN.test(transaction.seriesId);
+}
+
 export function isInternalTransfer(transaction) {
     return Boolean(
         transaction
-        && transaction.category === TRANSFER_CATEGORY
-        && typeof transaction.seriesId === "string"
-        && UUID_PATTERN.test(transaction.seriesId)
+        && TRANSFER_CATEGORIES.has(String(transaction.category || ""))
         && VALID_POCKETS.has(transaction.paymentMethod)
         && ["income", "expense"].includes(transaction.type)
     );
@@ -35,6 +39,9 @@ export function excludeInternalTransfers(transactions) {
 }
 
 export function getTransferPair(transactions, seriesId) {
+    if (typeof seriesId !== "string" || !UUID_PATTERN.test(seriesId)) {
+        return { seriesId: null, outgoing: null, incoming: null, complete: false, ids: [] };
+    }
     const legs = (Array.isArray(transactions) ? transactions : [])
         .filter((transaction) => isInternalTransfer(transaction) && transaction.seriesId === seriesId);
     const outgoing = legs.find((transaction) => transaction.type === "expense") || null;
@@ -100,7 +107,7 @@ export function collapseInternalTransfers(transactions) {
     const collapsed = [];
 
     source.forEach((transaction) => {
-        if (!isInternalTransfer(transaction)) {
+        if (!isInternalTransfer(transaction) || !hasValidSeriesId(transaction)) {
             collapsed.push(transaction);
             return;
         }
