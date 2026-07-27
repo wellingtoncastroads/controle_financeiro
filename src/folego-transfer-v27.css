@@ -27,6 +27,18 @@
     color: var(--paper, #fffdf5);
 }
 
+/* O atalho vive sobre o painel preto do Pulso. */
+.balance-footer .transfer-button {
+    border-color: currentColor;
+    color: var(--paper, #fffdf5);
+}
+
+.balance-footer .transfer-button:hover,
+.balance-footer .transfer-button:focus-visible {
+    background: var(--paper, #fffdf5);
+    color: var(--ink, #11120e);
+}
+
 .transfer-flow {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
@@ -102,14 +114,51 @@
 
     .balance-footer .transfer-actions > button {
         flex: 1 1 100%;
+        width: 100%;
     }
 
     .transfer-flow {
         grid-template-columns: 1fr;
+        align-items: stretch;
     }
 
+    /* Não gira mais uma barra de largura total: mostra apenas uma seta compacta. */
     .transfer-arrow {
-        min-height: 38px;
-        transform: rotate(90deg);
+        width: 52px;
+        height: 52px;
+        min-height: 52px;
+        justify-self: center;
+        transform: none;
+        font-size: 0;
+    }
+
+    .transfer-arrow::before {
+        content: "↓";
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+
+    #transferDialog {
+        padding: 10px;
+    }
+
+    #transferDialog .modal-sheet {
+        width: 100%;
+        max-width: none;
+    }
+
+    #transferDialog .modal-header h2 {
+        max-width: calc(100vw - 150px);
+        font-size: clamp(2rem, 10vw, 3rem);
+        line-height: 0.95;
+    }
+
+    #transferDialog .modal-actions {
+        grid-template-columns: 1fr;
+    }
+
+    #transferDialog .modal-actions > button {
+        width: 100%;
+        min-height: 54px;
     }
 }
