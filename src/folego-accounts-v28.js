@@ -16,7 +16,7 @@ export const ACCOUNT_METHODS = Object.freeze({
         subtitle: "Conta corrente",
         logo: "/banks/banco-do-brasil.svg",
         accent: "#0057b8",
-        openingBalance: 0
+        openingBalance: 302.01
     },
     cash: {
         id: "cash",
