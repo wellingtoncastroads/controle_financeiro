@@ -12,8 +12,8 @@ const transferId = "123e4567-e89b-42d3-a456-426614174000";
 describe("contas financeiras V2.8", () => {
     it("inclui o saldo inicial do Banco do Brasil sem criar receita", () => {
         const transactions = [
-            { amount: 3591.62, type: "income", status: "paid", date: "2026-07-01", paymentMethod: "pix", category: "Salário" },
-            { amount: 1711.08, type: "expense", status: "paid", date: "2026-07-20", paymentMethod: "pix", category: "Contas" }
+            { id: "income-1", amount: 3591.62, type: "income", status: "paid", date: "2026-07-01", paymentMethod: "pix", category: "Salário" },
+            { id: "expense-1", amount: 1711.08, type: "expense", status: "paid", date: "2026-07-20", paymentMethod: "credit_card", category: "Contas" }
         ];
 
         const result = calculateAccountBalances(transactions, "2026-07-30");
@@ -52,21 +52,23 @@ describe("contas financeiras V2.8", () => {
         expect(result.total).toBe(302.01);
     });
 
-    it("descreve claramente entrada, saída e transferência", () => {
-        expect(accountContext({ type: "income", paymentMethod: "pix" })).toBe("Entrou em Inter");
-        expect(accountContext({ type: "expense", paymentMethod: "bank_transfer" })).toBe("Saiu de Banco do Brasil");
-        expect(accountContext({ type: "transfer", transferFrom: "pix", transferTo: "cash" })).toBe("Inter → Espécie");
+    it("descreve claramente entrada, saída e transferência sem perder a forma de pagamento", () => {
+        const assignments = { "income-1": "pix", "expense-1": "bank_transfer" };
+        expect(accountContext({ id: "income-1", type: "income", paymentMethod: "credit_card" }, assignments)).toBe("Entrou em Inter");
+        expect(accountContext({ id: "expense-1", type: "expense", paymentMethod: "credit_card" }, assignments)).toBe("Saiu de Banco do Brasil");
+        expect(accountContext({ type: "transfer", transferFrom: "pix", transferTo: "cash" }, assignments)).toBe("Inter → Espécie");
     });
 
     it("filtra por conta e ignora transferências no ranking de despesas", () => {
         const rows = [
-            { amount: 85.4, type: "expense", status: "paid", date: "2026-07-10", paymentMethod: "bank_transfer", category: "Contas" },
+            { id: "expense-bb", amount: 85.4, type: "expense", status: "paid", date: "2026-07-10", paymentMethod: "credit_card", category: "Contas" },
             { amount: 150, type: "expense", status: "paid", date: "2026-07-12", paymentMethod: "pix", category: "Transferência interna", seriesId: transferId }
         ];
-        const ranking = accountExpenseRanking(rows, { start: "2026-07-01", end: "2026-07-31" });
+        const assignments = { "expense-bb": "bank_transfer" };
+        const ranking = accountExpenseRanking(rows, { start: "2026-07-01", end: "2026-07-31" }, assignments);
         expect(ranking).toHaveLength(1);
         expect(ranking[0]).toMatchObject({ label: "Banco do Brasil", amount: 85.4, count: 1 });
-        expect(transactionMatchesAccount({ type: "expense", paymentMethod: "bank_transfer" }, "bank_transfer")).toBe(true);
-        expect(transactionMatchesAccount({ type: "transfer", transferFrom: "pix", transferTo: "cash" }, "cash")).toBe(true);
+        expect(transactionMatchesAccount(rows[0], "bank_transfer", assignments)).toBe(true);
+        expect(transactionMatchesAccount({ type: "transfer", transferFrom: "pix", transferTo: "cash" }, "cash", assignments)).toBe(true);
     });
 });
