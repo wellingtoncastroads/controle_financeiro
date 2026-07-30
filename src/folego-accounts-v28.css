@@ -1,60 +1,116 @@
-/* FÔLEGO V2.8 / CONTAS FINANCEIRAS */
+/* FÔLEGO V2.8.1 / CONTAS FINANCEIRAS — POLIMENTO EDITORIAL */
 .accounts-overview-v28 {
+    --accounts-paper: #eeebe2;
+    --accounts-paper-light: #f9f6ec;
+    --accounts-ink: #11120e;
+    --accounts-muted: #625f58;
+    --accounts-line: #11120e;
+    --accounts-acid: #c8ff3d;
+    --accounts-orange: #ff4e1a;
+    position: relative;
     width: min(100%, 720px);
-    margin-top: 24px;
-    border: 1px solid color-mix(in srgb, var(--paper, #eeebe2) 50%, transparent);
-    background: color-mix(in srgb, var(--paper, #eeebe2) 4%, transparent);
+    margin-top: 26px;
+    overflow: hidden;
+    border: 2px solid var(--accounts-line);
+    background: var(--accounts-paper);
+    color: var(--accounts-ink);
+    box-shadow: 5px 5px 0 var(--accounts-ink);
 }
 
 .accounts-overview-head {
     display: flex;
-    min-height: 42px;
+    min-height: 48px;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 13px;
-    border-bottom: 1px solid color-mix(in srgb, var(--paper, #eeebe2) 35%, transparent);
-    color: var(--acid, #c8ff3d);
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: .57rem;
+    padding: 11px 15px;
+    border-bottom: 2px solid var(--accounts-line);
+    background: var(--accounts-ink);
+    color: var(--accounts-acid);
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: .61rem;
     font-weight: 900;
-    letter-spacing: .13em;
+    letter-spacing: .14em;
+    line-height: 1.2;
     text-transform: uppercase;
+}
+
+.accounts-overview-head b {
+    flex: 0 0 auto;
+    color: var(--accounts-paper);
+    font: inherit;
+    letter-spacing: .11em;
 }
 
 .accounts-list-v28 {
     display: grid;
+    background: var(--accounts-paper-light);
 }
 
 .account-card-v28 {
-    --account-accent: var(--acid, #c8ff3d);
+    position: relative;
     display: grid;
     min-width: 0;
-    grid-template-columns: 46px minmax(0, 1fr) auto;
-    gap: 13px;
+    min-height: 84px;
+    grid-template-columns: 50px minmax(0, 1fr) auto;
+    gap: 14px;
     align-items: center;
-    padding: 13px;
-    border-bottom: 1px solid color-mix(in srgb, var(--paper, #eeebe2) 30%, transparent);
-    background: transparent;
-    color: var(--paper, #eeebe2);
+    padding: 14px 16px 14px 18px;
+    border-bottom: 1px solid var(--accounts-line);
+    background: var(--accounts-paper-light);
+    color: var(--accounts-ink);
     cursor: pointer;
     text-align: left;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.account-card-v28:last-child { border-bottom: 0; }
+.account-card-v28::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: var(--accounts-acid);
+    content: "";
+}
+
+.account-card-v28[data-account-method="pix"]::before {
+    background: var(--accounts-orange);
+}
+
+.account-card-v28[data-account-method="bank_transfer"]::before {
+    background: var(--accounts-ink);
+}
+
+.account-card-v28[data-account-method="cash"]::before {
+    background: var(--accounts-acid);
+}
+
+.account-card-v28:last-child {
+    border-bottom: 0;
+}
+
+.account-card-v28:hover,
+.account-card-v28:focus-visible {
+    background: var(--accounts-acid);
+    color: #11120e;
+}
+
+.account-card-v28:active {
+    transform: translate(2px, 2px);
+}
 
 .account-logo-v28,
 .account-mini-logo-v28 {
     display: grid;
     place-items: center;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--paper, #eeebe2) 55%, transparent);
-    background: var(--paper-light, #f9f6ec);
+    border: 1px solid #11120e;
+    background: #fffdf5;
+    box-shadow: 2px 2px 0 #11120e;
 }
 
 .account-logo-v28 {
-    width: 46px;
-    height: 46px;
+    width: 50px;
+    height: 50px;
 }
 
 .account-mini-logo-v28 {
@@ -72,77 +128,118 @@
 
 .account-logo-v28.cash,
 .account-mini-logo-v28.cash {
-    background: var(--acid, #c8ff3d);
+    background: var(--accounts-acid);
     color: #11120e;
-    font: italic 800 1.05rem Georgia, serif;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.08rem;
+    font-style: italic;
+    font-weight: 700;
+}
+
+.account-copy-v28 {
+    min-width: 0;
 }
 
 .account-copy-v28 strong,
-.account-copy-v28 small { display: block; }
+.account-copy-v28 small {
+    display: block;
+}
 
 .account-copy-v28 strong {
     overflow: hidden;
-    font-size: .74rem;
+    color: currentColor;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: .78rem;
     font-weight: 900;
-    letter-spacing: .06em;
+    letter-spacing: .075em;
+    line-height: 1.12;
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
 }
 
 .account-copy-v28 small {
-    margin-top: 5px;
-    color: color-mix(in srgb, var(--paper, #eeebe2) 60%, transparent);
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: .5rem;
-    letter-spacing: .11em;
+    margin-top: 6px;
+    color: var(--accounts-muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: .51rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    line-height: 1.25;
     text-transform: uppercase;
 }
 
+.account-card-v28:hover .account-copy-v28 small,
+.account-card-v28:focus-visible .account-copy-v28 small {
+    color: #292a23;
+}
+
 .account-value-v28 {
-    color: var(--account-accent);
-    font: 700 clamp(1rem, 2vw, 1.35rem) Georgia, serif;
+    color: var(--accounts-ink) !important;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.08rem, 2.4vw, 1.48rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -.035em;
+    line-height: 1;
     white-space: nowrap;
+}
+
+.account-card-v28:hover .account-value-v28,
+.account-card-v28:focus-visible .account-value-v28 {
+    color: #11120e !important;
 }
 
 .accounts-total-v28 {
     display: flex;
-    min-height: 52px;
+    min-height: 64px;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
-    padding: 11px 14px;
-    border-top: 1px solid #11120e;
-    background: var(--acid, #c8ff3d);
+    gap: 16px;
+    padding: 13px 16px;
+    border-top: 2px solid var(--accounts-line);
+    background: var(--accounts-acid);
     color: #11120e;
 }
 
 .accounts-total-v28 span {
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: .56rem;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: .59rem;
     font-weight: 900;
-    letter-spacing: .13em;
+    letter-spacing: .14em;
+    line-height: 1.2;
     text-transform: uppercase;
 }
 
 .accounts-total-v28 strong {
-    font: 700 clamp(1.15rem, 2.3vw, 1.6rem) Georgia, serif;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.28rem, 2.7vw, 1.8rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -.04em;
+    line-height: 1;
 }
 
 .account-context-v28 {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+    color: inherit;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    letter-spacing: .035em;
 }
 
 .account-context-v28::before {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
     background: var(--acid, #c8ff3d);
     content: "";
 }
 
-.account-filter-field { min-width: 190px; }
+.account-filter-field {
+    min-width: 190px;
+}
 
 .account-form-field-v28 {
     position: relative;
@@ -164,10 +261,28 @@
 .account-form-field-v28 select {
     border-left: 6px solid var(--acid, #c8ff3d) !important;
     appearance: none;
+    font-weight: 800;
 }
 
 .report-accounts-v28 {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+html[data-theme="dark"] .accounts-overview-v28 {
+    --accounts-paper: #171813;
+    --accounts-paper-light: #20211b;
+    --accounts-ink: #efecdf;
+    --accounts-muted: #b5b1a5;
+    --accounts-line: #efecdf;
+    box-shadow: 5px 5px 0 #c8ff3d;
+}
+
+html[data-theme="dark"] .accounts-overview-head {
+    background: #0b0c09;
+}
+
+html[data-theme="dark"] .account-card-v28[data-account-method="bank_transfer"]::before {
+    background: #efecdf;
 }
 
 @media (min-width: 1040px) {
@@ -176,21 +291,92 @@
     }
 
     .account-card-v28 {
-        grid-template-columns: 42px minmax(0, 1fr);
-        border-right: 1px solid color-mix(in srgb, var(--paper, #eeebe2) 30%, transparent);
+        min-height: 134px;
+        grid-template-columns: 44px minmax(0, 1fr);
+        align-content: center;
+        border-right: 1px solid var(--accounts-line);
         border-bottom: 0;
     }
 
-    .account-card-v28:last-child { border-right: 0; }
-    .account-value-v28 { grid-column: 1 / -1; }
+    .account-card-v28:last-child {
+        border-right: 0;
+    }
+
+    .account-logo-v28 {
+        width: 44px;
+        height: 44px;
+    }
+
+    .account-value-v28 {
+        grid-column: 1 / -1;
+        margin-top: 7px;
+        font-size: clamp(1.05rem, 1.65vw, 1.38rem);
+    }
 }
 
 @media (max-width: 760px) {
-    .accounts-overview-v28 { margin-top: 18px; }
-    .account-card-v28 { grid-template-columns: 42px minmax(0, 1fr) auto; padding: 11px; }
-    .account-logo-v28 { width: 42px; height: 42px; }
-    .account-value-v28 { font-size: .98rem; }
-    .accounts-total-v28 { align-items: flex-start; flex-direction: column; gap: 3px; }
-    .account-filter-field { min-width: 0; }
-    .report-accounts-v28 { grid-template-columns: 1fr !important; }
+    .accounts-overview-v28 {
+        width: calc(100% - 5px);
+        margin-top: 20px;
+        box-shadow: 5px 5px 0 var(--accounts-ink);
+    }
+
+    .accounts-overview-head {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: .56rem;
+    }
+
+    .account-card-v28 {
+        min-height: 82px;
+        grid-template-columns: 46px minmax(0, 1fr) auto;
+        gap: 12px;
+        padding: 12px 12px 12px 16px;
+    }
+
+    .account-logo-v28 {
+        width: 46px;
+        height: 46px;
+    }
+
+    .account-copy-v28 strong {
+        font-size: .72rem;
+    }
+
+    .account-value-v28 {
+        font-size: 1.04rem;
+    }
+
+    .accounts-total-v28 {
+        min-height: 70px;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+        padding: 12px 14px;
+    }
+
+    .account-filter-field {
+        min-width: 0;
+    }
+
+    .report-accounts-v28 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 430px) {
+    .account-card-v28 {
+        grid-template-columns: 42px minmax(0, 1fr);
+    }
+
+    .account-logo-v28 {
+        width: 42px;
+        height: 42px;
+    }
+
+    .account-value-v28 {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: -3px;
+    }
 }
