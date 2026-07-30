@@ -18,14 +18,16 @@ describe("integração de contas V2.8", () => {
         expect(runtime).toContain('<option value="bank_transfer">Banco do Brasil</option>');
         expect(runtime).toContain("ENTROU EM QUAL CONTA");
         expect(runtime).toContain("SAIU DE QUAL CONTA");
+        expect(runtime).toContain("FORMA DE MOVIMENTAÇÃO");
         expect(transfer).toContain('bank_transfer: "Banco do Brasil"');
     });
 
-    it("migra os movimentos antigos para o Inter apenas uma vez", () => {
+    it("associa os movimentos antigos ao Inter sem alterar a forma de pagamento", () => {
         const migration = read("src/folego-accounts-migration-v28.js");
         expect(migration).toContain("folego_accounts_v28_migrated");
-        expect(migration).toContain('update({ payment_method: "pix" })');
-        expect(migration).toContain("TRANSFER_CATEGORIES");
+        expect(migration).toContain("folego_account_assignments_v28");
+        expect(migration).not.toContain("payment_method:");
+        expect(migration).not.toContain('.from("transactions")');
     });
 
     it("publica a versão e o cache novos", () => {
