@@ -1,4 +1,5 @@
 export const ACCOUNT_ASSIGNMENTS_META_KEY = "folego_account_assignments_v28";
+export const ACCOUNT_SNAPSHOT_META_KEY = "folego_account_snapshot_v282";
 
 export const ACCOUNT_METHODS = Object.freeze({
     pix: {
@@ -15,7 +16,7 @@ export const ACCOUNT_METHODS = Object.freeze({
         subtitle: "Conta corrente",
         logo: "/banks/banco-do-brasil.svg",
         accent: "#0057b8",
-        openingBalance: 302.01
+        openingBalance: 0
     },
     cash: {
         id: "cash",
@@ -28,10 +29,19 @@ export const ACCOUNT_METHODS = Object.freeze({
 });
 
 export const ACCOUNT_METHOD_VALUES = Object.freeze(Object.keys(ACCOUNT_METHODS));
-const TRANSFER_CATEGORIES = new Set(["Transferência", "Transferência interna"]);
+export const DEFAULT_ACCOUNT_SNAPSHOT_V282 = Object.freeze({
+    capturedAt: "2026-07-30T13:43:00.000Z",
+    balances: Object.freeze({
+        pix: 1552.57,
+        bank_transfer: 302.01,
+        cash: 0
+    })
+});
 
+const TRANSFER_CATEGORIES = new Set(["Transferência", "Transferência interna"]);
 const roundMoney = (value) => Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 const transactionDate = (transaction) => String(transaction?.date ?? transaction?.occurred_on ?? "");
+const transactionCreatedAt = (transaction) => String(transaction?.createdAt ?? transaction?.created_at ?? "");
 const transactionPaymentMethod = (transaction) => transaction?.paymentMethod ?? transaction?.payment_method ?? "pix";
 
 export function isAccountTransfer(transaction) {
@@ -51,6 +61,21 @@ export function normalizeAccountAssignments(value) {
     );
 }
 
+export function normalizeAccountSnapshot(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    const capturedAt = typeof value.capturedAt === "string" && !Number.isNaN(Date.parse(value.capturedAt))
+        ? new Date(value.capturedAt).toISOString()
+        : null;
+    if (!capturedAt || !value.balances || typeof value.balances !== "object" || Array.isArray(value.balances)) return null;
+
+    const balances = Object.fromEntries(ACCOUNT_METHOD_VALUES.map((method) => {
+        const amount = Number(value.balances[method]);
+        return [method, Number.isFinite(amount) ? roundMoney(amount) : 0];
+    }));
+
+    return { capturedAt, balances };
+}
+
 export function accountForMethod(value) {
     return ACCOUNT_METHODS[normalizeAccountMethod(value)];
 }
@@ -67,13 +92,19 @@ export function accountMethodForTransaction(transaction, assignments = {}) {
     return normalizeAccountMethod(id && assignments[id] ? assignments[id] : "pix");
 }
 
-export function calculateAccountBalances(transactions, throughDate = "9999-12-31", assignments = {}) {
-    const balances = Object.fromEntries(
-        ACCOUNT_METHOD_VALUES.map((method) => [method, Number(ACCOUNT_METHODS[method].openingBalance)])
-    );
+export function calculateAccountBalances(transactions, throughDate = "9999-12-31", assignments = {}, snapshotValue = null) {
+    const snapshot = normalizeAccountSnapshot(snapshotValue);
+    const balances = snapshot
+        ? { ...snapshot.balances }
+        : Object.fromEntries(ACCOUNT_METHOD_VALUES.map((method) => [method, Number(ACCOUNT_METHODS[method].openingBalance)]));
 
     (Array.isArray(transactions) ? transactions : [])
         .filter((transaction) => transaction?.status === "paid" && transactionDate(transaction) <= throughDate)
+        .filter((transaction) => {
+            if (!snapshot) return true;
+            const createdAt = transactionCreatedAt(transaction);
+            return Boolean(createdAt && createdAt > snapshot.capturedAt);
+        })
         .forEach((transaction) => {
             const method = accountMethodForTransaction(transaction, assignments);
             const amount = Number(transaction.amount) || 0;
