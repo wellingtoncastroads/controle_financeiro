@@ -24,8 +24,10 @@ describe("integração de contas V2.8", () => {
 
     it("associa os movimentos antigos ao Inter sem alterar a forma de pagamento", () => {
         const migration = read("src/folego-accounts-migration-v28.js");
+        const domain = read("src/folego-accounts-v28.js");
         expect(migration).toContain("folego_accounts_v28_migrated");
-        expect(migration).toContain("folego_account_assignments_v28");
+        expect(migration).toContain("ACCOUNT_ASSIGNMENTS_META_KEY");
+        expect(domain).toContain('folego_account_assignments_v28');
         expect(migration).not.toContain("payment_method:");
         expect(migration).not.toContain('.from("transactions")');
     });
