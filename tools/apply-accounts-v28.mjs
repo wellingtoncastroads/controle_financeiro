@@ -101,6 +101,9 @@ function stamp() {
         if (!fs.existsSync(path)) continue;
         let test = read(path);
         test = test.replace(/2\.7\.\d+/g, VERSION);
+        if (path.endsWith("folego-pluggy-loader.test.js")) {
+            test = test.replace(`/pluggy-connect/v${VERSION}/pluggy-connect.js`, "/pluggy-connect/v2.7.0/pluggy-connect.js");
+        }
         write(path, test);
     }
 }
