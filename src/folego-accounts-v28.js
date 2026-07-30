@@ -1,3 +1,5 @@
+export const ACCOUNT_ASSIGNMENTS_META_KEY = "folego_account_assignments_v28";
+
 export const ACCOUNT_METHODS = Object.freeze({
     pix: {
         id: "inter",
@@ -30,7 +32,7 @@ const TRANSFER_CATEGORIES = new Set(["Transferência", "Transferência interna"]
 
 const roundMoney = (value) => Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 const transactionDate = (transaction) => String(transaction?.date ?? transaction?.occurred_on ?? "");
-const transactionMethod = (transaction) => transaction?.paymentMethod ?? transaction?.payment_method ?? "pix";
+const transactionPaymentMethod = (transaction) => transaction?.paymentMethod ?? transaction?.payment_method ?? "pix";
 
 export function isAccountTransfer(transaction) {
     return TRANSFER_CATEGORIES.has(String(transaction?.category || ""));
@@ -38,6 +40,15 @@ export function isAccountTransfer(transaction) {
 
 export function normalizeAccountMethod(value) {
     return ACCOUNT_METHOD_VALUES.includes(value) ? value : "pix";
+}
+
+export function normalizeAccountAssignments(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(
+        Object.entries(value)
+            .filter(([id, method]) => typeof id === "string" && id && ACCOUNT_METHOD_VALUES.includes(method))
+            .slice(0, 5000)
+    );
 }
 
 export function accountForMethod(value) {
@@ -48,22 +59,23 @@ export function accountNameForMethod(value) {
     return accountForMethod(value).name;
 }
 
-export function accountMethodForTransaction(transaction) {
-    return normalizeAccountMethod(transactionMethod(transaction));
+export function accountMethodForTransaction(transaction, assignments = {}) {
+    if (isAccountTransfer(transaction)) {
+        return normalizeAccountMethod(transactionPaymentMethod(transaction));
+    }
+    const id = transaction?.id;
+    return normalizeAccountMethod(id && assignments[id] ? assignments[id] : "pix");
 }
 
-export function calculateAccountBalances(transactions, throughDate = "9999-12-31") {
+export function calculateAccountBalances(transactions, throughDate = "9999-12-31", assignments = {}) {
     const balances = Object.fromEntries(
         ACCOUNT_METHOD_VALUES.map((method) => [method, Number(ACCOUNT_METHODS[method].openingBalance)])
     );
 
     (Array.isArray(transactions) ? transactions : [])
-        .filter((transaction) => (
-            transaction?.status === "paid"
-            && transactionDate(transaction) <= throughDate
-        ))
+        .filter((transaction) => transaction?.status === "paid" && transactionDate(transaction) <= throughDate)
         .forEach((transaction) => {
-            const method = accountMethodForTransaction(transaction);
+            const method = accountMethodForTransaction(transaction, assignments);
             const amount = Number(transaction.amount) || 0;
             balances[method] = roundMoney(
                 balances[method] + (transaction.type === "income" ? amount : -amount)
@@ -76,23 +88,23 @@ export function calculateAccountBalances(transactions, throughDate = "9999-12-31
     };
 }
 
-export function accountContext(transaction) {
+export function accountContext(transaction, assignments = {}) {
     if (transaction?.type === "transfer") {
         return `${accountNameForMethod(transaction.transferFrom)} → ${accountNameForMethod(transaction.transferTo)}`;
     }
-    const name = accountNameForMethod(accountMethodForTransaction(transaction));
+    const name = accountNameForMethod(accountMethodForTransaction(transaction, assignments));
     return transaction?.type === "income" ? `Entrou em ${name}` : `Saiu de ${name}`;
 }
 
-export function transactionMatchesAccount(transaction, selectedMethod) {
+export function transactionMatchesAccount(transaction, selectedMethod, assignments = {}) {
     if (!selectedMethod || selectedMethod === "all") return true;
     if (transaction?.type === "transfer") {
         return transaction.transferFrom === selectedMethod || transaction.transferTo === selectedMethod;
     }
-    return accountMethodForTransaction(transaction) === selectedMethod;
+    return accountMethodForTransaction(transaction, assignments) === selectedMethod;
 }
 
-export function accountExpenseRanking(transactions, range) {
+export function accountExpenseRanking(transactions, range, assignments = {}) {
     const grouped = Object.fromEntries(
         ACCOUNT_METHOD_VALUES.map((method) => [method, { label: ACCOUNT_METHODS[method].name, amount: 0, count: 0 }])
     );
@@ -106,7 +118,7 @@ export function accountExpenseRanking(transactions, range) {
             && transactionDate(transaction) <= range.end
         ))
         .forEach((transaction) => {
-            const method = accountMethodForTransaction(transaction);
+            const method = accountMethodForTransaction(transaction, assignments);
             grouped[method].amount = roundMoney(grouped[method].amount + Number(transaction.amount || 0));
             grouped[method].count += 1;
         });
