@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.1",
-    "jspdf": "^3.0.4"
+    "jspdf": "^4.2.1"
   },
   "devDependencies": {
     "html-validate": "^11.5.6",
