@@ -171,7 +171,7 @@ function summarize(month) {
         ? balanceToday + bridge.reduce((total, row) => total + signedValue(row), 0)
         : confirmedOpening;
 
-    const monthRows = transactions.filter((row) => row.date >= start && row.date <= end && row.category !== "Transferência");
+    const monthRows = transactions.filter((row) => row.date >= start && row.date <= end);
     const realizedRows = monthRows.filter((row) => row.status === "paid" && row.date <= today);
     const remainingRows = isPast ? [] : monthRows.filter((row) => !realizedRows.includes(row));
 
@@ -520,4 +520,3 @@ supabase?.auth.onAuthStateChange((_event, session) => {
 });
 
 boot();
-

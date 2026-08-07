@@ -215,7 +215,7 @@ function render() {
     if (elements.sync) elements.sync.disabled = state.syncing || !online || !state.items.length;
     if (elements.note) {
         elements.note.textContent = state.items.length
-            ? "O Fôlego consulta os dados disponíveis ao abrir, ao voltar para a aba e a cada 15 minutos enquanto estiver aberto."
+            ? "O Fôlego busca novas movimentações ao abrir, ao voltar para a aba e a cada 15 minutos enquanto estiver aberto."
             : "A autorização acontece no ambiente seguro da Pluggy. O Fôlego nunca recebe sua senha bancária.";
     }
     renderSummary();
@@ -320,97 +320,25 @@ async function syncBanks({ silent = false } = {}) {
     }
 }
 
-const PLUGGY_SDK_URLS = [
-    "https://cdn.pluggy.ai/pluggy-connect/latest/pluggy-connect.js",
-    "https://cdn.pluggy.ai/pluggy-connect/v2.7.0/pluggy-connect.js"
-];
-let pluggySdkPromise = null;
-
 function pluggyConstructor() {
     return window.PluggyConnect?.default || window.PluggyConnect || null;
-}
-
-function injectPluggySdk(url) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        const separator = url.includes("?") ? "&" : "?";
-        const timeout = window.setTimeout(() => {
-            script.remove();
-            reject(new Error("A conexão segura demorou além do esperado para carregar."));
-        }, 15000);
-
-        script.src = `${url}${separator}folego_retry=${Date.now()}`;
-        script.async = true;
-        script.dataset.folegoPluggySdk = "true";
-        script.onload = () => {
-            window.clearTimeout(timeout);
-            const Constructor = pluggyConstructor();
-            if (Constructor) resolve(Constructor);
-            else reject(new Error("O arquivo da conexão bancária carregou sem iniciar o módulo."));
-        };
-        script.onerror = () => {
-            window.clearTimeout(timeout);
-            script.remove();
-            reject(new Error("Não foi possível baixar o módulo seguro de conexão."));
-        };
-        document.head.append(script);
-    });
-}
-
-async function loadPluggyConstructor() {
-    const ready = pluggyConstructor();
-    if (ready) return ready;
-
-    if (!pluggySdkPromise) {
-        pluggySdkPromise = (async () => {
-            let lastError = null;
-            for (const url of PLUGGY_SDK_URLS) {
-                try {
-                    const Constructor = await injectPluggySdk(url);
-                    if (Constructor) return Constructor;
-                } catch (error) {
-                    lastError = error;
-                    console.warn("Tentativa de carregar Pluggy Connect falhou:", error);
-                }
-            }
-            throw lastError || new Error("O módulo seguro de conexão não ficou disponível.");
-        })().catch((error) => {
-            pluggySdkPromise = null;
-            throw error;
-        });
-    }
-
-    return pluggySdkPromise;
 }
 
 async function openConnect(itemId = null) {
     if (!state.user || state.syncing) return;
     try {
-        const Constructor = await loadPluggyConstructor();
+        const Constructor = pluggyConstructor();
+        if (!Constructor) throw new Error("O módulo seguro de conexão ainda não carregou. Atualize a página.");
         const token = await apiRequest("/api/pluggy/token", itemId ? { itemId } : {});
         if (!token.accessToken) throw new Error("A Pluggy não devolveu o token temporário.");
-        try {
-            await state.sdk?.destroy?.();
-        } catch (error) {
-            console.warn("O componente anterior da Pluggy não pôde ser encerrado:", error);
-        }
+        state.sdk?.destroy?.().catch?.(() => {});
         state.sdk = new Constructor({
             connectToken: token.accessToken,
             includeSandbox: false,
-            products: ["ACCOUNTS", "CREDIT_CARDS", "TRANSACTIONS"],
-            connectorTypes: ["PERSONAL_BANK"],
             countries: ["BR"],
-            forceOauthInBrowser: true,
             language: "pt",
             theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
             ...(itemId ? { updateItem: itemId } : {}),
-            onEvent: async (event) => {
-                const item = event?.item;
-                if (!item?.id || state.items.some((current) => current.id === item.id)) return;
-                mergeItem(item);
-                await saveMetadata({ [PLUGGY_META_KEYS.items]: state.items });
-                render();
-            },
             onSuccess: async (result) => {
                 const item = result?.item || result;
                 if (!item?.id) return showToast("A conexão terminou sem identificação do banco.", "warning");
@@ -419,15 +347,7 @@ async function openConnect(itemId = null) {
                 render();
                 await syncBanks();
             },
-            onError: async (error) => {
-                const item = error?.data?.item;
-                if (item?.id) {
-                    mergeItem(item);
-                    await saveMetadata({ [PLUGGY_META_KEYS.items]: state.items });
-                    render();
-                }
-                showToast(error?.message || "A conexão bancária não foi concluída.", "error");
-            }
+            onError: (error) => showToast(error?.message || "A conexão bancária não foi concluída.", "error")
         });
         await state.sdk.init();
     } catch (error) {
@@ -462,9 +382,6 @@ async function boot() {
     if (!supabase || !elements.section) return;
     if (!await refreshIdentity()) return render();
     render();
-    if (navigator.onLine) {
-        loadPluggyConstructor().catch((error) => console.warn("Pré-carregamento Pluggy indisponível:", error));
-    }
     window.clearInterval(state.timer);
     state.timer = window.setInterval(() => syncBanks({ silent: true }), AUTO_SYNC_INTERVAL);
     const last = new Date(state.snapshot?.syncedAt || state.metadata[PLUGGY_META_KEYS.lastSync] || 0).getTime();
@@ -475,4 +392,3 @@ async function boot() {
 
 bindEvents();
 boot();
-

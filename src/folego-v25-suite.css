@@ -219,17 +219,6 @@ html[data-theme="dark"] .v25-category-suggestion {
     text-align: right;
 }
 
-.v25-annual-actions {
-    display: flex;
-    align-items: end;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.v25-transfer-details {
-    margin-top: 16px;
-}
-
 .v25-risk-list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

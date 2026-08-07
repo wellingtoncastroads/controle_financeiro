@@ -1,9 +1,6 @@
 import { supabase } from "./supabase-client.js";
 import {
-    ACCOUNT_ASSIGNMENTS_META_KEY,
-    ACCOUNT_SNAPSHOT_META_KEY,
     ACCOUNT_METHODS,
-    DEFAULT_ACCOUNT_SNAPSHOT_V282,
     ACCOUNT_METHOD_VALUES,
     accountContext,
     accountExpenseRanking,
@@ -11,8 +8,6 @@ import {
     accountMethodForTransaction,
     calculateAccountBalances,
     isAccountTransfer,
-    normalizeAccountAssignments,
-    normalizeAccountSnapshot,
     transactionMatchesAccount
 } from "./folego-accounts-v28.js";
 import {
@@ -28,9 +23,6 @@ const state = {
     user: null,
     transactions: [],
     selectedAccount: "all",
-    assignments: {},
-    snapshot: null,
-    pendingAssignment: null,
     loading: false,
     scheduled: false
 };
@@ -78,7 +70,7 @@ function accountLogo(method, className = "account-logo-v28") {
     if (account.logo) {
         return `<span class="${className}"><img src="${escapeHTML(account.logo)}" alt="${escapeHTML(account.name)}"></span>`;
     }
-    return `<span class="${className} cash" aria-label="Conta">${escapeHTML(account.name.slice(0, 2))}</span>`;
+    return `<span class="${className} cash" aria-label="Espécie">R$</span>`;
 }
 
 function ensureOverview() {
@@ -106,7 +98,7 @@ function ensureOverview() {
 
 function renderOverview() {
     ensureOverview();
-    const snapshot = calculateAccountBalances(state.transactions, todayKey(), state.assignments, state.snapshot);
+    const snapshot = calculateAccountBalances(state.transactions, todayKey());
     const list = $("#accountsListV28");
     if (!list) return;
 
@@ -131,19 +123,10 @@ function renderOverview() {
     }
 
     const projected = calculateAccountBalances(
-        state.transactions.filter((transaction) => transaction.status === "paid"),
-        "9999-12-31",
-        state.assignments
+        state.transactions.filter((transaction) => transaction.status === "paid")
     );
     const banner = $("#bannerBalance");
     if (banner) banner.textContent = currency.format(projected.total);
-
-    window.dispatchEvent(new CustomEvent("folego:accounts-snapshot", {
-        detail: {
-            total: snapshot.total,
-            balances: { ...snapshot.balances }
-        }
-    }));
 }
 
 function ensureAccountFilter() {
@@ -160,7 +143,7 @@ function ensureAccountFilter() {
             <option value="all">Todas as contas</option>
             <option value="pix">Inter</option>
             <option value="bank_transfer">Banco do Brasil</option>
-            <option value="cash">Itaú</option>
+            <option value="cash">Espécie</option>
         </select>
     `;
     strip.insertBefore(label, exportButton);
@@ -204,13 +187,13 @@ function decorateTransactionRows() {
         const context = row.querySelector(".transaction-description small");
         if (context) {
             context.textContent = transaction.type === "transfer"
-                ? `${accountContext(transaction, state.assignments, state.snapshot)} • transferência interna`
-                : accountContext(transaction, state.assignments);
+                ? `${accountContext(transaction)} • transferência interna`
+                : accountContext(transaction);
             context.classList.add("account-context-v28");
         }
         row.dataset.accountMethod = transaction.type === "transfer"
             ? `${transaction.transferFrom},${transaction.transferTo}`
-            : accountMethodForTransaction(transaction, state.assignments);
+            : accountMethodForTransaction(transaction);
     });
 }
 
@@ -218,7 +201,7 @@ function applyAccountFilter() {
     decorateTransactionRows();
     document.querySelectorAll("#transactionRows .transaction-row").forEach((row) => {
         const transaction = movementForRow(row);
-        row.hidden = Boolean(transaction && !transactionMatchesAccount(transaction, state.selectedAccount, state.assignments));
+        row.hidden = Boolean(transaction && !transactionMatchesAccount(transaction, state.selectedAccount));
     });
 }
 
@@ -261,7 +244,7 @@ function renderRecent() {
 
     target.innerHTML = recent.map((transaction) => {
         const transfer = transaction.type === "transfer";
-        const method = transfer ? transaction.transferFrom : accountMethodForTransaction(transaction, state.assignments);
+        const method = transfer ? transaction.transferFrom : accountMethodForTransaction(transaction);
         const signal = transfer ? "↔" : transaction.type === "income" ? "+" : "−";
         const valueClass = transfer ? "transfer-value" : transaction.type === "income" ? "income-value" : "expense-value";
         return `
@@ -269,7 +252,7 @@ function renderRecent() {
                 ${accountLogo(method, "account-mini-logo-v28")}
                 <div class="transaction-main">
                     <strong>${escapeHTML(transaction.description)}</strong>
-                    <span class="account-context-v28">${escapeHTML(accountContext(transaction, state.assignments))}${transaction.status === "pending" ? " • pendente" : ""}</span>
+                    <span class="account-context-v28">${escapeHTML(accountContext(transaction))}${transaction.status === "pending" ? " • pendente" : ""}</span>
                 </div>
                 <span class="recent-date">${escapeHTML(dateShort.format(new Date(`${transaction.date}T12:00:00`)).replace(".", ""))}</span>
                 <strong class="recent-value ${valueClass}">${signal} ${escapeHTML(currency.format(transaction.amount))}</strong>
@@ -284,47 +267,21 @@ function replaceOptions(select, selectedValue) {
     select.innerHTML = `
         <option value="pix">Inter</option>
         <option value="bank_transfer">Banco do Brasil</option>
-        <option value="cash">Itaú</option>
+        <option value="cash">Espécie</option>
     `;
     select.value = safeValue;
 }
 
-function ensureTransactionAccountField() {
-    let field = $("#transactionAccountFieldV28");
-    const paymentSelect = $("#transactionPaymentMethod");
-    if (field || !paymentSelect) return field;
-
-    field = document.createElement("label");
-    field.className = "form-field account-form-field-v28";
-    field.id = "transactionAccountFieldV28";
-    field.innerHTML = `
-        <span id="transactionAccountLabelV28">SAIU DE QUAL CONTA</span>
-        <select id="transactionAccountV28" required>
-            <option value="pix">Inter</option>
-            <option value="bank_transfer">Banco do Brasil</option>
-            <option value="cash">Itaú</option>
-        </select>
-    `;
-    paymentSelect.closest(".form-field")?.insertAdjacentElement("afterend", field);
-    return field;
-}
-
 function updateTransactionForm() {
-    const field = ensureTransactionAccountField();
-    const type = document.querySelector('#transactionForm input[name="transactionType"]:checked')?.value || "expense";
-    const accountLabel = $("#transactionAccountLabelV28");
-    if (accountLabel) accountLabel.textContent = type === "income" ? "ENTROU EM QUAL CONTA" : "SAIU DE QUAL CONTA";
-
-    const methodLabel = $("#transactionMethodLabel");
-    if (methodLabel) methodLabel.textContent = "FORMA DE MOVIMENTAÇÃO";
-
-    const transactionId = $("#transactionId")?.value || "";
-    const accountSelect = $("#transactionAccountV28");
-    if (field && accountSelect && document.activeElement !== accountSelect) {
-        accountSelect.value = transactionId && state.assignments[transactionId]
-            ? state.assignments[transactionId]
-            : "pix";
+    const select = $("#transactionPaymentMethod");
+    if (select && !select.dataset.accountsV28) {
+        const current = select.value;
+        replaceOptions(select, current);
+        select.dataset.accountsV28 = "true";
     }
+    const type = document.querySelector('#transactionForm input[name="transactionType"]:checked')?.value || "expense";
+    const label = $("#transactionMethodLabel");
+    if (label) label.textContent = type === "income" ? "ENTROU EM QUAL CONTA" : "SAIU DE QUAL CONTA";
 }
 
 function updateTransferForms() {
@@ -394,7 +351,7 @@ function renderReportAccounts() {
     const section = ensureReportAccounts();
     if (!section) return;
     const end = reportRange().end;
-    const snapshot = calculateAccountBalances(state.transactions, end, state.assignments, state.snapshot);
+    const snapshot = calculateAccountBalances(state.transactions, end);
     section.innerHTML = ACCOUNT_METHOD_VALUES.map((method) => {
         const account = accountForMethod(method);
         return `
@@ -407,7 +364,7 @@ function renderReportAccounts() {
 
     const rankingTarget = $("#methodRanking");
     if (!rankingTarget) return;
-    const ranking = accountExpenseRanking(state.transactions, reportRange(), state.assignments);
+    const ranking = accountExpenseRanking(state.transactions, reportRange());
     if (!ranking.length) {
         rankingTarget.innerHTML = '<div class="ranking-empty"><span>—</span><p>As contas utilizadas aparecerão aqui.</p></div>';
         return;
@@ -457,9 +414,7 @@ function renderForecastOpeningBalance() {
 
 function render() {
     if (!state.user) return;
-    observer.disconnect();
-    try {
-        renderOverview();
+    renderOverview();
     ensureAccountFilter();
     updateTransactionForm();
     updateTransferForms();
@@ -467,9 +422,6 @@ function render() {
     applyAccountFilter();
     renderReportAccounts();
     renderForecastOpeningBalance();
-    } finally {
-        observer.observe(document.documentElement, { childList: true, subtree: true, characterData: false });
-    }
 }
 
 function scheduleRender() {
@@ -479,72 +431,6 @@ function scheduleRender() {
         state.scheduled = false;
         render();
     }, 40);
-}
-
-async function ensureAccountSnapshotV282() {
-    const existing = normalizeAccountSnapshot(
-        state.user?.user_metadata?.[ACCOUNT_SNAPSHOT_META_KEY]
-    );
-    if (existing) return existing;
-
-    const initial = normalizeAccountSnapshot(DEFAULT_ACCOUNT_SNAPSHOT_V282);
-    const { data, error } = await supabase.auth.updateUser({
-        data: { [ACCOUNT_SNAPSHOT_META_KEY]: initial }
-    });
-    if (error) throw error;
-    if (data.user) state.user = data.user;
-    return initial;
-}
-
-async function saveAssignments(assignments) {
-    const normalized = normalizeAccountAssignments(assignments);
-    const { data, error } = await supabase.auth.updateUser({
-        data: { [ACCOUNT_ASSIGNMENTS_META_KEY]: normalized }
-    });
-    if (error) throw error;
-    state.assignments = normalized;
-    if (data.user) state.user = data.user;
-}
-
-function capturePendingAssignment() {
-    const account = $("#transactionAccountV28")?.value || "pix";
-    const transactionId = $("#transactionId")?.value || "";
-    const type = document.querySelector('#transactionForm input[name="transactionType"]:checked')?.value || "expense";
-    state.pendingAssignment = {
-        account,
-        transactionId,
-        type,
-        description: $("#transactionDescription")?.value.trim() || "",
-        beforeIds: new Set(state.transactions.map((transaction) => transaction.id)),
-        attempts: 0
-    };
-    window.setTimeout(loadTransactions, 450);
-}
-
-async function resolvePendingAssignment() {
-    const pending = state.pendingAssignment;
-    if (!pending) return;
-
-    const targets = pending.transactionId
-        ? state.transactions.filter((transaction) => transaction.id === pending.transactionId)
-        : state.transactions.filter((transaction) => (
-            !pending.beforeIds.has(transaction.id)
-            && transaction.type === pending.type
-            && transaction.description === pending.description
-            && !isAccountTransfer(transaction)
-        ));
-
-    if (!targets.length) {
-        pending.attempts += 1;
-        if (pending.attempts < 8) window.setTimeout(loadTransactions, 450);
-        else state.pendingAssignment = null;
-        return;
-    }
-
-    const next = { ...state.assignments };
-    targets.forEach((transaction) => { next[transaction.id] = pending.account; });
-    state.pendingAssignment = null;
-    await saveAssignments(next);
 }
 
 async function loadTransactions() {
@@ -558,7 +444,6 @@ async function loadTransactions() {
             .order("occurred_on", { ascending: false });
         if (error) throw error;
         state.transactions = (data || []).map(toTransaction);
-        await resolvePendingAssignment();
         render();
     } catch (error) {
         console.error("Fôlego V2.8 não conseguiu carregar as contas:", error);
@@ -569,21 +454,20 @@ async function loadTransactions() {
 
 async function activate(user) {
     if (!user?.id) return;
+    const needsMigration = !user.user_metadata?.[ACCOUNT_MIGRATION_META_KEY];
     state.user = user;
     try {
         const migratedUser = await migrateExistingTransactionsToInter(user);
         state.user = migratedUser || user;
+        if (needsMigration) {
+            window.location.reload();
+            return;
+        }
     } catch (error) {
-        console.error("Fôlego V2.8 não conseguiu preparar as contas:", error);
+        console.error("Fôlego V2.8 não conseguiu migrar as movimentações para o Inter:", error);
     }
-    state.assignments = normalizeAccountAssignments(
-        state.user?.user_metadata?.[ACCOUNT_ASSIGNMENTS_META_KEY]
-    );
-    state.snapshot = await ensureAccountSnapshotV282();
     await loadTransactions();
 }
-
-$("#transactionForm")?.addEventListener("submit", capturePendingAssignment, true);
 
 document.addEventListener("change", (event) => {
     if (event.target.matches('#transactionForm input[name="transactionType"]')) window.setTimeout(updateTransactionForm, 0);

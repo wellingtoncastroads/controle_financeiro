@@ -3,29 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Fôlego — sua agenda financeira para enxergar o mês antes de decidir.">
-    <meta name="theme-color" content="#f7f5ee">
+    <meta name="description" content="Fôlego — um livro-caixa pessoal para entender o presente e financiar o futuro.">
+    <meta name="theme-color" content="#eeebe2">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Fôlego | Agenda financeira</title>
+    <title>Fôlego | Livro-caixa pessoal</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/assets/folego-mark.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="/src/credit-card-feature.css">
-    <link rel="stylesheet" href="/src/monthly-history.css">
-    <link rel="stylesheet" href="/src/daily-report-movements.css">
-    <link rel="stylesheet" href="/src/card-history.css">
-    <link rel="stylesheet" href="/src/monthly-planning.css">
-    <link rel="stylesheet" href="/src/mobile-layout-fix-v241.css">
-    <link rel="stylesheet" href="/src/mobile-layout-carousel-v242.css">
-    <link rel="stylesheet" href="/src/route-number-font-v243.css">
-    <link rel="stylesheet" href="/src/folego-v25-suite.css">
-    <link rel="stylesheet" href="/src/route-number-font-v251.css">
-    <link rel="stylesheet" href="/src/mobile-fix-v253.css">
-    <link rel="stylesheet" href="/src/folego-pluggy-v26.css">
-    <link rel="stylesheet" href="/src/folego-transfer-v27.css">
-    <link rel="stylesheet" href="/src/folego-accounts-v28.css">
-    <link rel="stylesheet" href="/src/folego-agenda-v3.css">
 </head>
 
 <body>
@@ -186,35 +171,19 @@
         <nav class="rail-nav">
             <button class="rail-link active" type="button" data-view="dashboard" aria-current="page">
                 <span>01</span>
-                <strong>Agenda</strong>
+                <strong>Pulso</strong>
             </button>
             <button class="rail-link" type="button" data-view="transactions">
                 <span>02</span>
-                <strong>Movimentos</strong>
-            </button>
-            <button class="rail-link" type="button" data-agenda-accounts>
-                <span>03</span>
-                <strong>Contas</strong>
+                <strong>Extrato</strong>
             </button>
             <button class="rail-link" type="button" data-view="goals">
-                <span>04</span>
-                <strong>Objetivos</strong>
-            </button>
-            <button class="rail-link" type="button" data-view="cards">
-                <span>04</span>
-                <strong>Cartão</strong>
+                <span>03</span>
+                <strong>Planos</strong>
             </button>
             <button class="rail-link" type="button" data-view="reports">
-                <span>05</span>
-                <strong>Relatórios</strong>
-            </button>
-            <button class="rail-link" type="button" data-view="planning">
-                <span>06</span>
-                <strong>Planejamento</strong>
-            </button>
-            <button class="rail-link" type="button" data-view="archive">
-                <span>07</span>
-                <strong>Arquivo</strong>
+                <span>04</span>
+                <strong>Raio-X</strong>
             </button>
         </nav>
 
@@ -255,7 +224,7 @@
                         <button id="installAppButton" type="button" hidden>Instalar neste aparelho <span>APP ↓</span></button>
                         <button class="delete-account-button" id="deleteAccountButton" type="button">Excluir conta e dados <span>×</span></button>
                         <button class="signout-button" id="signOutButton" type="button">Sair desta conta <span>→</span></button>
-                        <small class="account-version">FÔLEGO / V3.0</small>
+                        <small class="account-version">FÔLEGO / V2.1</small>
                     </div>
                 </div>
 
@@ -281,101 +250,6 @@
                  01 — PULSO ATUAL
             ====================================================== -->
             <section class="view active" id="dashboardView" data-view-section="dashboard">
-                <section class="agenda-v3" id="agendaV3" aria-label="Agenda financeira do mês">
-                    <header class="agenda-v3-top">
-                        <div class="agenda-v3-heading">
-                            <p class="agenda-v3-kicker">AGENDA DO DINHEIRO</p>
-                            <h2 id="agendaV3Month">Seu mês</h2>
-                            <p id="agendaV3Greeting">Este é o ritmo do seu mês.</p>
-                        </div>
-                        <div class="agenda-v3-top-actions">
-                            <div class="agenda-v3-nav" role="group" aria-label="Navegar entre meses">
-                                <button type="button" data-agenda-month="-1" aria-label="Mês anterior">‹</button>
-                                <button type="button" data-agenda-today aria-label="Voltar ao mês atual">Hoje</button>
-                                <button type="button" data-agenda-month="1" aria-label="Próximo mês">›</button>
-                            </div>
-                            <div class="agenda-v3-mode" role="group" aria-label="Modo de visualização">
-                                <button class="active" type="button" aria-pressed="true">Mês</button>
-                                <button type="button" data-agenda-view="planning">Planejamento</button>
-                                <button type="button" data-agenda-view="transactions">Lista</button>
-                            </div>
-                            <button class="agenda-v3-primary" id="agendaV3NewTransaction" type="button">+ Novo movimento</button>
-                        </div>
-                    </header>
-
-                    <section class="agenda-v3-overview" aria-label="Resumo principal">
-                        <article>
-                            <span>Patrimônio hoje</span>
-                            <strong id="agendaV3Patrimony">R$ 0,00</strong>
-                        </article>
-                        <article>
-                            <span>Variação até o fim do mês</span>
-                            <strong class="positive" id="agendaV3MonthEnd">R$ 0,00</strong>
-                        </article>
-                        <article>
-                            <span>Total nas três contas</span>
-                            <strong id="agendaV3AccountTotal">R$ 0,00</strong>
-                        </article>
-                    </section>
-
-                    <div class="agenda-v3-workspace">
-                        <section class="agenda-v3-calendar-shell" aria-label="Calendário de entradas e saídas">
-                            <div class="agenda-v3-calendar-frame">
-                                <div class="agenda-v3-axis" aria-hidden="true">
-                                    <span>Dia</span>
-                                    <span>Entradas</span>
-                                    <span>Saldo<br>projetado</span>
-                                    <span>Saídas</span>
-                                    <span>Contas<br>a pagar</span>
-                                </div>
-                                <div class="agenda-v3-calendar" id="agendaV3Calendar"></div>
-                            </div>
-                        </section>
-
-                        <aside class="agenda-v3-week" aria-label="Resumo da semana">
-                            <span class="agenda-v3-today-badge" id="agendaV3TodayBadge">Hoje</span>
-                            <h3>Esta semana</h3>
-                            <p class="agenda-v3-week-period" id="agendaV3WeekLabel">—</p>
-                            <div class="agenda-v3-week-metric income">
-                                <i aria-hidden="true">↓</i>
-                                <div><span>Entradas</span><strong id="agendaV3WeekIncome">R$ 0,00</strong></div>
-                            </div>
-                            <div class="agenda-v3-week-metric expense">
-                                <i aria-hidden="true">↑</i>
-                                <div><span>Saídas</span><strong id="agendaV3WeekExpense">R$ 0,00</strong></div>
-                            </div>
-                            <div class="agenda-v3-week-metric bills">
-                                <i aria-hidden="true">▤</i>
-                                <div><span>Contas previstas</span><strong id="agendaV3Bills">R$ 0,00 · 0 contas</strong></div>
-                            </div>
-                            <div class="agenda-v3-can-spend">
-                                <span>Pode gastar</span>
-                                <strong id="agendaV3CanSpend">R$ 0,00</strong>
-                                <small>Margem prevista após os compromissos já registrados até o fim do mês.</small>
-                            </div>
-                        </aside>
-                    </div>
-
-                    <section class="agenda-v3-lower">
-                        <div class="agenda-v3-accounts" id="agendaV3Accounts">
-                            <header class="agenda-v3-section-head">
-                                <span>Contas</span>
-                                <strong>Inter · Banco do Brasil · Itaú</strong>
-                            </header>
-                            <section class="balance-pockets" aria-label="Saldos reais das contas">
-                                <p>Carregando suas contas…</p>
-                            </section>
-                        </div>
-                        <article class="agenda-v3-recent">
-                            <header class="agenda-v3-section-head">
-                                <span>Movimentações recentes</span>
-                                <button type="button" data-agenda-view="transactions">Ver todas →</button>
-                            </header>
-                            <div class="agenda-v3-recent-list" id="agendaV3Recent"></div>
-                        </article>
-                    </section>
-                </section>
-
                 <div class="view-index" aria-hidden="true">
                     <span>01</span>
                     <i></i>
@@ -390,33 +264,11 @@
                         <span class="balance-question">Quanto você tem de fôlego hoje?</span>
                         <strong class="hero-balance" id="currentBalance">R$ 0,00</strong>
 
-                        <!-- FÔLEGO PIX/ESPÉCIE SPLIT -->
-                        <!-- FÔLEGO POCKETS EDITORIAL V2 -->
-                        <section class="balance-pockets" aria-label="Saldo separado entre contas">
-                            <header class="balance-pocket-head">
-                                <span>DIVISÃO DO CAIXA / 02 PARTES</span>
-                                <i>CONFIRMADO ATÉ HOJE</i>
-                            </header>
-                            <article class="money-pocket pix-pocket">
-                                <span>01 / PIX</span>
-                                <strong id="pixBalance">R$ 0,00</strong>
-                                <small>saldo digital</small>
-                            </article>
-                            <article class="money-pocket cash-pocket">
-                                <span>02 / ESPÉCIE</span>
-                                <strong id="cashBalance">R$ 0,00</strong>
-                                <small>dinheiro em mãos</small>
-                            </article>
-                        </section>
-
                         <div class="balance-footer">
                             <p id="balanceCaption">Calculando seu mês...</p>
-                            <div class="transfer-actions">
-                                <button class="transfer-button" id="bannerNewTransfer" type="button">↔ Transferir</button>
-                                <button class="ink-button" id="bannerNewTransaction" type="button">
-                                    <span>+</span> Anotar movimento
-                                </button>
-                            </div>
+                            <button class="ink-button" id="bannerNewTransaction" type="button">
+                                <span>+</span> Anotar movimento
+                            </button>
                         </div>
 
                         <div class="balance-tape">
@@ -600,10 +452,7 @@
                         <span class="section-code">ARQUIVO DE MOVIMENTOS</span>
                         <h2>Tudo que entrou.<br>Tudo que saiu.</h2>
                     </div>
-                    <div class="transfer-actions">
-                        <button class="transfer-button" id="pageNewTransfer" type="button">↔ Transferir</button>
-                        <button class="ink-button" id="pageNewTransaction" type="button"><span>+</span> Novo registro</button>
-                    </div>
+                    <button class="ink-button" id="pageNewTransaction" type="button"><span>+</span> Novo registro</button>
                 </header>
 
                 <section class="ledger-shell">
@@ -700,106 +549,12 @@
                 <div class="goals-grid" id="goalsGrid"></div>
             </section>
 
-
-            <!-- FÔLEGO CARTÃO V2.2 -->
             <!-- =====================================================
-                 04 — CARTÃO E FATURAS
-            ====================================================== -->
-            <section class="view" id="cardsView" data-view-section="cards">
-                <div class="view-index" aria-hidden="true">
-                    <span>04</span>
-                    <i></i>
-                    <b>CARTÃO</b>
-                </div>
-
-                <header class="page-intro card-intro">
-                    <div>
-                        <span class="section-code">CRÉDITO SOB CONTROLE</span>
-                        <h2>O limite tem borda.<br>A fatura tem data.</h2>
-                    </div>
-                    <button class="ink-button" id="newCreditCardButton" type="button"><span>+</span> Adicionar cartão</button>
-                </header>
-
-                <section class="credit-card-summary" aria-label="Resumo do cartão">
-                    <article>
-                        <span>LIMITE TOTAL</span>
-                        <strong id="cardTotalLimit">R$ 0,00</strong>
-                        <small>valor definido no cartão</small>
-                    </article>
-                    <article>
-                        <span>LIMITE USADO</span>
-                        <strong id="cardUsedLimit">R$ 0,00</strong>
-                        <small>parcelas ainda abertas</small>
-                    </article>
-                    <article class="available">
-                        <span>DISPONÍVEL</span>
-                        <strong id="cardAvailableLimit">R$ 0,00</strong>
-                        <small>margem para respirar</small>
-                    </article>
-                    <article class="invoice">
-                        <span>FATURA DO MÊS</span>
-                        <strong id="cardCurrentInvoice">R$ 0,00</strong>
-                        <small id="cardInvoiceCaption">nenhuma compra</small>
-                    </article>
-                </section>
-
-                <section class="credit-card-workspace">
-                    <article class="credit-card-board">
-                        <header class="board-heading">
-                            <div>
-                                <span class="section-code">01 / LIMITE</span>
-                                <h3>O crédito em circulação</h3>
-                            </div>
-                        </header>
-                        <div id="creditCardPanel"></div>
-                    </article>
-
-                    <article class="credit-invoice-board">
-                        <header class="board-heading">
-                            <div>
-                                <span class="section-code">02 / FATURA</span>
-                                <h3>O que vence agora</h3>
-                            </div>
-                            <button class="paper-button" id="payInvoiceButton" type="button">MARCAR FATURA PAGA</button>
-                        </header>
-
-                        <div class="credit-invoice-control">
-                            <label>
-                                <span>MÊS DA FATURA /</span>
-                                <input type="month" id="invoiceMonthFilter">
-                            </label>
-                            <div>
-                                <span>TOTAL ABERTO</span>
-                                <strong id="invoiceOpenTotal">R$ 0,00</strong>
-                                <small id="invoicePurchaseCount">0 parcelas</small>
-                            </div>
-                        </div>
-
-                        <div class="credit-card-invoice-list" id="creditCardInvoiceList"></div>
-                    </article>
-                </section>
-
-                    <!-- FÔLEGO HISTÓRICO DE FATURAS V2.3.2 -->
-                    <article class="card-history-board">
-                        <header class="board-heading card-history-heading">
-                            <div>
-                                <span class="section-code">03 / ARQUIVO DE FATURAS</span>
-                                <h3>O crédito passa.<br>O histórico fica.</h3>
-                            </div>
-                            <p>Faturas abertas e pagas, organizadas por mês.</p>
-                        </header>
-                        <div class="card-history-list" id="cardHistoryList">
-                            <div class="credit-invoice-empty">Abrindo o histórico do cartão...</div>
-                        </div>
-                    </article>
-            </section>
-
-            <!-- =====================================================
-                 05 — RAIO-X E RELATÓRIOS
+                 04 — RAIO-X E RELATÓRIOS
             ====================================================== -->
             <section class="view" id="reportsView" data-view-section="reports">
                 <div class="view-index" aria-hidden="true">
-                    <span>05</span>
+                    <span>04</span>
                     <i></i>
                     <b>RAIO-X</b>
                 </div>
@@ -834,47 +589,6 @@
                     <article class="report-total result"><span>RESULTADO</span><strong id="reportResult">R$ 0,00</strong><small>somente confirmados</small></article>
                 </section>
 
-                <section class="report-pocket-grid" aria-label="Resultado separado entre contas no período">
-                    <header class="report-pocket-head">
-                        <span>04 / POSSE DO DINHEIRO</span>
-                        <strong>Onde o resultado ficou</strong>
-                    </header>
-                    <article class="report-pocket pix-pocket">
-                        <span>01 / PIX NO PERÍODO</span>
-                        <strong id="reportPixBalance">R$ 0,00</strong>
-                        <small>SALDO LÍQUIDO</small>
-                    </article>
-                    <article class="report-pocket cash-pocket">
-                        <span>02 / ESPÉCIE NO PERÍODO</span>
-                        <strong id="reportCashBalance">R$ 0,00</strong>
-                        <small>SALDO LÍQUIDO</small>
-                    </article>
-                </section>
-
-
-                <!-- FÔLEGO MOVIMENTOS DO DIA V2.3.1 -->
-                <section class="daily-movements-board" id="dailyMovementsBoard" aria-label="Movimentações do dia selecionado" hidden>
-                    <header class="daily-movements-heading">
-                        <div>
-                            <span class="section-code">DIA / MOVIMENTOS</span>
-                            <h3>Tudo que passou<br>por este dia.</h3>
-                        </div>
-                        <div class="daily-movements-reference">
-                            <span>DATA SELECIONADA</span>
-                            <strong id="dailyMovementsDate">—</strong>
-                            <small id="dailyMovementsCount">0 movimentos</small>
-                        </div>
-                    </header>
-                    <div class="daily-movements-summary" role="group" aria-label="Resumo confirmado do dia">
-                        <div><span>ENTROU</span><strong id="dailyMovementsIncome">R$ 0,00</strong></div>
-                        <div><span>SAIU</span><strong id="dailyMovementsExpense">R$ 0,00</strong></div>
-                        <div class="result"><span>RESULTADO</span><strong id="dailyMovementsResult">R$ 0,00</strong></div>
-                    </div>
-                    <div class="daily-movements-list" id="dailyMovementsList">
-                        <div class="daily-movements-empty">Escolha um dia para abrir os movimentos.</div>
-                    </div>
-                </section>
-
                 <section class="ranking-layout">
                     <article class="ranking-board ranking-primary">
                         <header class="board-heading">
@@ -893,25 +607,10 @@
 
                     <article class="ranking-board method-board">
                         <header class="board-heading">
-                            <div><span class="section-code">03 / PIX OU ESPÉCIE</span><h3>Meios utilizados</h3></div>
+                            <div><span class="section-code">03 / COMO PAGOU</span><h3>Meios utilizados</h3></div>
                         </header>
                         <div class="method-ledger" id="methodRanking"></div>
                     </article>
-                </section>
-
-
-                <!-- FÔLEGO HISTÓRICO MENSAL V2.3 -->
-                <section class="monthly-history-board" aria-label="Histórico financeiro mensal">
-                    <header class="monthly-history-heading">
-                        <div>
-                            <span class="section-code">05 / ARQUIVO MENSAL</span>
-                            <h3>O mês vira página.<br>O histórico fica.</h3>
-                        </div>
-                        <p>O mês atual permanece em aberto. Os anteriores são fechados automaticamente e continuam disponíveis no Raio-X.</p>
-                    </header>
-                    <div class="monthly-history-list" id="monthlyHistoryList">
-                        <div class="monthly-history-empty">Abrindo o arquivo mensal...</div>
-                    </div>
                 </section>
 
                 <section class="budget-board">
@@ -926,385 +625,9 @@
                     <div class="budget-list" id="budgetList"></div>
                 </section>
             </section>
-
-            <!-- FÔLEGO PLANEJAMENTO MENSAL V2.4 -->
-            <!-- =====================================================
-                 06 — ROTA E PLANEJAMENTO MENSAL
-            ====================================================== -->
-            <section class="view" id="planningView" data-view-section="planning">
-                <div class="view-index" aria-hidden="true">
-                    <span>06</span>
-                    <i></i>
-                    <b>ROTA</b>
-                </div>
-
-                <header class="page-intro planning-intro">
-                    <div>
-                        <span class="section-code">O MÊS ANTES DO FIM</span>
-                        <h2>Veja o aperto antes.<br>Escolha o próximo passo.</h2>
-                    </div>
-                    <span class="planning-edition-stamp">FÔLEGO / V2.8.2</span>
-                </header>
-
-                <section class="planning-control" aria-label="Mês do planejamento">
-                    <label>
-                        <span>MÊS EM LEITURA /</span>
-                        <input type="month" id="planningMonth">
-                    </label>
-                    <div class="planning-control-copy">
-                        <span>ESTADO DO RECORTE</span>
-                        <strong id="planningMonthState">MÊS ATUAL / EM ABERTO</strong>
-                    </div>
-                    <button class="paper-button" id="planningBudgetButton" type="button">+ DEFINIR ORÇAMENTO</button>
-                </section>
-
-                <section class="planning-summary" aria-label="Resumo da previsão mensal">
-                    <article>
-                        <span>SALDO DE ABERTURA</span>
-                        <strong id="planningOpeningBalance">R$ 0,00</strong>
-                        <small>antes do primeiro movimento</small>
-                    </article>
-                    <article>
-                        <span>REALIZADO NO MÊS</span>
-                        <strong id="planningActualResult">R$ 0,00</strong>
-                        <small id="planningActualCaption">entradas menos saídas</small>
-                    </article>
-                    <article class="commitments">
-                        <span>AINDA COMPROMETIDO</span>
-                        <strong id="planningCommitments">R$ 0,00</strong>
-                        <small id="planningCommitmentsCaption">a pagar neste recorte</small>
-                    </article>
-                    <article class="closing">
-                        <span>FECHAMENTO PREVISTO</span>
-                        <strong id="planningClosingBalance">R$ 0,00</strong>
-                        <small id="planningConfidence">SEM AGENDA</small>
-                    </article>
-                </section>
-
-                <section class="planning-route-layout">
-                    <article class="planning-route-board">
-                        <header class="board-heading">
-                            <div>
-                                <span class="section-code">01 / LINHA DO CAIXA</span>
-                                <h3>O que ainda vai passar</h3>
-                            </div>
-                            <span class="planning-route-count" id="planningRouteCount">0 ITENS</span>
-                        </header>
-                        <div class="planning-route-list" id="planningRouteList">
-                            <div class="planning-empty">Abrindo a rota do mês...</div>
-                        </div>
-                    </article>
-
-                    <article class="planning-receipt">
-                        <header>
-                            <span>PREVISÃO / FECHAMENTO</span>
-                            <b>FÔLEGO®</b>
-                        </header>
-                        <div class="planning-receipt-month" id="planningReceiptMonth">—</div>
-                        <dl>
-                            <div><dt>ENTROU ATÉ AGORA</dt><dd id="planningActualIncome">R$ 0,00</dd></div>
-                            <div><dt>AINDA VAI ENTRAR</dt><dd id="planningRemainingIncome">R$ 0,00</dd></div>
-                            <div><dt>SAIU ATÉ AGORA</dt><dd id="planningActualExpense">R$ 0,00</dd></div>
-                            <div><dt>AINDA VAI SAIR</dt><dd id="planningRemainingExpense">R$ 0,00</dd></div>
-                        </dl>
-                        <div class="planning-receipt-result">
-                            <span>RESULTADO PROVÁVEL DO MÊS</span>
-                            <strong id="planningProjectedResult">R$ 0,00</strong>
-                        </div>
-                        <footer>REGISTROS PENDENTES FORMAM A PREVISÃO</footer>
-                    </article>
-                </section>
-
-                <section class="planning-budget-board">
-                    <header class="board-heading planning-budget-heading">
-                        <div>
-                            <span class="section-code">02 / PLANEJADO × REALIZADO</span>
-                            <h3>Quanto da margem já ganhou destino</h3>
-                        </div>
-                        <p>O realizado mostra o que já saiu. A previsão também considera pendências e parcelas cadastradas.</p>
-                    </header>
-                    <div class="planning-budget-list" id="planningBudgetList">
-                        <div class="planning-empty">Carregando os orçamentos...</div>
-                    </div>
-                </section>
-
-                <section class="planning-simulator-board">
-                    <header class="planning-simulator-heading">
-                        <div>
-                            <span class="section-code">03 / E SE?</span>
-                            <h3>Teste uma decisão.<br>Sem mexer no caixa.</h3>
-                        </div>
-                        <span class="planning-dry-stamp">SIMULAÇÃO</span>
-                    </header>
-
-                    <form class="planning-simulator-form" id="planningSimulatorForm">
-                        <label>
-                            <span>MOVIMENTO</span>
-                            <select id="planningSimulationType">
-                                <option value="expense">Uma nova saída</option>
-                                <option value="income">Uma nova entrada</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>VALOR TOTAL</span>
-                            <span class="planning-money-field"><b>R$</b><input type="number" id="planningSimulationAmount" min="0.01" step="0.01" placeholder="0,00"></span>
-                        </label>
-                        <label>
-                            <span>PARCELAS</span>
-                            <input type="number" id="planningSimulationInstallments" min="1" max="120" value="1">
-                        </label>
-                        <label>
-                            <span>COMEÇA EM</span>
-                            <input type="month" id="planningSimulationStartMonth">
-                        </label>
-                        <button class="sr-only" type="submit">Atualizar simulação</button>
-                    </form>
-
-                    <div class="planning-simulator-result" id="planningSimulatorResult">
-                        <div>
-                            <span>FECHAMENTO SEM SIMULAÇÃO</span>
-                            <strong id="planningSimulationBefore">R$ 0,00</strong>
-                        </div>
-                        <div class="after">
-                            <span>FECHAMENTO COM SIMULAÇÃO</span>
-                            <strong id="planningSimulationAfter">R$ 0,00</strong>
-                        </div>
-                        <p id="planningSimulationCaption">Informe um valor para medir o impacto.</p>
-                    </div>
-                    <div class="planning-simulation-schedule" id="planningSimulationSchedule"></div>
-                    <footer>ESTE TESTE NÃO CRIA, EDITA OU SALVA MOVIMENTAÇÕES.</footer>
-                </section>
-            </section>
-
-
-            <!-- FÔLEGO V2.5 SUITE -->
-            <!-- =====================================================
-                 07 — ARQUIVO, RISCO E INTELIGÊNCIA
-            ====================================================== -->
-            <section class="view" id="archiveView" data-view-section="archive">
-                <div class="view-index" aria-hidden="true">
-                    <span>07</span>
-                    <i></i>
-                    <b>ARQUIVO</b>
-                </div>
-
-                <header class="page-intro archive-intro">
-                    <div>
-                        <span class="section-code">LEITURA AMPLA / DECISÃO CURTA</span>
-                        <h2>O passado compara.<br>O futuro avisa.</h2>
-                    </div>
-                        <span class="v25-edition-stamp">FÔLEGO / V3.0</span>
-                </header>
-
-                <section class="v25-action-strip" aria-label="Ações rápidas do caixa">
-                    <div class="v25-connection-copy">
-                        <span>ESTADO DA SINCRONIZAÇÃO</span>
-                        <strong id="v25ConnectionBadge">ABRINDO O ARQUIVO</strong>
-                    </div>
-                    <button class="ink-button" id="v25TransferButton" type="button"><span>↔</span> Transferir saldo</button>
-                    <button class="paper-button" id="v25TrashButton" type="button">LIXEIRA / RECUPERAR</button>
-                </section>
-
-                <!-- FÔLEGO V2.6 / CONTAS CONECTADAS -->
-                <section class="v26-bank-section" id="v26BankSection" aria-labelledby="v26BankTitle">
-                    <header class="v26-bank-heading">
-                        <div>
-                            <span class="section-code">00 / CONTAS CONECTADAS</span>
-                            <h3 id="v26BankTitle">O banco escreve o caixa</h3>
-                        </div>
-                        <div class="v26-bank-controls">
-                            <span class="v26-bank-status" id="v26BankStatus" data-state="online">PRONTO PARA CONECTAR</span>
-                            <button class="ink-button" id="v26ConnectBank" type="button">+ CONECTAR BANCO</button>
-                            <button class="paper-button" id="v26SyncBanks" type="button">SINCRONIZAR AGORA</button>
-                        </div>
-                    </header>
-                    <div class="v26-bank-summary">
-                        <article><span>SALDO NAS CONTAS</span><strong id="v26BankBalance">R$ 0,00</strong><small>contas bancárias conectadas</small></article>
-                        <article><span>ABERTO NO CRÉDITO</span><strong id="v26CreditOpen">R$ 0,00</strong><small>faturas e cartões encontrados</small></article>
-                        <article><span>ÚLTIMA LEITURA</span><strong id="v26LastSync">AINDA NÃO</strong><small>importação automática</small></article>
-                    </div>
-                    <div class="v26-bank-list" id="v26BankList"></div>
-                    <p class="v26-bank-note" id="v26BankNote">A autorização acontece no ambiente seguro da Pluggy. O Fôlego nunca recebe sua senha bancária.</p>
-                </section>
-
-                <section class="v25-section" aria-labelledby="v25RiskTitle">
-                    <header class="v25-section-heading">
-                        <div><span class="section-code">01 / PREVISÃO DE RISCO</span><h3 id="v25RiskTitle">O aperto antes de chegar</h3></div>
-                        <p>O Fôlego cruza saldo, pendências, orçamentos e cartões para mostrar onde a margem pode desaparecer.</p>
-                    </header>
-                    <div class="v25-risk-list" id="v25RiskList"></div>
-                </section>
-
-                <section class="v25-section" aria-labelledby="v25CompareTitle">
-                    <header class="v25-section-heading">
-                        <div><span class="section-code">02 / MÊS CONTRA MÊS</span><h3 id="v25CompareTitle">O que mudou de verdade</h3></div>
-                        <label class="v25-control-label"><span>MÊS EM COMPARAÇÃO</span><input type="month" id="v25CompareMonth"></label>
-                    </header>
-                    <div class="v25-compare-grid">
-                        <article><span>RESULTADO ATUAL</span><strong id="v25CompareCurrent">R$ 0,00</strong><small>entradas menos saídas</small></article>
-                        <article><span>RESULTADO ANTERIOR</span><strong id="v25ComparePrevious">R$ 0,00</strong><small>mês imediatamente anterior</small></article>
-                        <article><span>DIFERENÇA</span><strong id="v25CompareDelta">R$ 0,00</strong><small>contra o mês anterior</small></article>
-                        <article class="category" id="v25CompareCategory"><span>MAIOR ALTA</span><strong>—</strong><small>sem leitura ainda</small></article>
-                    </div>
-                </section>
-
-                <section class="v25-section" id="v25AnnualSection" aria-labelledby="v25AnnualTitle">
-                    <header class="v25-section-heading">
-                        <div><span class="section-code">03 / FECHAMENTO ANUAL</span><h3 id="v25AnnualTitle">Doze meses em uma página</h3></div>
-                        <div class="v25-annual-actions">
-                            <label class="v25-control-label"><span>ANO</span><select id="v25AnnualYear"></select></label>
-                            <button class="paper-button" id="v25AnnualPrint" type="button">IMPRIMIR / SALVAR PDF</button>
-                        </div>
-                    </header>
-                    <div class="v25-annual-summary">
-                        <article><span>TOTAL RECEBIDO</span><strong id="v25AnnualIncome">R$ 0,00</strong><small>somente confirmados</small></article>
-                        <article><span>TOTAL GASTO</span><strong id="v25AnnualExpense">R$ 0,00</strong><small>transferências não entram</small></article>
-                        <article><span>RESULTADO DO ANO</span><strong id="v25AnnualResult">R$ 0,00</strong><small>saldo produzido no período</small></article>
-                        <article><span>MÉDIA MENSAL</span><strong id="v25AnnualAverage">R$ 0,00</strong><small>média das despesas ativas</small></article>
-                    </div>
-                    <div class="v25-annual-highlights" id="v25AnnualHighlights"></div>
-                    <div class="v25-annual-layout">
-                        <div class="v25-annual-months" id="v25AnnualMonths"></div>
-                        <div class="v25-annual-categories" id="v25AnnualCategories"></div>
-                    </div>
-                </section>
-
-                <section class="v25-section" aria-labelledby="v25RulesTitle">
-                    <header class="v25-section-heading">
-                        <div><span class="section-code">04 / REGRAS DE CATEGORIA</span><h3 id="v25RulesTitle">O Fôlego aprende o nome</h3></div>
-                        <p>Palavras como Uber, mercado ou Netflix podem preencher a categoria automaticamente antes de salvar.</p>
-                    </header>
-                    <div class="v25-rules-layout">
-                        <form class="v25-rule-form" id="v25RuleForm">
-                            <label><span>PALAVRA OU NOME</span><input type="text" id="v25RuleKeyword" maxlength="40" placeholder="Ex.: padaria" required></label>
-                            <label><span>CATEGORIA</span><select id="v25RuleCategory" required>
-                                <option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Lazer</option><option>Assinaturas</option><option>Contas</option><option>Outras despesas</option><option>Salário</option><option>Freelance</option><option>Vendas</option><option>Investimentos</option><option>Outras receitas</option>
-                            </select></label>
-                            <button class="ink-button" type="submit">GRAVAR REGRA →</button>
-                        </form>
-                        <div class="v25-rule-list" id="v25RuleList"></div>
-                    </div>
-                </section>
-
-                <section class="v25-section" aria-labelledby="v25OfflineTitle">
-                    <header class="v25-section-heading">
-                        <div><span class="section-code">05 / FILA OFFLINE</span><h3 id="v25OfflineTitle">Anote agora. Envie depois.</h3></div>
-                        <p>Movimentações registradas sem internet ficam neste aparelho e são sincronizadas automaticamente ao reconectar.</p>
-                    </header>
-                    <div class="v25-offline-board">
-                        <div class="v25-offline-head"><span id="v25OfflineCount">0 ITENS</span><button class="paper-button" id="v25OfflineSyncButton" type="button">SINCRONIZAR AGORA</button></div>
-                        <div id="v25OfflineList"></div>
-                    </div>
-                </section>
-            </section>
         </main>
     </div>
     </div>
-
-
-    <!-- FÔLEGO V2.5 / TRANSFERÊNCIA ENTRE SALDOS -->
-    <dialog class="modal" id="v25TransferDialog">
-        <form class="modal-sheet v25-transfer-sheet" id="v25TransferForm">
-            <div class="modal-header"><div><span>CAIXA / TRANSFERÊNCIA</span><h2>Mover sem gastar</h2></div><button class="modal-close" type="button" data-close-dialog="v25TransferDialog" aria-label="Fechar">×</button></div>
-            <p class="modal-lead">O saldo total permanece igual. Apenas a distribuição entre contas muda.</p>
-            <div class="v25-transfer-direction">
-                <label class="form-field"><span>SAI DE</span><select id="v25TransferSource"><option value="pix">Inter</option><option value="cash">Itaú</option></select></label>
-                <span class="v25-transfer-arrow">→</span>
-                <label class="form-field"><span>ENTRA EM</span><select id="v25TransferDestination"><option value="cash">Itaú</option><option value="pix">Inter</option></select></label>
-            </div>
-            <div class="form-grid v25-transfer-details">
-                <label class="form-field"><span>VALOR</span><span class="money-field"><b>R$</b><input type="number" id="v25TransferAmount" min="0.01" step="0.01" required></span></label>
-                <label class="form-field"><span>DATA</span><input type="date" id="v25TransferDate" required></label>
-                <label class="form-field form-field-wide"><span>NOTA / OPCIONAL</span><input type="text" id="v25TransferNote" maxlength="60" placeholder="Ex.: saque para a semana"></label>
-            </div>
-            <div class="modal-actions"><button class="paper-button" type="button" data-close-dialog="v25TransferDialog">Cancelar</button><button class="ink-button" type="submit">Registrar transferência →</button></div>
-        </form>
-    </dialog>
-
-    <!-- FÔLEGO V2.5 / ORIGEM DO PAGAMENTO DA FATURA -->
-    <dialog class="modal" id="v25InvoicePaymentDialog">
-        <form class="modal-sheet v25-invoice-sheet" id="v25InvoicePaymentForm">
-            <div class="modal-header"><div><span>CRÉDITO / PAGAMENTO</span><h2>De onde sai o dinheiro?</h2></div><button class="modal-close" type="button" data-close-dialog="v25InvoicePaymentDialog" aria-label="Fechar">×</button></div>
-            <div class="v25-invoice-ticket">
-                <div><span>CARTÃO</span><strong id="v25InvoicePaymentCard">—</strong></div>
-                <div><span>FATURA</span><strong id="v25InvoicePaymentMonth">—</strong></div>
-                <div><span>TOTAL</span><strong id="v25InvoicePaymentTotal">R$ 0,00</strong></div>
-            </div>
-            <label class="form-field"><span>CONTA DO PAGAMENTO</span><select id="v25InvoicePaymentSource"><option value="pix">Inter</option><option value="cash">Itaú</option></select></label>
-            <p class="form-notice">As parcelas continuam no histórico do cartão, mas o valor é retirado do saldo escolhido.</p>
-            <div class="modal-actions"><button class="paper-button" type="button" data-close-dialog="v25InvoicePaymentDialog">Voltar</button><button class="ink-button" type="submit">Confirmar pagamento →</button></div>
-        </form>
-    </dialog>
-
-    <!-- FÔLEGO V2.5 / LIXEIRA -->
-    <dialog class="modal" id="v25TrashDialog">
-        <div class="modal-sheet v25-trash-sheet">
-            <div class="modal-header"><div><span>SEGURANÇA / 30 DIAS</span><h2>Lixeira de movimentos</h2></div><button class="modal-close" type="button" data-close-dialog="v25TrashDialog" aria-label="Fechar">×</button></div>
-            <p class="modal-lead">Restaure uma movimentação ou remova sua cópia de recuperação definitivamente.</p>
-            <div class="v25-trash-list" id="v25TrashList"></div>
-            <div class="modal-actions"><button class="paper-button" type="button" data-close-dialog="v25TrashDialog">Fechar</button></div>
-        </div>
-    </dialog>
-
-    <div class="v25-undo-bar" id="v25UndoBar" hidden><span id="v25UndoCopy">Movimentação excluída.</span><button type="button" data-v25-undo>DESFAZER</button></div>
-    <div class="v25-global-connection" id="v25GlobalConnection" role="status" aria-live="polite">ABRINDO</div>
-
-    <!-- FÔLEGO V2.7 / TRANSFERÊNCIA INTERNA -->
-    <dialog class="modal" id="transferDialog">
-        <form class="modal-sheet compact-sheet" id="transferForm">
-            <div class="modal-header">
-                <div>
-                    <span>CAIXA / MOVIMENTO NEUTRO</span>
-                    <h2 id="transferModalTitle">Transferir dinheiro</h2>
-                </div>
-                <button class="modal-close" type="button" data-close-dialog="transferDialog" aria-label="Fechar">×</button>
-            </div>
-
-            <input type="hidden" id="transferSeriesId">
-
-            <div class="form-grid">
-                <div class="transfer-flow">
-                    <label class="form-field">
-                        <span>ORIGEM</span>
-                        <select id="transferFrom" required>
-                            <option value="pix">Pix</option>
-                            <option value="cash">Itaú</option>
-                        </select>
-                    </label>
-                    <span class="transfer-arrow" aria-hidden="true">→</span>
-                    <label class="form-field">
-                        <span>DESTINO</span>
-                        <select id="transferTo" required>
-                            <option value="cash">Itaú</option>
-                            <option value="pix">Pix</option>
-                        </select>
-                    </label>
-                </div>
-
-                <label class="form-field">
-                    <span>VALOR</span>
-                    <span class="money-field"><b>R$</b><input type="number" id="transferAmount" min="0.01" step="0.01" placeholder="0,00" required></span>
-                </label>
-
-                <label class="form-field">
-                    <span>DATA</span>
-                    <input type="date" id="transferDate" required>
-                </label>
-
-                <label class="form-field form-field-wide">
-                    <span>DESCRIÇÃO / OPCIONAL</span>
-                    <input type="text" id="transferDescription" maxlength="80" placeholder="Ex.: saque para a carteira">
-                </label>
-
-                <p class="transfer-notice"><strong>Não é receita nem despesa.</strong> O valor apenas muda de conta e não altera o resultado do mês.</p>
-            </div>
-
-            <div class="modal-actions">
-                <button class="paper-button" type="button" data-close-dialog="transferDialog">Cancelar</button>
-                <button class="ink-button" type="submit">Confirmar transferência →</button>
-            </div>
-        </form>
-    </dialog>
 
     <!-- =============================================================
          FORMULÁRIO DE MOVIMENTAÇÃO
@@ -1366,21 +689,16 @@
                     <span id="transactionMethodLabel">COMO PAGOU</span>
                     <select id="transactionPaymentMethod" required>
                         <option value="pix">Pix</option>
-                        <option value="cash">Itaú</option>
+                        <option value="cash">Dinheiro</option>
                         <option value="debit_card">Cartão de débito</option>
-                        <option value="credit_card">Cartão de crédito (parcela)</option>
+                        <option value="credit_card">Cartão de crédito</option>
+                        <option value="bank_transfer">Transferência bancária</option>
+                        <option value="boleto">Boleto</option>
+                        <option value="other">Não informado</option>
                     </select>
                 </label>
 
-                <div class="credit-purchase-fields form-field-wide" id="creditPurchaseFields" hidden>
-                    <label class="form-field">
-                        <span>QUANTIDADE DE PARCELAS</span>
-                        <input type="number" id="creditInstallmentCount" min="1" max="120" value="1">
-                    </label>
-                    <p><strong>A compra não sai do saldo agora.</strong> Ela entra na fatura e só reduz o saldo digital quando a fatura for marcada como paga.</p>
-                </div>
-
-                <label class="form-field" id="transactionModeField">
+                <label class="form-field">
                     <span>TIPO DE LANÇAMENTO</span>
                     <select id="transactionMode">
                         <option value="single">Uma única vez</option>
@@ -1418,51 +736,6 @@
             <div class="modal-actions">
                 <button class="paper-button" type="button" data-close-dialog="transactionDialog">Cancelar</button>
                 <button class="ink-button" type="submit">Gravar movimento →</button>
-            </div>
-        </form>
-    </dialog>
-
-
-    <!-- =============================================================
-         CADASTRO DO CARTÃO DE CRÉDITO
-    ============================================================== -->
-    <dialog class="modal" id="creditCardDialog">
-        <form class="modal-sheet compact-sheet" id="creditCardForm">
-            <div class="modal-header">
-                <div>
-                    <span>CRÉDITO / LIMITE</span>
-                    <h2 id="creditCardModalTitle">Adicionar cartão</h2>
-                </div>
-                <button class="modal-close" type="button" data-close-dialog="creditCardDialog" aria-label="Fechar">×</button>
-            </div>
-
-            <div class="form-grid">
-                <label class="form-field form-field-wide">
-                    <span>NOME DO CARTÃO</span>
-                    <input type="text" id="creditCardName" maxlength="40" placeholder="Ex.: Nubank, Inter, Caixa" required>
-                </label>
-
-                <label class="form-field form-field-wide">
-                    <span>VALOR DO LIMITE</span>
-                    <span class="money-field"><b>R$</b><input type="number" id="creditCardLimit" min="0.01" step="0.01" placeholder="0,00" required></span>
-                </label>
-
-                <label class="form-field">
-                    <span>DIA DO FECHAMENTO</span>
-                    <input type="number" id="creditCardClosingDay" min="1" max="28" value="10" required>
-                </label>
-
-                <label class="form-field">
-                    <span>DIA DO VENCIMENTO</span>
-                    <input type="number" id="creditCardDueDay" min="1" max="28" value="17" required>
-                </label>
-
-                <p class="credit-card-form-note form-field-wide">Compras feitas depois do fechamento entram na fatura seguinte. Os dias ficam entre 1 e 28 para funcionar em todos os meses.</p>
-            </div>
-
-            <div class="modal-actions">
-                <button class="paper-button" type="button" data-close-dialog="creditCardDialog">Cancelar</button>
-                <button class="ink-button" type="submit">Gravar cartão →</button>
             </div>
         </form>
     </dialog>
@@ -1661,15 +934,6 @@
 
     <div class="celebration-layer" id="celebrationLayer" aria-hidden="true"></div>
 
-    <script type="module" src="/src/folego-v25-suite.js"></script>
-    <script src="https://cdn.pluggy.ai/pluggy-connect/latest/pluggy-connect.js"></script>
-    <script type="module" src="/src/folego-pluggy-v26.js"></script>
     <script type="module" src="script.js"></script>
-    <script type="module" src="/src/credit-card-feature.js"></script>
-    <script type="module" src="/src/monthly-history.js"></script>
-    <script type="module" src="/src/daily-report-movements.js"></script>
-    <script type="module" src="/src/card-history.js"></script>
-    <script type="module" src="/src/monthly-planning.js"></script>
-    <script type="module" src="/src/folego-accounts-runtime-v28.js"></script>
 </body>
 </html>

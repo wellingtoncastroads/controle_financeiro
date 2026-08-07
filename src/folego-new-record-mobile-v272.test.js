@@ -13,7 +13,7 @@ describe("botão Novo registro no mobile", () => {
     });
 
     it("publica a revisão com um cache novo", () => {
-        expect(read("package.json")).toContain('"version": "3.0.0"');
-        expect(read("public/sw.js")).toContain('folego-v3.0.0');
+        expect(read("package.json")).toContain('"version": "2.7.3"');
+        expect(read("public/sw.js")).toContain('folego-v2.7.3');
     });
 });

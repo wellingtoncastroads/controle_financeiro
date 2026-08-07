@@ -19,11 +19,11 @@ export const ACCOUNT_METHODS = Object.freeze({
         openingBalance: 302.01
     },
     cash: {
-        id: "itau",
-        name: "Itaú",
-        subtitle: "Conta corrente",
-        logo: "/banks/itau.svg",
-        accent: "#ec7000",
+        id: "cash",
+        name: "Espécie",
+        subtitle: "Dinheiro em mãos",
+        logo: "",
+        accent: "#c8ff3d",
         openingBalance: 0
     }
 });

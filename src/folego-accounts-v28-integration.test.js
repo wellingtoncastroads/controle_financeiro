@@ -10,7 +10,6 @@ describe("integração de contas V2.8", () => {
         expect(index).toContain("/src/folego-accounts-runtime-v28.js");
         expect(fs.existsSync("public/banks/inter.svg")).toBe(true);
         expect(fs.existsSync("public/banks/banco-do-brasil.svg")).toBe(true);
-        expect(fs.existsSync("public/banks/itau.svg")).toBe(true);
     });
 
     it("mantém Banco do Brasil disponível em movimentos e transferências", () => {
@@ -34,8 +33,8 @@ describe("integração de contas V2.8", () => {
     });
 
     it("publica a versão e o cache novos", () => {
-        expect(read("package.json")).toContain('"version": "3.0.0"');
-        expect(read("index.html")).toContain("FÔLEGO / V3.0");
-        expect(read("public/sw.js")).toContain("folego-v3.0.0");
+        expect(read("package.json")).toContain('"version": "2.8.0"');
+        expect(read("index.html")).toContain("FÔLEGO / V2.8.0");
+        expect(read("public/sw.js")).toContain("folego-v2.8.0");
     });
 });
