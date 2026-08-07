@@ -159,7 +159,7 @@ export function suggestCategory(description, rules = []) {
 }
 
 export function isTransfer(row) {
-    return String(row?.category || "") === TRANSFER_CATEGORY;
+    return ["Transferência", "Transferência interna"].includes(String(row?.category || ""));
 }
 
 export function signedValue(row) {
@@ -232,7 +232,11 @@ export function annualSummary(rows, year) {
 
 export function cardIdForRow(row, seriesMap = {}, fallbackCardId = null) {
     const seriesId = rowSeriesId(row);
-    return (seriesId && seriesMap[seriesId]) || fallbackCardId || null;
+    const rowId = typeof row?.id === "string" ? row.id : null;
+    return (seriesId && seriesMap[seriesId])
+        || (rowId && seriesMap[`row:${rowId}`])
+        || fallbackCardId
+        || null;
 }
 
 export function cardUsage(rows, cards, seriesMap = {}) {
@@ -301,3 +305,4 @@ export function riskSnapshot({ rows, budgets = [], cards = [], seriesMap = {}, t
         commitmentRatio: nextIncome > 0 ? nextExpense / nextIncome : nextExpense > 0 ? Infinity : 0
     };
 }
+

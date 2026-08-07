@@ -366,7 +366,7 @@ async function loadSuite({ force = false } = {}) {
         state.invoicePayments = safeArray(state.metadata[META_KEYS.invoicePayments]);
         state.trash = safeArray(state.metadata[META_KEYS.trash])
             .filter((item) => item?.deletedAt && Date.now() - new Date(item.deletedAt).getTime() < 30 * 86400000)
-            .slice(0, 50);
+            .slice(0, 20);
         state.rules = safeArray(state.metadata[META_KEYS.rules]);
 
         if (!Array.isArray(state.metadata[META_KEYS.cards]) && state.cards.length && navigator.onLine) {
@@ -670,9 +670,11 @@ function basicRowsFromPayload(payload) {
 async function executeBasicTransaction(payload) {
     const rows = basicRowsFromPayload(payload);
     if (payload.id) {
+        const values = { ...rows[0] };
+        delete values.user_id;
         const { error } = await supabase
             .from("transactions")
-            .update({ ...rows[0], user_id: undefined })
+            .update(values)
             .eq("id", payload.id)
             .eq("user_id", state.user.id);
         if (error) throw error;
@@ -696,7 +698,9 @@ async function executeCreditPurchase(payload) {
         seriesId
     });
     await insertRows("transactions", rows);
-    state.cardSeries = { ...state.cardSeries, [seriesId]: card.id };
+    state.cardSeries = Object.fromEntries(
+        Object.entries({ ...state.cardSeries, [seriesId]: card.id }).slice(-600)
+    );
     await saveMetadataKey(META_KEYS.cardSeries, state.cardSeries);
 }
 
@@ -776,6 +780,12 @@ async function payInvoice(event) {
     const button = elements.invoiceForm?.querySelector('button[type="submit"]');
     if (button) button.disabled = true;
     try {
+        const mappedRows = { ...state.cardSeries };
+        rows.forEach((row) => {
+            if (!row.series_id && row.id) mappedRows[`row:${row.id}`] = card.id;
+        });
+        state.cardSeries = Object.fromEntries(Object.entries(mappedRows).slice(-600));
+        await saveMetadataKey(META_KEYS.cardSeries, state.cardSeries);
         await updateTransactionRows(state.user.id, rows.map((row) => row.id), { status: "paid", payment_method: source });
         const payment = {
             id: crypto.randomUUID(),
@@ -783,10 +793,10 @@ async function payInvoice(event) {
             month,
             source,
             total,
-            rowIds: rows.map((row) => row.id),
+            rowCount: rows.length,
             paidAt: new Date().toISOString()
         };
-        state.invoicePayments = [payment, ...state.invoicePayments].slice(0, 120);
+        state.invoicePayments = [payment, ...state.invoicePayments].slice(0, 60);
         await saveMetadataKey(META_KEYS.invoicePayments, state.invoicePayments);
         elements.invoiceDialog?.close();
         showToast(`Fatura paga com ${source === "cash" ? "espécie" : "Pix"}.`);
@@ -957,7 +967,7 @@ async function trashTransaction(id) {
     }
     if (!row || !window.confirm(`Mover “${row.description}” para a lixeira?`)) return;
     const entry = { id: crypto.randomUUID(), kind: "transaction", row, deletedAt: new Date().toISOString() };
-    state.trash = [entry, ...state.trash].slice(0, 50);
+    state.trash = [entry, ...state.trash].slice(0, 20);
     await saveMetadataKey(META_KEYS.trash, state.trash);
     try {
         await deleteTransactionRow(state.user.id, id);
@@ -1414,3 +1424,4 @@ async function boot() {
 }
 
 boot();
+

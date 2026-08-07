@@ -2,7 +2,8 @@ export const TRANSFER_CATEGORY = "Transferência interna";
 export const LEGACY_TRANSFER_CATEGORY = "Transferência";
 
 export const POCKET_LABELS = Object.freeze({
-    pix: "Pix",
+    pix: "Inter",
+    bank_transfer: "Banco do Brasil",
     cash: "Espécie"
 });
 
@@ -135,3 +136,4 @@ export function collapseInternalTransfers(transactions) {
 
     return collapsed;
 }
+

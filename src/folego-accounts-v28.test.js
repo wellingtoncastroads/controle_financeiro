@@ -56,7 +56,7 @@ describe("contas financeiras V2.8", () => {
         const assignments = { "income-1": "pix", "expense-1": "bank_transfer" };
         expect(accountContext({ id: "income-1", type: "income", paymentMethod: "credit_card" }, assignments)).toBe("Entrou em Inter");
         expect(accountContext({ id: "expense-1", type: "expense", paymentMethod: "credit_card" }, assignments)).toBe("Saiu de Banco do Brasil");
-        expect(accountContext({ type: "transfer", transferFrom: "pix", transferTo: "cash" }, assignments)).toBe("Inter → Espécie");
+        expect(accountContext({ type: "transfer", transferFrom: "pix", transferTo: "cash" }, assignments)).toBe("Inter → Itaú");
     });
 
     it("filtra por conta e ignora transferências no ranking de despesas", () => {

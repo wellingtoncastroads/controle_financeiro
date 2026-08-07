@@ -105,28 +105,43 @@ function budgetToRow(userId, budget) {
 }
 
 export async function loadUserData(userId) {
-    const client = requireClient();
-    const [transactionsResult, goalsResult, profileResult, budgetsResult, contributionsResult] = await Promise.all([
-        client.from("transactions").select("*").eq("user_id", userId).order("occurred_on", { ascending: false }),
-        client.from("goals").select("*").eq("user_id", userId).order("created_at", { ascending: true }),
-        client.from("profiles").select("*").eq("id", userId).maybeSingle(),
-        client.from("category_budgets").select("*").eq("user_id", userId).order("month_start", { ascending: false }),
-        client.from("goal_contributions").select("*").eq("user_id", userId).order("contributed_on", { ascending: false })
-    ]);
+    const cacheKey = `folego-cloud-cache-v25-${userId}`;
+    try {
+        const client = requireClient();
+        const [transactionsResult, goalsResult, profileResult, budgetsResult, contributionsResult] = await Promise.all([
+            client.from("transactions").select("*").eq("user_id", userId).order("occurred_on", { ascending: false }),
+            client.from("goals").select("*").eq("user_id", userId).order("created_at", { ascending: true }),
+            client.from("profiles").select("*").eq("id", userId).maybeSingle(),
+            client.from("category_budgets").select("*").eq("user_id", userId).order("month_start", { ascending: false }),
+            client.from("goal_contributions").select("*").eq("user_id", userId).order("contributed_on", { ascending: false })
+        ]);
 
-    throwIfError(transactionsResult.error);
-    throwIfError(goalsResult.error);
-    throwIfError(profileResult.error);
-    throwIfError(budgetsResult.error);
-    throwIfError(contributionsResult.error);
+        throwIfError(transactionsResult.error);
+        throwIfError(goalsResult.error);
+        throwIfError(profileResult.error);
+        throwIfError(budgetsResult.error);
+        throwIfError(contributionsResult.error);
 
-    return {
-        transactions: transactionsResult.data.map(transactionFromRow),
-        goals: goalsResult.data.map(goalFromRow),
-        profile: profileResult.data,
-        budgets: budgetsResult.data.map(budgetFromRow),
-        contributions: contributionsResult.data.map(contributionFromRow)
-    };
+        const snapshot = {
+            transactions: transactionsResult.data.map(transactionFromRow),
+            goals: goalsResult.data.map(goalFromRow),
+            profile: profileResult.data,
+            budgets: budgetsResult.data.map(budgetFromRow),
+            contributions: contributionsResult.data.map(contributionFromRow)
+        };
+        if (typeof localStorage !== "undefined") localStorage.setItem(cacheKey, JSON.stringify(snapshot));
+        return snapshot;
+    } catch (error) {
+        if (typeof localStorage !== "undefined") {
+            try {
+                const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+                if (cached?.transactions && cached?.goals) return cached;
+            } catch (cacheError) {
+                console.warn("O cache offline do Fôlego ficou ilegível:", cacheError);
+            }
+        }
+        throw error;
+    }
 }
 
 export async function saveTransaction(userId, transaction) {
@@ -270,4 +285,5 @@ export async function deleteAccount() {
     const { error } = await requireClient().rpc("delete_my_account");
     throwIfError(error);
 }
+
 

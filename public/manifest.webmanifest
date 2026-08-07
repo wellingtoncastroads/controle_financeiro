@@ -1,18 +1,18 @@
 {
-  "name": "Fôlego — Livro-caixa pessoal",
+  "name": "Fôlego — Agenda financeira",
   "short_name": "Fôlego",
-  "description": "Controle financeiro pessoal, previsões e relatórios no seu ritmo.",
+  "description": "Veja entradas, saídas, contas e saldo projetado no calendário do seu mês.",
   "id": "/",
   "start_url": "/#dashboard",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#eeebe2",
-  "theme_color": "#11120e",
+  "background_color": "#f7f5ee",
+  "theme_color": "#1647d8",
   "lang": "pt-BR",
   "categories": ["finance", "productivity"],
   "icons": [{ "src": "/assets/folego-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }],
   "shortcuts": [
     { "name": "Registrar movimento", "short_name": "Registrar", "url": "/#transactions", "icons": [{ "src": "/assets/folego-mark.svg", "sizes": "any", "type": "image/svg+xml" }] },
-    { "name": "Abrir Raio-X", "short_name": "Raio-X", "url": "/#reports", "icons": [{ "src": "/assets/folego-mark.svg", "sizes": "any", "type": "image/svg+xml" }] }
+    { "name": "Abrir relatórios", "short_name": "Relatórios", "url": "/#reports", "icons": [{ "src": "/assets/folego-mark.svg", "sizes": "any", "type": "image/svg+xml" }] }
   ]
 }

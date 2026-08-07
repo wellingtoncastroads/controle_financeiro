@@ -13,10 +13,10 @@ describe("integração dos saldos iniciais V2.8.2", () => {
     });
 
     it("carrega a fotografia do usuário antes de calcular os saldos", () => {
-        const tool = read("tools/fix-account-snapshot-v282.mjs");
-        expect(tool).toContain("ensureAccountSnapshotV282");
-        expect(tool).toContain("state.snapshot = await ensureAccountSnapshotV282()");
-        expect(tool).toContain("state.assignments, state.snapshot");
+        const runtime = read("src/folego-accounts-runtime-v28.js");
+        expect(runtime).toContain("ensureAccountSnapshotV282");
+        expect(runtime).toContain("state.snapshot = await ensureAccountSnapshotV282()");
+        expect(runtime).toContain("state.assignments, state.snapshot");
     });
 
     it("mantém o histórico anterior fora dos saldos por conta", () => {
@@ -27,7 +27,8 @@ describe("integração dos saldos iniciais V2.8.2", () => {
 
     it("renova versão e cache", () => {
         const pkg = read("package.json");
-        expect(pkg).toContain('"version": "2.8.2"');
-        expect(pkg).toContain("node tools/fix-account-snapshot-v282.mjs");
+        expect(pkg).toContain('"version": "3.0.0"');
+        expect(pkg).toContain("node tools/verify-v3-source.mjs");
+        expect(read("public/sw.js")).toContain("folego-v3.0.0");
     });
 });

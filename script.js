@@ -44,6 +44,19 @@ import {
     toISODate
 } from "./src/domain.js";
 import { generateFinancialReportPdf } from "./src/report-pdf.js";
+import { renderAgendaV3 } from "./src/folego-agenda-v3.js";
+import { removeInternalTransferPair, saveInternalTransferPair } from "./src/folego-transfer-data-v27.js";
+import {
+    buildInternalTransfer,
+    collapseInternalTransfers,
+    excludeInternalTransfers,
+    getTransferPair,
+    isInternalTransfer,
+    POCKET_LABELS,
+    TRANSFER_CATEGORY
+} from "./src/folego-transfer-v27.js";
+
+/* FÔLEGO V2.7 / TRANSFERÊNCIA INTERNA */
 
 /* ================================================================
    FÔLEGO V2 — INTERFACE E ORQUESTRAÇÃO
@@ -51,20 +64,21 @@ import { generateFinancialReportPdf } from "./src/report-pdf.js";
 ================================================================ */
 
 const CATEGORY_DETAILS = {
-    "Salário": { icon: "briefcase", color: "#c8ff3d" },
-    "Freelance": { icon: "terminal", color: "#2456d8" },
-    "Vendas": { icon: "tag", color: "#ff4e1a" },
-    "Investimentos": { icon: "trend", color: "#164b3a" },
-    "Outras receitas": { icon: "spark", color: "#e2b93b" },
-    "Moradia": { icon: "home", color: "#c8ff3d" },
-    "Alimentação": { icon: "basket", color: "#ff4e1a" },
-    "Transporte": { icon: "car", color: "#2456d8" },
-    "Saúde": { icon: "heart", color: "#164b3a" },
-    "Educação": { icon: "book", color: "#e2b93b" },
-    "Lazer": { icon: "ticket", color: "#ff4e1a" },
-    "Assinaturas": { icon: "repeat", color: "#2456d8" },
-    "Contas": { icon: "receipt", color: "#164b3a" },
-    "Outras despesas": { icon: "box", color: "#747168" }
+    "Salário": { icon: "briefcase", color: "#62b995" },
+    "Freelance": { icon: "terminal", color: "#1647d8" },
+    "Vendas": { icon: "tag", color: "#62b995" },
+    "Investimentos": { icon: "trend", color: "#1647d8" },
+    "Outras receitas": { icon: "spark", color: "#c8d8f2" },
+    "Moradia": { icon: "home", color: "#e64a35" },
+    "Alimentação": { icon: "basket", color: "#f3a08d" },
+    "Transporte": { icon: "car", color: "#1647d8" },
+    "Saúde": { icon: "heart", color: "#62b995" },
+    "Educação": { icon: "book", color: "#c8d8f2" },
+    "Lazer": { icon: "ticket", color: "#e64a35" },
+    "Assinaturas": { icon: "repeat", color: "#1647d8" },
+    "Contas": { icon: "receipt", color: "#202124" },
+    "Outras despesas": { icon: "box", color: "#7b7e85" },
+    [TRANSFER_CATEGORY]: { icon: "repeat", color: "#1647d8" }
 };
 
 const ICON_DRAWINGS = {
@@ -94,7 +108,7 @@ function renderIcon(name, className = "folego-icon") {
     return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true">${drawing}</svg>`;
 }
 
-const SPECTRUM_COLORS = ["#c8ff3d", "#ff4e1a", "#2456d8", "#164b3a", "#e2b93b"];
+const SPECTRUM_COLORS = ["#1647d8", "#e64a35", "#62b995", "#c8d8f2", "#202124"];
 const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const compactCurrencyFormatter = new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -145,6 +159,8 @@ const elements = {
     greetingTitle: $("#greetingTitle"),
     bannerBalance: $("#bannerBalance"),
     currentBalance: $("#currentBalance"),
+    pixBalance: $("#pixBalance"),
+    cashBalance: $("#cashBalance"),
     balanceCaption: $("#balanceCaption"),
     monthlyIncome: $("#monthlyIncome"),
     monthlyExpense: $("#monthlyExpense"),
@@ -198,11 +214,23 @@ const elements = {
     reportResult: $("#reportResult"),
     reportIncomeCount: $("#reportIncomeCount"),
     reportExpenseCount: $("#reportExpenseCount"),
+    reportPixBalance: $("#reportPixBalance"),
+    reportCashBalance: $("#reportCashBalance"),
     categoryRanking: $("#categoryRanking"),
     descriptionRanking: $("#descriptionRanking"),
     methodRanking: $("#methodRanking"),
     newBudgetButton: $("#newBudgetButton"),
     budgetList: $("#budgetList"),
+
+    transferDialog: $("#transferDialog"),
+    transferForm: $("#transferForm"),
+    transferModalTitle: $("#transferModalTitle"),
+    transferSeriesId: $("#transferSeriesId"),
+    transferFrom: $("#transferFrom"),
+    transferTo: $("#transferTo"),
+    transferAmount: $("#transferAmount"),
+    transferDate: $("#transferDate"),
+    transferDescription: $("#transferDescription"),
 
     transactionDialog: $("#transactionDialog"),
     transactionForm: $("#transactionForm"),
@@ -360,16 +388,55 @@ function categoryDetails(category) {
 
 function totalByType(transactions, type) {
     return transactions
-        .filter((transaction) => transaction.type === type)
+        .filter((transaction) => transaction.type === type && !isInternalTransfer(transaction))
         .reduce((total, transaction) => total + Number(transaction.amount), 0);
 }
 
+/* FÔLEGO PIX/ESPÉCIE SPLIT */
+function moneyPocket(transaction) {
+    return transaction.paymentMethod === "cash" ? "cash" : "pix";
+}
+
+function getMoneyPocketBalances(transactions, throughDate = "9999-12-31") {
+    return transactions
+        .filter((transaction) => transaction.status === "paid" && transaction.date <= throughDate)
+        .reduce((balances, transaction) => {
+            const pocket = moneyPocket(transaction);
+            const amount = Number(transaction.amount) || 0;
+            balances[pocket] += transaction.type === "income" ? amount : -amount;
+            return balances;
+        }, { pix: 0, cash: 0 });
+}
+
+function rankPocketExpenses(transactions, range) {
+    const expenses = getPeriodTransactions(transactions, range)
+        .filter((transaction) => transaction.type === "expense" && !isInternalTransfer(transaction));
+    const grouped = expenses.reduce((result, transaction) => {
+        const pocket = moneyPocket(transaction);
+        result[pocket].amount += Number(transaction.amount) || 0;
+        result[pocket].count += 1;
+        return result;
+    }, { pix: { amount: 0, count: 0 }, cash: { amount: 0, count: 0 } });
+    const total = grouped.pix.amount + grouped.cash.amount;
+    return [
+        { label: "Pix", ...grouped.pix },
+        { label: "Espécie", ...grouped.cash }
+    ]
+        .filter((item) => item.amount > 0)
+        .map((item) => ({ ...item, share: total > 0 ? item.amount / total : 0 }))
+        .sort((a, b) => b.amount - a.amount);
+}
+
 function signedCurrency(transaction) {
+    if (transaction.type === "transfer") return `↔ ${formatCurrency(transaction.amount)}`;
     const signal = transaction.type === "income" ? "+" : "−";
     return `${signal} ${formatCurrency(transaction.amount)}`;
 }
 
 function transactionContext(transaction) {
+    if (transaction.type === "transfer") {
+        return `${POCKET_LABELS[transaction.transferFrom]} → ${POCKET_LABELS[transaction.transferTo]} • transferência interna`;
+    }
     const parts = [transaction.type === "income" ? "Receita" : "Despesa"];
     parts.push(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other);
     if (transaction.seriesKind === "installment" && transaction.installmentNumber && transaction.installmentTotal) {
@@ -553,7 +620,8 @@ async function activateSession(nextSession, { force = false } = {}) {
         setSyncState("ok");
 
         const initialView = window.location.hash.replace("#", "");
-        switchView(["dashboard", "transactions", "goals", "reports"].includes(initialView) ? initialView : "dashboard", false);
+        /* FÔLEGO PLANEJAMENTO MENSAL V2.4 */
+        switchView(["dashboard", "transactions", "goals", "reports", "planning"].includes(initialView) ? initialView : "dashboard", false);
         window.setTimeout(offerLegacyMigration, 180);
     } catch (error) {
         console.error("Falha ao carregar a conta:", error);
@@ -703,6 +771,7 @@ function renderSummary() {
     const previousConfirmed = confirmed.filter((transaction) => transaction.date.slice(0, 7) === previousMonth);
 
     const balanceToday = getBalanceAsOf(state.transactions, today);
+    const pocketBalances = getMoneyPocketBalances(state.transactions, today);
     const projectedBalance = totalByType(confirmed, "income") - totalByType(confirmed, "expense");
     const income = totalByType(currentConfirmed, "income");
     const expense = totalByType(currentConfirmed, "expense");
@@ -711,6 +780,10 @@ function renderSummary() {
 
     elements.currentBalance.textContent = formatCurrency(balanceToday);
     elements.currentBalance.classList.toggle("long-value", elements.currentBalance.textContent.length > 17);
+    elements.pixBalance.textContent = formatCurrency(pocketBalances.pix);
+    elements.cashBalance.textContent = formatCurrency(pocketBalances.cash);
+    elements.pixBalance.classList.toggle("negative", pocketBalances.pix < 0);
+    elements.cashBalance.classList.toggle("negative", pocketBalances.cash < 0);
     elements.bannerBalance.textContent = formatCurrency(projectedBalance);
     elements.monthlyIncome.textContent = formatCurrency(income);
     elements.monthlyExpense.textContent = formatCurrency(expense);
@@ -782,7 +855,7 @@ function renderCashFlowChart() {
 
 function renderExpenseSpectrum() {
     const paidExpenses = transactionsForMonth(state.settings.selectedMonth, { onlyConfirmed: true })
-        .filter((transaction) => transaction.type === "expense");
+        .filter((transaction) => transaction.type === "expense" && !isInternalTransfer(transaction));
     const grouped = paidExpenses.reduce((result, transaction) => {
         result[transaction.category] = (result[transaction.category] || 0) + Number(transaction.amount);
         return result;
@@ -829,25 +902,29 @@ function renderExpenseSpectrum() {
 }
 
 function renderRecentTransactions() {
-    const recent = [...state.transactions]
+    const recent = collapseInternalTransfers([...state.transactions])
         .sort((a, b) => String(b.createdAt || `${b.date}T00:00:00`).localeCompare(String(a.createdAt || `${a.date}T00:00:00`)))
         .slice(0, 5);
 
     if (!recent.length) {
         elements.recentTransactions.innerHTML = `
-            <div class="empty-state"><span class="empty-icon">${renderIcon("receipt")}</span><strong>Seu caixa começa vazio</strong><p>Registre sua primeira receita ou despesa. Nenhum exemplo foi misturado aos seus dados.</p></div>
+            <div class="empty-state"><span class="empty-icon">${renderIcon("receipt")}</span><strong>Seu caixa começa vazio</strong><p>Registre sua primeira receita, despesa ou transferência. Nenhum exemplo foi misturado aos seus dados.</p></div>
         `;
         return;
     }
 
     elements.recentTransactions.innerHTML = recent.map((transaction) => {
+        const transfer = transaction.type === "transfer";
         const details = categoryDetails(transaction.category);
-        const valueClass = transaction.type === "income" ? "income-value" : "expense-value";
+        const valueClass = transfer ? "transfer-value" : transaction.type === "income" ? "income-value" : "expense-value";
         const pendingText = transaction.status === "pending" ? " • pendente" : "";
+        const context = transfer
+            ? `${POCKET_LABELS[transaction.transferFrom]} → ${POCKET_LABELS[transaction.transferTo]}`
+            : `${transaction.category} • ${PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other}${pendingText}`;
         return `
-            <div class="recent-item">
+            <div class="recent-item ${transfer ? "transfer-item" : ""}">
                 <span class="transaction-icon">${renderIcon(details.icon)}</span>
-                <div class="transaction-main"><strong>${escapeHTML(transaction.description)}</strong><span>${escapeHTML(transaction.category)} • ${escapeHTML(PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other)}${pendingText}</span></div>
+                <div class="transaction-main"><strong>${escapeHTML(transaction.description)}</strong><span>${escapeHTML(context)}</span></div>
                 <span class="recent-date">${escapeHTML(formatDate(transaction.date, { day: "2-digit", month: "short" }))}</span>
                 <strong class="recent-value ${valueClass}">${escapeHTML(signedCurrency(transaction))}</strong>
             </div>
@@ -892,7 +969,7 @@ function renderHealth(income, expense) {
 
 function getFilteredTransactions() {
     const search = filters.search.trim().toLocaleLowerCase("pt-BR");
-    return state.transactions
+    return collapseInternalTransfers(state.transactions)
         .filter((transaction) => transaction.date.slice(0, 7) === state.settings.selectedMonth)
         .filter((transaction) => filters.type === "all" || transaction.type === filters.type)
         .filter((transaction) => filters.category === "all" || transaction.category === filters.category)
@@ -921,10 +998,14 @@ function renderTransactionTable() {
     } else {
         elements.transactionRows.innerHTML = transactions.map((transaction) => {
             const details = categoryDetails(transaction.category);
+            const transfer = transaction.type === "transfer";
             const isIncome = transaction.type === "income";
             const statusText = transaction.status === "paid" ? "Confirmado" : "Pendente";
+            const editAction = transfer ? "edit-transfer" : "edit-transaction";
+            const deleteAction = transfer ? "delete-transfer" : "delete-transaction";
+            const actionId = transfer ? transaction.seriesId : transaction.id;
             return `
-                <tr class="transaction-row">
+                <tr class="transaction-row ${transfer ? "transfer-row" : ""}">
                     <td class="movement-cell">
                         <div class="transaction-cell-main">
                             <span class="transaction-icon">${renderIcon(details.icon)}</span>
@@ -937,16 +1018,16 @@ function renderTransactionTable() {
                             </div>
                         </div>
                     </td>
-                    <td class="category-cell">${escapeHTML(transaction.category)}</td>
+                    <td class="category-cell">${transfer ? "Transferência interna" : escapeHTML(transaction.category)}</td>
                     <td class="date-cell">${escapeHTML(formatDate(transaction.date, { day: "2-digit", month: "short" }))}</td>
                     <td class="status-cell"><i class="status-pill ${transaction.status === "pending" ? "pending" : ""}">${statusText}</i></td>
-                    <td class="value-cell ${isIncome ? "income-value" : "expense-value"}"><strong>${escapeHTML(signedCurrency(transaction))}</strong></td>
+                    <td class="value-cell ${transfer ? "transfer-value" : isIncome ? "income-value" : "expense-value"}"><strong>${escapeHTML(signedCurrency(transaction))}</strong></td>
                     <td class="actions-cell">
                         <div class="row-actions">
-                            <button class="row-action" type="button" data-action="edit-transaction" data-id="${escapeHTML(transaction.id)}" aria-label="Editar ${escapeHTML(transaction.description)}" title="Editar">
+                            <button class="row-action" type="button" data-action="${editAction}" data-id="${escapeHTML(actionId)}" aria-label="Editar ${escapeHTML(transaction.description)}" title="Editar">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
                             </button>
-                            <button class="row-action delete" type="button" data-action="delete-transaction" data-id="${escapeHTML(transaction.id)}" aria-label="Excluir ${escapeHTML(transaction.description)}" title="Excluir">
+                            <button class="row-action delete" type="button" data-action="${deleteAction}" data-id="${escapeHTML(actionId)}" aria-label="Excluir ${escapeHTML(transaction.description)}" title="Excluir">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/></svg>
                             </button>
                         </div>
@@ -1066,8 +1147,9 @@ function formatReportPeriod(range, mode) {
 
 function getCurrentReport() {
     const range = getPeriodRange(reportState.mode, reportState.referenceDate);
-    const transactions = getPeriodTransactions(state.transactions, range)
+    const allTransactions = getPeriodTransactions(state.transactions, range)
         .sort((a, b) => b.date.localeCompare(a.date) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    const transactions = excludeInternalTransfers(allTransactions);
     const incomeTransactions = transactions.filter((transaction) => transaction.type === "income");
     const expenseTransactions = transactions.filter((transaction) => transaction.type === "expense");
     const income = totalByType(incomeTransactions, "income");
@@ -1082,9 +1164,10 @@ function getCurrentReport() {
         income,
         expense,
         result: income - expense,
+        pocketBalances: getMoneyPocketBalances(allTransactions, range.end),
         categoryRanking: rankExpenses(state.transactions, range, "category"),
         descriptionRanking: rankExpenses(state.transactions, range, "description"),
-        methodRanking: rankExpenses(state.transactions, range, "paymentMethod")
+        methodRanking: rankPocketExpenses(state.transactions, range)
     };
 }
 
@@ -1149,9 +1232,13 @@ function renderReports() {
     elements.reportResult.classList.toggle("negative", report.result < 0);
     elements.reportIncomeCount.textContent = `${report.incomeTransactions.length} ${report.incomeTransactions.length === 1 ? "registro" : "registros"}`;
     elements.reportExpenseCount.textContent = `${report.expenseTransactions.length} ${report.expenseTransactions.length === 1 ? "registro" : "registros"}`;
+    elements.reportPixBalance.textContent = formatCurrency(report.pocketBalances.pix);
+    elements.reportCashBalance.textContent = formatCurrency(report.pocketBalances.cash);
+    elements.reportPixBalance.classList.toggle("negative", report.pocketBalances.pix < 0);
+    elements.reportCashBalance.classList.toggle("negative", report.pocketBalances.cash < 0);
     renderRanking(elements.categoryRanking, report.categoryRanking, "Nenhuma despesa confirmada neste período.");
     renderRanking(elements.descriptionRanking, report.descriptionRanking, "Ainda não há saídas para ordenar.");
-    renderRanking(elements.methodRanking, report.methodRanking, "As formas de pagamento aparecerão aqui.");
+    renderRanking(elements.methodRanking, report.methodRanking, "A divisão entre Pix e espécie aparecerá aqui.");
     renderBudgets(reportState.referenceDate.slice(0, 7));
 }
 
@@ -1167,6 +1254,11 @@ function renderAll() {
     renderGoals();
     renderForecast();
     renderReports();
+    renderAgendaV3({
+        transactions: state.transactions,
+        selectedMonth: state.settings.selectedMonth,
+        profile: state.profile
+    });
 }
 
 /* ================================================================
@@ -1174,9 +1266,9 @@ function renderAll() {
 ================================================================ */
 
 function switchView(viewName, scroll = true) {
-    const validViews = ["dashboard", "transactions", "goals", "reports"];
+    const validViews = ["dashboard", "transactions", "goals", "reports", "planning"];
     const selectedView = validViews.includes(viewName) ? viewName : "dashboard";
-    const titles = { dashboard: "Pulso atual", transactions: "Extrato completo", goals: "Planos futuros", reports: "Raio-X financeiro" };
+    const titles = { dashboard: "Agenda financeira", transactions: "Movimentos", goals: "Objetivos", reports: "Relatórios", planning: "Planejamento" };
     document.querySelectorAll("[data-view-section]").forEach((section) => section.classList.toggle("active", section.dataset.viewSection === selectedView));
     document.querySelectorAll(".rail-link[data-view]").forEach((button) => {
         const active = button.dataset.view === selectedView;
@@ -1209,7 +1301,7 @@ function updateTransactionModeUI() {
     if (type === "income" && elements.transactionMode.value === "installment") elements.transactionMode.value = "single";
 
     const mode = elements.transactionMode.value;
-    elements.transactionMethodLabel.textContent = type === "income" ? "COMO O DINHEIRO ENTROU" : "COMO PAGOU";
+    elements.transactionMethodLabel.textContent = type === "income" ? "ONDE O DINHEIRO FICOU" : "DE ONDE O DINHEIRO SAIU";
     elements.transactionMode.disabled = editing;
     elements.recurringFields.hidden = editing || mode !== "recurring";
     elements.installmentFields.hidden = editing || mode !== "installment";
@@ -1232,7 +1324,7 @@ function openTransactionDialog(transactionId = null) {
     elements.transactionAmount.value = transaction?.amount || "";
     elements.transactionDate.value = transaction?.date || defaultDateForSelectedMonth();
     elements.transactionStatus.value = transaction?.status || "paid";
-    elements.transactionPaymentMethod.value = transaction?.paymentMethod || "other";
+    elements.transactionPaymentMethod.value = transaction?.paymentMethod === "cash" ? "cash" : "pix";
     elements.transactionMode.value = "single";
     elements.recurrenceFrequency.value = "monthly";
     elements.recurrenceCount.value = "12";
@@ -1300,6 +1392,67 @@ async function handleTransactionSubmit(event) {
         showToast(friendlyError(error), "error");
     } finally {
         setButtonBusy(elements.transactionForm, false);
+    }
+}
+
+function openTransferDialog(seriesId = null) {
+    const pair = seriesId ? getTransferPair(state.transactions, seriesId) : null;
+    elements.transferForm.reset();
+    elements.transferSeriesId.value = pair?.seriesId || "";
+    elements.transferModalTitle.textContent = pair?.complete ? "Editar transferência" : "Transferir dinheiro";
+    elements.transferFrom.value = pair?.outgoing?.paymentMethod || "pix";
+    elements.transferTo.value = pair?.incoming?.paymentMethod || "cash";
+    elements.transferAmount.value = pair?.outgoing?.amount || "";
+    elements.transferDate.value = pair?.outgoing?.date || defaultDateForSelectedMonth();
+    elements.transferDescription.value = pair?.outgoing?.description || "";
+    elements.transferDialog.showModal();
+    window.setTimeout(() => elements.transferAmount.focus(), 80);
+}
+
+function keepTransferPocketsDifferent(changed) {
+    if (elements.transferFrom.value !== elements.transferTo.value) return;
+    if (changed === "from") elements.transferTo.value = elements.transferFrom.value === "pix" ? "cash" : "pix";
+    else elements.transferFrom.value = elements.transferTo.value === "pix" ? "cash" : "pix";
+}
+
+async function handleTransferSubmit(event) {
+    event.preventDefault();
+    if (!session?.user) return;
+    const existingSeriesId = elements.transferSeriesId.value || null;
+    const existing = existingSeriesId ? getTransferPair(state.transactions, existingSeriesId) : null;
+    const pair = buildInternalTransfer({
+        seriesId: existingSeriesId,
+        outgoingId: existing?.outgoing?.id,
+        incomingId: existing?.incoming?.id,
+        description: elements.transferDescription.value,
+        amount: elements.transferAmount.value,
+        date: elements.transferDate.value,
+        from: elements.transferFrom.value,
+        to: elements.transferTo.value
+    });
+
+    if (!pair) {
+        showToast("Revise origem, destino, valor e data da transferência.", "warning");
+        return;
+    }
+
+    setButtonBusy(elements.transferForm, true, "TRANSFERINDO");
+    setSyncState("busy");
+    try {
+        const saved = await saveInternalTransferPair(session.user.id, pair);
+        state.transactions = [
+            ...state.transactions.filter((transaction) => transaction.seriesId !== pair.seriesId),
+            ...saved.map(normalizeTransaction).filter(Boolean)
+        ];
+        renderAll();
+        elements.transferDialog.close();
+        setSyncState("ok");
+        showToast(existingSeriesId ? "Transferência atualizada sem alterar o resultado." : "Transferência registrada sem contar como entrada ou saída.");
+    } catch (error) {
+        setSyncState("error");
+        showToast(friendlyError(error), "error");
+    } finally {
+        setButtonBusy(elements.transferForm, false);
     }
 }
 
@@ -1513,16 +1666,21 @@ async function handleDeleteAccount(event) {
 }
 
 function requestDeletion(kind, id) {
-    const item = kind === "transaction"
-        ? state.transactions.find((transaction) => transaction.id === id)
-        : kind === "goal"
-            ? state.goals.find((goal) => goal.id === id)
-            : state.budgets.find((budget) => budget.id === id);
+    const transferPair = kind === "transfer" ? getTransferPair(state.transactions, id) : null;
+    const item = kind === "transfer"
+        ? transferPair?.outgoing
+        : kind === "transaction"
+            ? state.transactions.find((transaction) => transaction.id === id)
+            : kind === "goal"
+                ? state.goals.find((goal) => goal.id === id)
+                : state.budgets.find((budget) => budget.id === id);
     if (!item) return;
-    const titles = { transaction: "Excluir movimentação?", goal: "Excluir plano?", budget: "Excluir limite?" };
-    const itemName = kind === "transaction" ? item.description : kind === "goal" ? item.name : item.category;
+    const titles = { transfer: "Excluir transferência?", transaction: "Excluir movimentação?", goal: "Excluir plano?", budget: "Excluir limite?" };
+    const itemName = kind === "transaction" || kind === "transfer" ? item.description : kind === "goal" ? item.name : item.category;
     elements.confirmTitle.textContent = titles[kind];
-    elements.confirmMessage.textContent = `“${itemName}” será removido do seu caixa sincronizado.`;
+    elements.confirmMessage.textContent = kind === "transfer"
+        ? `“${itemName}” será removida dos saldos Pix e espécie, sem alterar receitas ou despesas.`
+        : `“${itemName}” será removido do seu caixa sincronizado.`;
     pendingDeletion = { kind, id };
     elements.confirmDialog.showModal();
 }
@@ -1533,7 +1691,10 @@ async function confirmDeletion() {
     elements.confirmDeleteButton.disabled = true;
     setSyncState("busy");
     try {
-        if (deletion.kind === "transaction") {
+        if (deletion.kind === "transfer") {
+            await removeInternalTransferPair(session.user.id, deletion.id);
+            state.transactions = state.transactions.filter((item) => item.seriesId !== deletion.id);
+        } else if (deletion.kind === "transaction") {
             await removeTransaction(session.user.id, deletion.id);
             state.transactions = state.transactions.filter((item) => item.id !== deletion.id);
         } else if (deletion.kind === "goal") {
@@ -1548,7 +1709,7 @@ async function confirmDeletion() {
         elements.confirmDialog.close();
         renderAll();
         setSyncState("ok");
-        showToast(deletion.kind === "transaction" ? "Movimentação excluída." : deletion.kind === "goal" ? "Plano excluído." : "Limite excluído.");
+        showToast(deletion.kind === "transfer" ? "Transferência excluída dos dois saldos." : deletion.kind === "transaction" ? "Movimentação excluída." : deletion.kind === "goal" ? "Plano excluído." : "Limite excluído.");
     } catch (error) {
         setSyncState("error");
         showToast(friendlyError(error), "error");
@@ -1571,9 +1732,9 @@ function exportTransactionsToCsv() {
         ["Descrição", "Tipo", "Categoria", "Forma", "Data", "Status", "Série", "Valor"],
         ...transactions.map((transaction) => [
             transaction.description,
-            transaction.type === "income" ? "Receita" : "Despesa",
+            transaction.type === "transfer" ? "Transferência interna" : transaction.type === "income" ? "Receita" : "Despesa",
             transaction.category,
-            PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other,
+            transaction.type === "transfer" ? POCKET_LABELS[transaction.transferFrom] + " → " + POCKET_LABELS[transaction.transferTo] : PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? PAYMENT_METHOD_LABELS.other,
             transaction.date.split("-").reverse().join("/"),
             transaction.status === "paid" ? "Confirmada" : "Pendente",
             transaction.seriesKind === "installment"
@@ -1781,6 +1942,46 @@ document.querySelectorAll("[data-view]").forEach((button) => button.addEventList
 $(".rail-brand")?.addEventListener("click", (event) => { event.preventDefault(); switchView("dashboard"); });
 elements.themeToggle.addEventListener("click", toggleTheme);
 
+$("#agendaV3")?.addEventListener("click", (event) => {
+    const editButton = event.target.closest("[data-agenda-edit]");
+    if (editButton) {
+        openTransactionDialog(editButton.dataset.agendaEdit);
+        return;
+    }
+
+    const monthButton = event.target.closest("[data-agenda-month]");
+    if (monthButton) {
+        state.settings.selectedMonth = getMonthKeyFromOffset(
+            state.settings.selectedMonth,
+            Number(monthButton.dataset.agendaMonth) || 0
+        );
+        if (reportState.mode === "month") reportState.referenceDate = `${state.settings.selectedMonth}-01`;
+        renderAll();
+        return;
+    }
+
+    if (event.target.closest("[data-agenda-today]")) {
+        state.settings.selectedMonth = currentMonthKey();
+        if (reportState.mode === "month") reportState.referenceDate = `${state.settings.selectedMonth}-01`;
+        renderAll();
+        return;
+    }
+
+    const viewButton = event.target.closest("[data-agenda-view]");
+    if (viewButton) switchView(viewButton.dataset.agendaView);
+    if (event.target.closest("#agendaV3NewTransaction")) openTransactionDialog();
+});
+
+$("[data-agenda-accounts]")?.addEventListener("click", () => {
+    switchView("dashboard");
+    window.requestAnimationFrame(() => {
+        $("#agendaV3Accounts")?.scrollIntoView({
+            behavior: prefersReducedMotion() ? "auto" : "smooth",
+            block: "center"
+        });
+    });
+});
+
 elements.monthFilter.addEventListener("change", () => {
     if (!isValidMonth(elements.monthFilter.value)) return;
     state.settings.selectedMonth = elements.monthFilter.value;
@@ -1790,8 +1991,13 @@ elements.monthFilter.addEventListener("change", () => {
 
 [$("#topbarNewTransaction"), $("#bannerNewTransaction"), $("#pageNewTransaction")]
     .forEach((button) => button?.addEventListener("click", () => openTransactionDialog()));
+[$("#bannerNewTransfer"), $("#pageNewTransfer")]
+    .forEach((button) => button?.addEventListener("click", () => openTransferDialog()));
 $("#newGoalButton")?.addEventListener("click", () => openGoalDialog());
 elements.transactionForm.addEventListener("submit", handleTransactionSubmit);
+elements.transferForm.addEventListener("submit", handleTransferSubmit);
+elements.transferFrom.addEventListener("change", () => keepTransferPocketsDifferent("from"));
+elements.transferTo.addEventListener("change", () => keepTransferPocketsDifferent("to"));
 elements.goalForm.addEventListener("submit", handleGoalSubmit);
 elements.contributionForm.addEventListener("submit", handleContributionSubmit);
 elements.budgetForm.addEventListener("submit", handleBudgetSubmit);
@@ -1813,6 +2019,8 @@ elements.transactionRows.addEventListener("click", (event) => {
     if (!button) return;
     if (button.dataset.action === "edit-transaction") openTransactionDialog(button.dataset.id);
     if (button.dataset.action === "delete-transaction") requestDeletion("transaction", button.dataset.id);
+    if (button.dataset.action === "edit-transfer") openTransferDialog(button.dataset.id);
+    if (button.dataset.action === "delete-transfer") requestDeletion("transfer", button.dataset.id);
 });
 
 elements.goalsGrid.addEventListener("click", (event) => {
@@ -1854,6 +2062,7 @@ document.querySelectorAll("[data-close-dialog]").forEach((button) => {
 
 [
     elements.transactionDialog,
+    elements.transferDialog,
     elements.goalDialog,
     elements.contributionDialog,
     elements.budgetDialog,

@@ -33,7 +33,7 @@ function monthEnd(monthKey) {
 }
 
 function summarize(rows, monthKey) {
-    const confirmed = rows.filter((row) => row.status === "paid");
+    const confirmed = rows.filter((row) => row.status === "paid" && row.category !== "Transferência");
     const income = confirmed
         .filter((row) => row.type === "income")
         .reduce((sum, row) => sum + Number(row.amount || 0), 0);
@@ -58,7 +58,7 @@ async function loadMonthlyHistory() {
 
     const { data, error } = await supabase
         .from("transactions")
-        .select("amount,type,status,occurred_on")
+        .select("amount,type,status,occurred_on,category")
         .eq("user_id", user.id)
         .order("occurred_on", { ascending: false });
 
@@ -120,3 +120,4 @@ supabase?.auth.onAuthStateChange((_event, session) => {
 
 window.addEventListener("folego:data-changed", loadMonthlyHistory);
 window.setTimeout(loadMonthlyHistory, 700);
+
