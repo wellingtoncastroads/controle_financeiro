@@ -171,10 +171,14 @@ stampVersion();
 const finalDomain = read("src/domain.js");
 const finalTransfer = read("src/folego-transfer-v27.js");
 const finalScript = read("script.js");
+const finalMonthlyHistory = read("src/monthly-history.js");
+const finalDailyReport = read("src/daily-report-movements.js");
 if (!finalDomain.includes("seriesId,")) throw new Error("O vínculo da transferência ainda pode ser descartado.");
 if (!finalDomain.includes("isNeutralTransferTransaction")) throw new Error("Os cálculos financeiros ainda não reconhecem transferências neutras.");
 if (!finalTransfer.includes("TRANSFER_CATEGORIES")) throw new Error("A identificação por categoria não foi aplicada.");
 if (!finalScript.includes("transaction.type === type && !isInternalTransfer(transaction)")) throw new Error("Entrou e Saiu ainda podem somar transferências.");
+if (!finalMonthlyHistory.includes("summarizeFinancialMovements(rows)")) throw new Error("O histórico mensal ainda pode somar transferências.");
+if (!finalDailyReport.includes("summarizeFinancialMovements(rows)")) throw new Error("O relatório diário ainda pode somar transferências.");
 if (!read("public/sw.js").includes(`folego-v${VERSION}`)) throw new Error("O cache da V2.7.3 não foi renovado.");
 
 console.log("Fôlego V2.7.3 aplicado: transferências excluídas de Entrou, Saiu, rankings, projeções e autonomia.");

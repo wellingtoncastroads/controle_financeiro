@@ -80,6 +80,16 @@ function patchTransferDomains() {
         `const labels = { pix: "Inter", bank_transfer: "Banco do Brasil", itau: "Itaú", cash: "Espécie" };`
     );
     write(legacyFile, legacy);
+
+    const mainDomainFile = "src/domain.js";
+    let mainDomain = read(mainDomainFile);
+    if (!mainDomain.includes('{ value: "itau", label: "Itaú" }')) {
+        mainDomain = mainDomain.replace(
+            '    { value: "bank_transfer", label: "Transferência bancária" },',
+            '    { value: "bank_transfer", label: "Transferência bancária" },\n    { value: "itau", label: "Itaú" },'
+        );
+    }
+    write(mainDomainFile, mainDomain);
 }
 
 function patchLayout() {
@@ -160,6 +170,7 @@ function validate() {
     const domain = read("src/folego-accounts-v28.js");
     const runtime = read(RUNTIME);
     const transfer = read("src/folego-transfer-v27.js");
+    const mainDomain = read("src/domain.js");
     const migration = read("src/folego-accounts-migration-v28.js");
     const optionCount = runtime.match(/<option value="itau">Itaú<\/option>/g)?.length || 0;
 
@@ -175,6 +186,9 @@ function validate() {
     }
     if (!transfer.includes('itau: "Itaú"')) {
         throw new Error("O Itaú não entrou nas transferências internas.");
+    }
+    if (!mainDomain.includes('{ value: "itau", label: "Itaú" }')) {
+        throw new Error("O normalizador principal não reconhece movimentações do Itaú.");
     }
     if (migration.includes('.from("transactions")') || migration.includes("payment_method:")) {
         throw new Error("A inclusão do Itaú não pode migrar dados do Supabase.");

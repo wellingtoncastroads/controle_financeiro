@@ -159,7 +159,7 @@ export function suggestCategory(description, rules = []) {
 }
 
 export function isTransfer(row) {
-    return String(row?.category || "") === TRANSFER_CATEGORY;
+    return [TRANSFER_CATEGORY, "Transferência interna"].includes(String(row?.category || ""));
 }
 
 export function signedValue(row) {

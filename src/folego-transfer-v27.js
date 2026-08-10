@@ -12,6 +12,27 @@ const VALID_POCKETS = new Set(Object.keys(POCKET_LABELS));
 const TRANSFER_CATEGORIES = new Set([TRANSFER_CATEGORY, LEGACY_TRANSFER_CATEGORY]);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function paymentMethodOf(transaction) {
+    return transaction?.paymentMethod ?? transaction?.payment_method ?? null;
+}
+
+function seriesIdOf(transaction) {
+    return transaction?.seriesId ?? transaction?.series_id ?? null;
+}
+
+function createdAtOf(transaction) {
+    return transaction?.createdAt ?? transaction?.created_at ?? null;
+}
+
+function currencyRound(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+}
+
+function amountOf(transaction) {
+    const amount = Number(transaction?.amount);
+    return Number.isFinite(amount) ? amount : 0;
+}
+
 function cleanDescription(value, from, to) {
     const normalized = String(value || "").trim().replace(/\s+/g, " ").slice(0, 80);
     return normalized || `Transferência ${POCKET_LABELS[from]} → ${POCKET_LABELS[to]}`;
@@ -24,15 +45,15 @@ function cleanAmount(value) {
 }
 
 function hasValidSeriesId(transaction) {
-    return typeof transaction?.seriesId === "string" && UUID_PATTERN.test(transaction.seriesId);
+    const seriesId = seriesIdOf(transaction);
+    return typeof seriesId === "string" && UUID_PATTERN.test(seriesId);
 }
 
 export function isInternalTransfer(transaction) {
     return Boolean(
         transaction
         && TRANSFER_CATEGORIES.has(String(transaction.category || ""))
-        && VALID_POCKETS.has(transaction.paymentMethod)
-        && ["income", "expense"].includes(transaction.type)
+        && ["income", "expense", "transfer"].includes(transaction.type)
     );
 }
 
@@ -45,7 +66,7 @@ export function getTransferPair(transactions, seriesId) {
         return { seriesId: null, outgoing: null, incoming: null, complete: false, ids: [] };
     }
     const legs = (Array.isArray(transactions) ? transactions : [])
-        .filter((transaction) => isInternalTransfer(transaction) && transaction.seriesId === seriesId);
+        .filter((transaction) => isInternalTransfer(transaction) && seriesIdOf(transaction) === seriesId);
     const outgoing = legs.find((transaction) => transaction.type === "expense") || null;
     const incoming = legs.find((transaction) => transaction.type === "income") || null;
     return {
@@ -109,31 +130,54 @@ export function collapseInternalTransfers(transactions) {
     const collapsed = [];
 
     source.forEach((transaction) => {
+        const seriesId = seriesIdOf(transaction);
         if (!isInternalTransfer(transaction) || !hasValidSeriesId(transaction)) {
             collapsed.push(transaction);
             return;
         }
-        if (seen.has(transaction.seriesId)) return;
-        seen.add(transaction.seriesId);
+        if (seen.has(seriesId)) return;
+        seen.add(seriesId);
 
-        const pair = getTransferPair(source, transaction.seriesId);
+        const pair = getTransferPair(source, seriesId);
         if (!pair.complete) {
-            collapsed.push(...source.filter((item) => item.seriesId === transaction.seriesId));
+            collapsed.push(...source.filter((item) => seriesIdOf(item) === seriesId));
             return;
         }
 
-        const createdAt = [pair.outgoing.createdAt, pair.incoming.createdAt].filter(Boolean).sort().at(-1) || null;
+        const createdAt = [createdAtOf(pair.outgoing), createdAtOf(pair.incoming)].filter(Boolean).sort().at(-1) || null;
         collapsed.push({
             ...pair.outgoing,
             id: pair.outgoing.id || pair.incoming.id,
             type: "transfer",
             amount: Number(pair.outgoing.amount),
-            transferFrom: pair.outgoing.paymentMethod,
-            transferTo: pair.incoming.paymentMethod,
+            seriesId,
+            transferFrom: paymentMethodOf(pair.outgoing),
+            transferTo: paymentMethodOf(pair.incoming),
             transferIds: pair.ids,
             createdAt
         });
     });
 
     return collapsed;
+}
+
+export function summarizeFinancialMovements(transactions) {
+    const confirmed = (Array.isArray(transactions) ? transactions : [])
+        .filter((transaction) => transaction?.status === "paid");
+    const financial = excludeInternalTransfers(confirmed);
+    const income = currencyRound(financial
+        .filter((transaction) => transaction.type === "income")
+        .reduce((sum, transaction) => sum + amountOf(transaction), 0));
+    const expense = currencyRound(financial
+        .filter((transaction) => transaction.type === "expense")
+        .reduce((sum, transaction) => sum + amountOf(transaction), 0));
+    const transfers = collapseInternalTransfers(confirmed.filter(isInternalTransfer));
+
+    return {
+        income,
+        expense,
+        result: currencyRound(income - expense),
+        count: financial.length,
+        transferCount: transfers.length
+    };
 }

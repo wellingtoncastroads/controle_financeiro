@@ -1,15 +1,19 @@
 import { supabase } from "./supabase-client.js";
+import {
+    collapseInternalTransfers,
+    isInternalTransfer,
+    POCKET_LABELS,
+    summarizeFinancialMovements
+} from "./folego-transfer-v27.js";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
 
 const methodLabels = {
-    pix: "Pix",
-    cash: "Espécie",
+    ...POCKET_LABELS,
     debit_card: "Cartão de débito",
     credit_card: "Cartão de crédito",
-    bank_transfer: "Transferência",
     boleto: "Boleto",
     other: "Não informado"
 };
@@ -44,8 +48,49 @@ function formatDate(value, formatter = dateFormatter) {
     return formatter.format(new Date(`${value}T12:00:00`)).replaceAll(" de ", " ");
 }
 
+function paymentMethodOf(row) {
+    return row.paymentMethod ?? row.payment_method ?? "other";
+}
+
+function seriesKindOf(row) {
+    return row.seriesKind ?? row.series_kind ?? null;
+}
+
+function installmentNumberOf(row) {
+    return row.installmentNumber ?? row.installment_number ?? null;
+}
+
+function installmentTotalOf(row) {
+    return row.installmentTotal ?? row.installment_total ?? null;
+}
+
+function occurredOnOf(row) {
+    return row.date ?? row.occurred_on;
+}
+
+function movementType(row) {
+    return isInternalTransfer(row) ? "transfer" : row.type;
+}
+
 function signedValue(row) {
-    return `${row.type === "income" ? "+" : "−"} ${currency.format(Number(row.amount) || 0)}`;
+    const type = movementType(row);
+    if (type === "transfer") return `↔ ${currency.format(Number(row.amount) || 0)}`;
+    return `${type === "income" ? "+" : "−"} ${currency.format(Number(row.amount) || 0)}`;
+}
+
+function movementDetails(row) {
+    if (movementType(row) === "transfer") {
+        const from = methodLabels[row.transferFrom] || methodLabels[paymentMethodOf(row)] || methodLabels.other;
+        const to = methodLabels[row.transferTo];
+        return to ? `Transferência entre contas • ${from} → ${to}` : `Transferência entre contas • ${from}`;
+    }
+
+    const installmentNumber = installmentNumberOf(row);
+    const installmentTotal = installmentTotalOf(row);
+    const installment = seriesKindOf(row) === "installment" && installmentNumber && installmentTotal
+        ? ` • parcela ${installmentNumber}/${installmentTotal}`
+        : "";
+    return `${row.category} • ${methodLabels[paymentMethodOf(row)] || methodLabels.other}${installment}`;
 }
 
 function setVisible(visible) {
@@ -65,18 +110,16 @@ function renderEmpty(date) {
 function renderRows(rows) {
     elements.list.innerHTML = rows.map((row, index) => {
         const pending = row.status !== "paid";
-        const installment = row.series_kind === "installment" && row.installment_number && row.installment_total
-            ? ` • parcela ${row.installment_number}/${row.installment_total}`
-            : "";
+        const type = movementType(row);
         return `
-            <article class="daily-movement-item ${row.type} ${pending ? "pending" : ""}">
+            <article class="daily-movement-item ${type} ${pending ? "pending" : ""}">
                 <span class="daily-movement-index">${String(index + 1).padStart(2, "0")}</span>
                 <div class="daily-movement-copy">
                     <strong>${escapeHTML(row.description)}</strong>
-                    <small>${escapeHTML(row.category)} • ${escapeHTML(methodLabels[row.payment_method] || methodLabels.other)}${escapeHTML(installment)}</small>
+                    <small>${escapeHTML(movementDetails(row))}</small>
                 </div>
                 <div class="daily-movement-status">
-                    <span>${escapeHTML(formatDate(row.occurred_on, shortDateFormatter).toUpperCase())}</span>
+                    <span>${escapeHTML(formatDate(occurredOnOf(row), shortDateFormatter).toUpperCase())}</span>
                     <small>${pending ? "PENDENTE" : "CONFIRMADO"}</small>
                 </div>
                 <strong class="daily-movement-value">${escapeHTML(signedValue(row))}</strong>
@@ -108,7 +151,7 @@ async function loadDay() {
 
     const { data, error } = await supabase
         .from("transactions")
-        .select("id,description,amount,type,category,occurred_on,status,payment_method,series_kind,installment_number,installment_total,created_at")
+        .select("id,description,amount,type,category,occurred_on,status,payment_method,series_id,series_kind,installment_number,installment_total,created_at")
         .eq("user_id", user.id)
         .eq("occurred_on", selectedDate)
         .order("created_at", { ascending: false });
@@ -120,19 +163,17 @@ async function loadDay() {
     }
 
     const rows = data || [];
-    const confirmed = rows.filter((row) => row.status === "paid");
-    const income = confirmed.filter((row) => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const expense = confirmed.filter((row) => row.type === "expense").reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const result = income - expense;
+    const displayRows = collapseInternalTransfers(rows);
+    const { income, expense, result } = summarizeFinancialMovements(rows);
 
-    elements.count.textContent = `${rows.length} ${rows.length === 1 ? "movimento" : "movimentos"}`;
+    elements.count.textContent = `${displayRows.length} ${displayRows.length === 1 ? "movimento" : "movimentos"}`;
     elements.income.textContent = currency.format(income);
     elements.expense.textContent = currency.format(expense);
     elements.result.textContent = currency.format(result);
     elements.result.classList.toggle("negative", result < 0);
 
-    if (!rows.length) renderEmpty(selectedDate);
-    else renderRows(rows);
+    if (!displayRows.length) renderEmpty(selectedDate);
+    else renderRows(displayRows);
 }
 
 function scheduleLoad() {

@@ -89,6 +89,7 @@
 .daily-movement-item:last-child { border-bottom: 0; }
 .daily-movement-item:hover { background: color-mix(in srgb, var(--acid) 10%, transparent); }
 .daily-movement-item.pending { opacity: .68; }
+.daily-movement-item.transfer { background: color-mix(in srgb, var(--blue) 7%, var(--paper-light)); }
 
 .daily-movement-index {
     display: grid;
@@ -122,6 +123,11 @@
 .daily-movement-value { text-align: right; font-size: 1.05rem; }
 .daily-movement-item.income .daily-movement-value { color: var(--green-dark); }
 .daily-movement-item.expense .daily-movement-value { color: var(--orange); }
+.daily-movement-item.transfer .daily-movement-index {
+    background: var(--acid);
+    color: #11120e;
+}
+.daily-movement-item.transfer .daily-movement-value { color: var(--blue); }
 
 .daily-movements-empty {
     padding: 42px 24px;

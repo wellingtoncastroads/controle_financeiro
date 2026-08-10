@@ -1,7 +1,13 @@
 import { supabase } from "./supabase-client.js";
+import { summarizeFinancialMovements } from "./folego-transfer-v27.js";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const currentMonth = new Date().toISOString().slice(0, 7);
+
+function localMonthKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+const currentMonth = localMonthKey();
 
 const elements = {
     list: document.querySelector("#monthlyHistoryList"),
@@ -33,21 +39,19 @@ function monthEnd(monthKey) {
 }
 
 function summarize(rows, monthKey) {
-    const confirmed = rows.filter((row) => row.status === "paid");
-    const income = confirmed
-        .filter((row) => row.type === "income")
-        .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const expense = confirmed
-        .filter((row) => row.type === "expense")
-        .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const summary = summarizeFinancialMovements(rows);
     return {
         month: monthKey,
-        income,
-        expense,
-        result: income - expense,
-        count: confirmed.length,
+        ...summary,
         closed: monthKey < currentMonth
     };
+}
+
+function summaryCountLabel(item) {
+    const records = `${item.count} ${item.count === 1 ? "registro confirmado" : "registros confirmados"}`;
+    if (!item.transferCount) return records;
+    const transfers = `${item.transferCount} ${item.transferCount === 1 ? "transferência interna" : "transferências internas"}`;
+    return `${records} • ${transfers}`;
 }
 
 async function loadMonthlyHistory() {
@@ -58,7 +62,7 @@ async function loadMonthlyHistory() {
 
     const { data, error } = await supabase
         .from("transactions")
-        .select("amount,type,status,occurred_on")
+        .select("amount,type,status,category,payment_method,series_id,occurred_on")
         .eq("user_id", user.id)
         .order("occurred_on", { ascending: false });
 
@@ -85,7 +89,7 @@ async function loadMonthlyHistory() {
             <span class="monthly-history-index">${String(index + 1).padStart(2, "0")}</span>
             <div class="monthly-history-copy">
                 <strong>${escapeHTML(monthLabel(item.month))}</strong>
-                <small>${item.count} ${item.count === 1 ? "registro confirmado" : "registros confirmados"}</small>
+                <small>${escapeHTML(summaryCountLabel(item))}</small>
             </div>
             <div class="monthly-history-stat"><strong>${escapeHTML(currency.format(item.income))}</strong><span>Entrou</span></div>
             <div class="monthly-history-stat"><strong>${escapeHTML(currency.format(item.expense))}</strong><span>Saiu</span></div>

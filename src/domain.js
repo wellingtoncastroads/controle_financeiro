@@ -10,6 +10,7 @@ export const PAYMENT_METHODS = [
     { value: "debit_card", label: "Cartão de débito" },
     { value: "credit_card", label: "Cartão de crédito" },
     { value: "bank_transfer", label: "Transferência bancária" },
+    { value: "itau", label: "Itaú" },
     { value: "boleto", label: "Boleto" },
     { value: "other", label: "Não informado" }
 ];
@@ -26,6 +27,11 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH_PATTERN = /^\d{4}-\d{2}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_AMOUNT = 999999999999.99;
+const NEUTRAL_TRANSFER_CATEGORIES = new Set(["Transferência interna", "Transferência"]);
+
+function isNeutralTransferTransaction(transaction) {
+    return NEUTRAL_TRANSFER_CATEGORIES.has(String(transaction?.category || ""));
+}
 
 export function toISODate(date = new Date()) {
     const year = date.getFullYear();
@@ -135,7 +141,7 @@ export function normalizeTransaction(value) {
         date,
         status: value.status,
         paymentMethod,
-        seriesId: seriesKind ? seriesId : null,
+        seriesId,
         seriesKind,
         installmentNumber,
         installmentTotal,
@@ -302,7 +308,11 @@ export function sanitizeCsvCell(value) {
 
 export function getBalanceAsOf(transactions, isoDate = toISODate()) {
     return transactions
-        .filter((transaction) => transaction.status === "paid" && transaction.date <= isoDate)
+        .filter((transaction) => (
+            transaction.status === "paid"
+            && transaction.date <= isoDate
+            && !isNeutralTransferTransaction(transaction)
+        ))
         .reduce((total, transaction) => (
             total + (transaction.type === "income" ? Number(transaction.amount) : -Number(transaction.amount))
         ), 0);
@@ -336,7 +346,7 @@ export function getPeriodTransactions(transactions, range, { paidOnly = true } =
 export function rankExpenses(transactions, range, groupBy = "category") {
     const totals = new Map();
     const expenses = getPeriodTransactions(transactions, range)
-        .filter((transaction) => transaction.type === "expense");
+        .filter((transaction) => transaction.type === "expense" && !isNeutralTransferTransaction(transaction));
 
     expenses.forEach((transaction) => {
         const key = groupBy === "description"
@@ -365,7 +375,8 @@ export function getBalanceProjection(transactions, horizonDays, isoDate = toISOD
     const balanceToday = getBalanceAsOf(transactions, isoDate);
     const scheduledChange = transactions
         .filter((transaction) => (
-            transaction.date <= endDate
+            !isNeutralTransferTransaction(transaction)
+            && transaction.date <= endDate
             && (
                 (transaction.status === "paid" && transaction.date > isoDate)
                 || transaction.status === "pending"
@@ -390,6 +401,7 @@ export function getBreathingDays(transactions, isoDate = toISODate(), lookbackDa
     const expenses = transactions
         .filter((transaction) => (
             transaction.type === "expense"
+            && !isNeutralTransferTransaction(transaction)
             && transaction.status === "paid"
             && transaction.date >= startDate
             && transaction.date <= isoDate
