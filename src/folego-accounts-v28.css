@@ -80,6 +80,10 @@
     background: var(--accounts-ink);
 }
 
+.account-card-v28[data-account-method="itau"]::before {
+    background: #082b5c;
+}
+
 .account-card-v28[data-account-method="cash"]::before {
     background: var(--accounts-acid);
 }
@@ -265,7 +269,7 @@
 }
 
 .report-accounts-v28 {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 }
 
 html[data-theme="dark"] .accounts-overview-v28 {
@@ -287,7 +291,7 @@ html[data-theme="dark"] .account-card-v28[data-account-method="bank_transfer"]::
 
 @media (min-width: 1040px) {
     .accounts-list-v28 {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .account-card-v28 {

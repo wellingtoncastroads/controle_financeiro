@@ -82,7 +82,7 @@ function ensureOverview() {
     overview.className = "accounts-overview-v28";
     overview.setAttribute("aria-label", "Onde o dinheiro está");
     overview.innerHTML = `
-        <header class="accounts-overview-head"><span>ONDE O DINHEIRO ESTÁ</span><b>03 CONTAS</b></header>
+        <header class="accounts-overview-head"><span>ONDE O DINHEIRO ESTÁ</span><b>04 CONTAS</b></header>
         <div class="accounts-list-v28" id="accountsListV28"></div>
         <footer class="accounts-total-v28"><span>SALDO TOTAL DISPONÍVEL</span><strong id="accountsTotalV28">R$ 0,00</strong></footer>
     `;
@@ -143,6 +143,7 @@ function ensureAccountFilter() {
             <option value="all">Todas as contas</option>
             <option value="pix">Inter</option>
             <option value="bank_transfer">Banco do Brasil</option>
+            <option value="itau">Itaú</option>
             <option value="cash">Espécie</option>
         </select>
     `;
@@ -267,6 +268,7 @@ function replaceOptions(select, selectedValue) {
     select.innerHTML = `
         <option value="pix">Inter</option>
         <option value="bank_transfer">Banco do Brasil</option>
+        <option value="itau">Itaú</option>
         <option value="cash">Espécie</option>
     `;
     select.value = safeValue;

@@ -1,5 +1,5 @@
-const CACHE_NAME = "folego-v2.1.1";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/assets/folego-mark.svg"];
+const CACHE_NAME = "folego-v2.8.3";
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/assets/folego-mark.svg", "/banks/itau.svg"];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
