@@ -26,15 +26,24 @@ describe("Fôlego V2.8.4", () => {
         expect(index).not.toContain('id="creditCardDialog"');
     });
 
-    it("usa a paleta, tipografia financeira e grade compacta das contas", () => {
+    it("preserva a identidade original e aplica somente a estrutura compacta", () => {
         const index = read("index.html");
         const css = read("src/folego-v284.css");
+        const identity = read("style.css");
         const runtime = read("src/folego-accounts-runtime-v28.js");
 
         expect(index).toContain('<link rel="stylesheet" href="/src/folego-v284.css">');
-        expect(css).toContain("--blue: #1647d8");
-        expect(css).toContain("--orange: #e64a35");
-        expect(css).toContain("--green: #2f8b6c");
+        expect(index).toContain('<meta name="theme-color" content="#eeebe2">');
+        expect(identity).toContain("--paper: #eeebe2");
+        expect(identity).toContain("--ink: #11120e");
+        expect(identity).toContain("--acid: #c8ff3d");
+        expect(identity).toContain("--orange: #ff4e1a");
+        expect(identity).toContain('font-family: Georgia, "Times New Roman", serif');
+        expect(identity).toContain("font-family: ui-monospace");
+        expect(css).not.toMatch(/:root\s*\{/);
+        expect(css).not.toContain("--font-display");
+        expect(css).not.toContain("#1647d8");
+        expect(css).not.toContain("#e64a35");
         expect(css).toContain("grid-template-columns: repeat(5, minmax(0, 1fr))");
         expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
         expect(runtime).toContain("V2.8.4: as contas formam uma faixa própria");

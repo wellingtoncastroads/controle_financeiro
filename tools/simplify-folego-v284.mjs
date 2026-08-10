@@ -102,7 +102,10 @@ function patchIndex() {
     );
     source = source.replaceAll("F / ROTA PROVÁVEL", "F / PROJEÇÃO DE CAIXA");
     source = source.replace(/\s*<option value="credit_card">[^<]*<\/option>/g, "");
-    source = source.replace('<meta name="theme-color" content="#eeebe2">', '<meta name="theme-color" content="#f7f5ee">');
+    source = source.replace(
+        /<meta name="theme-color" content="#[0-9a-fA-F]{6}">/,
+        '<meta name="theme-color" content="#eeebe2">'
+    );
     source = source.replace(
         '<div class="daily-movements-summary" aria-label="Resumo confirmado do dia">',
         '<div class="daily-movements-summary" role="group" aria-label="Resumo confirmado do dia">'
@@ -142,8 +145,8 @@ function patchNavigation() {
             'const titles = { dashboard: "Pulso atual", transactions: "Extrato completo", goals: "Planos futuros", reports: "Raio-X financeiro" };'
         )
         .replace(
-            'const SPECTRUM_COLORS = ["#c8ff3d", "#ff4e1a", "#2456d8", "#164b3a", "#e2b93b"];',
-            'const SPECTRUM_COLORS = ["#62b995", "#e64a35", "#1647d8", "#c8d8f2", "#7c8079"];'
+            /const SPECTRUM_COLORS = \[[^\]]+\];/,
+            'const SPECTRUM_COLORS = ["#c8ff3d", "#ff4e1a", "#2456d8", "#164b3a", "#e2b93b"];'
         );
     write(file, source);
 }
@@ -205,7 +208,7 @@ function validate() {
     forbidden.forEach((marker) => {
         if (index.includes(marker)) throw new Error(`Interface removida ainda presente: ${marker}`);
     });
-    if (!index.includes(STYLE)) throw new Error("Identidade visual V2.8.4 ausente.");
+    if (!index.includes(STYLE)) throw new Error("Folha estrutural V2.8.4 ausente.");
     if (!index.includes('data-view="archive"') || !index.includes("<span>05</span>")) {
         throw new Error("Navegação compacta de cinco áreas não encontrada.");
     }
@@ -225,4 +228,4 @@ patchAccountsPlacement();
 stampVersion();
 validate();
 
-console.log("Fôlego V2.8.4 aplicado: Cartão e Rota removidos, navegação e dashboard refinadas.");
+console.log("Fôlego V2.8.4 aplicado: Cartão e Rota removidos, identidade original preservada.");
