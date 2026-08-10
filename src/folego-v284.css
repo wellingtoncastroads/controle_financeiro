@@ -6,9 +6,42 @@
    - contas em uma faixa própria;
    - composição mobile sem cortes.
 
-   Cores, tipografia, textura, sombras e componentes continuam vindo
-   da identidade original do Fôlego definida em style.css.
+   Cores, tipografia, sombras e componentes continuam vindo da
+   identidade original do Fôlego definida em style.css. A textura
+   abaixo apenas devolve presença ao papel, sem mudar essa identidade.
 ================================================================== */
+
+/*
+   PAPEL FÔLEGO
+
+   A textura-base da V2.8.2 tinha somente pontos com 5,5% de opacidade,
+   o que praticamente desaparecia em telas de celular. As camadas abaixo
+   combinam grão fino e fibras leves para recuperar o aspecto impresso.
+*/
+.paper-noise {
+    opacity: 0.11;
+    background-image:
+        radial-gradient(circle at 18% 27%, var(--ink) 0 0.58px, transparent 0.82px),
+        radial-gradient(circle at 76% 71%, var(--ink) 0 0.42px, transparent 0.7px),
+        linear-gradient(
+            103deg,
+            transparent 0 43%,
+            color-mix(in srgb, var(--ink) 28%, transparent) 43.4% 43.8%,
+            transparent 44.3% 100%
+        ),
+        linear-gradient(
+            7deg,
+            transparent 0 61%,
+            color-mix(in srgb, var(--ink) 20%, transparent) 61.3% 61.65%,
+            transparent 62.1% 100%
+        );
+    background-position: 0 0, 6px 4px, 0 0, 19px 13px;
+    background-size: 9px 11px, 13px 17px, 137px 53px, 191px 79px;
+}
+
+html[data-theme="dark"] .paper-noise {
+    opacity: 0.085;
+}
 
 /* A faixa das contas ocupa toda a largura abaixo do saldo e do recibo. */
 .balance-field {
