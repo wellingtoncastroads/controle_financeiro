@@ -459,13 +459,17 @@ function showToast(message, type = "success") {
 
 function friendlyError(error) {
     const message = String(error?.message || error || "").toLowerCase();
+    const code = String(error?.code || "").toUpperCase();
     if (message.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
     if (message.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
     if (message.includes("user already registered")) return "Já existe uma conta com este e-mail.";
     if (message.includes("password") && message.includes("characters")) return "A senha precisa ter pelo menos 8 caracteres.";
     if (message.includes("rate limit")) return "Muitas tentativas seguidas. Aguarde um pouco e tente novamente.";
     if (message.includes("failed to fetch") || message.includes("network")) return "Não foi possível alcançar o servidor. Confira sua conexão.";
-    if (message.includes("relation") || message.includes("schema cache") || message.includes("function public")) {
+    if (code === "23514" && message.includes("transactions_payment_method_check")) {
+        return "A conta selecionada ainda não está disponível para esta movimentação. Atualize a página e tente novamente.";
+    }
+    if (["42P01", "PGRST202", "PGRST204", "PGRST205"].includes(code)) {
         return "O banco precisa da atualização V2.1. Execute supabase/migrations/v2_1_additive.sql no SQL Editor do Supabase.";
     }
     return error?.message || "Algo não saiu como esperado. Tente novamente.";
