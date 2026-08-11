@@ -11,8 +11,10 @@ import {
 
 export default async function handler(request, response) {
     if (!allowMethods(request, response, ["POST"])) return;
+    console.info("Fôlego / Pluggy token: requisição recebida.");
     try {
         const user = await requireSupabaseUser(request);
+        console.info("Fôlego / Pluggy token: sessão validada.");
         const body = await readJson(request);
         const itemId = typeof body.itemId === "string" ? body.itemId : undefined;
         const apiKey = await getPluggyApiKey();
@@ -33,6 +35,7 @@ export default async function handler(request, response) {
             accessToken: payload.accessToken || payload.connectToken,
             expiresIn: 1800
         });
+        console.info("Fôlego / Pluggy token: token temporário emitido.");
     } catch (error) {
         handleApiError(response, error);
     }
