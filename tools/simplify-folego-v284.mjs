@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const VERSION = "2.8.5";
+const VERSION = "2.8.6";
 const COMMAND = "node tools/simplify-folego-v284.mjs";
 const STYLE = '<link rel="stylesheet" href="/src/folego-v284.css">';
 
@@ -228,4 +228,4 @@ patchAccountsPlacement();
 stampVersion();
 validate();
 
-console.log("Fôlego V2.8.5 aplicado: Cartão e Rota removidos, identidade original preservada.");
+console.log("Fôlego V2.8.6 aplicado: Open Finance somente leitura, sem Cartão e sem Rota.");
