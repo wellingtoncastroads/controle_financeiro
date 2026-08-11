@@ -44,6 +44,7 @@ export async function readJson(request) {
 }
 
 function sessionToken(request, bodyToken) {
+    // A sessão é validada no servidor e nunca é registrada nos logs.
     const suppliedToken = String(bodyToken || "").trim();
     if (suppliedToken) return suppliedToken;
 
