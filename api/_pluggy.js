@@ -43,7 +43,10 @@ export async function readJson(request) {
     return {};
 }
 
-function sessionToken(request) {
+function sessionToken(request, bodyToken) {
+    const suppliedToken = String(bodyToken || "").trim();
+    if (suppliedToken) return suppliedToken;
+
     const folegoHeader = String(request.headers["x-folego-session"] || "").trim();
     if (folegoHeader) return folegoHeader;
 
@@ -51,8 +54,8 @@ function sessionToken(request) {
     return authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
 }
 
-export async function requireSupabaseUser(request) {
-    const token = sessionToken(request);
+export async function requireSupabaseUser(request, bodyToken) {
+    const token = sessionToken(request, bodyToken);
     if (!token) throw Object.assign(new Error("Sessão do Fôlego ausente."), { status: 401 });
 
     const url = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
