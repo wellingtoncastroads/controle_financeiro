@@ -13,9 +13,10 @@ export default async function handler(request, response) {
     if (!allowMethods(request, response, ["POST"])) return;
     console.info("Fôlego / Pluggy token: requisição recebida.");
     try {
-        const user = await requireSupabaseUser(request);
-        console.info("Fôlego / Pluggy token: sessão validada.");
         const body = await readJson(request);
+        const user = await requireSupabaseUser(request, body.__folegoSession);
+        delete body.__folegoSession;
+        console.info("Fôlego / Pluggy token: sessão validada.");
         const itemId = typeof body.itemId === "string" ? body.itemId : undefined;
         const apiKey = await getPluggyApiKey();
         if (itemId) await assertItemOwnership(itemId, user.id, apiKey);
