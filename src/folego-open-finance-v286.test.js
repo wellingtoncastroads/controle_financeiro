@@ -47,4 +47,14 @@ describe("Open Finance somente leitura V2.8.6", () => {
         expect(client).not.toContain("PLUGGY_CLIENT_SECRET");
         expect(client).not.toContain("PLUGGY_CLIENT_ID");
     });
+
+    it("não disputa o cabeçalho Authorization com a proteção da Vercel", () => {
+        const server = read("api/_pluggy.js");
+        const client = read("src/folego-pluggy-v26.js");
+
+        expect(client).toContain('"X-Folego-Session": session.access_token');
+        expect(client).toContain('credentials: "same-origin"');
+        expect(client).not.toContain("Authorization: `Bearer ${session.access_token}`");
+        expect(server).toContain('request.headers["x-folego-session"]');
+    });
 });
