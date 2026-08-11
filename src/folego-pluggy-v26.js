@@ -97,14 +97,14 @@ async function currentSession() {
 async function apiRequest(path, body) {
     const session = await currentSession();
     if (!session?.access_token) throw new Error("Entre novamente no Fôlego para conectar o banco.");
+    const requestBody = body && typeof body === "object" && !Array.isArray(body) ? body : {};
     const response = await fetch(path, {
         method: "POST",
         credentials: "same-origin",
         headers: {
-            "Content-Type": "application/json",
-            "X-Folego-Session": session.access_token
+            "Content-Type": "application/json"
         },
-        body: JSON.stringify(body || {})
+        body: JSON.stringify({ ...requestBody, __folegoSession: session.access_token })
     });
     const raw = await response.text();
     let payload = {};
@@ -114,7 +114,9 @@ async function apiRequest(path, body) {
         payload = {};
     }
     if (!response.ok) {
-        const fallback = response.status === 401 || response.status === 403
+        const fallback = response.status === 494
+            ? "A Vercel recusou os cabeçalhos da prévia. Atualize a página para carregar a correção."
+            : response.status === 401 || response.status === 403
             ? "A prévia foi bloqueada antes de alcançar a integração. Reabra o link autorizado da Vercel."
             : `A integração bancária respondeu com o código ${response.status}.`;
         throw new Error(payload.error || fallback);
