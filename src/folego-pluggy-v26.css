@@ -1,5 +1,5 @@
 /* ================================================================
-   FÔLEGO V2.6 — CONTAS CONECTADAS / PLUGGY
+   FÔLEGO V2.8.6 — OPEN FINANCE / MEU PLUGGY
 ================================================================ */
 
 .v26-bank-section {
@@ -87,6 +87,10 @@
     color: #11120e;
 }
 
+.v26-bank-summary article:nth-child(2) {
+    border-top: 6px solid var(--blue);
+}
+
 .v26-bank-summary span,
 .v26-bank-summary small,
 .v26-bank-row small,
@@ -132,6 +136,10 @@
     min-height: 88px;
     border-bottom: 1px solid var(--line-soft);
     padding: 14px 16px;
+}
+
+.v26-bank-row.bank {
+    box-shadow: inset 5px 0 0 var(--blue);
 }
 
 .v26-bank-row:last-child {
@@ -185,10 +193,6 @@
     white-space: nowrap;
 }
 
-.v26-bank-row.credit > b {
-    color: var(--orange);
-}
-
 .v26-bank-row button {
     border: 1px solid var(--ink);
     padding: 8px 10px;
@@ -236,9 +240,15 @@
 
 .v26-bank-note {
     margin: 18px 0 0;
-    color: var(--muted);
-    font-size: 0.62rem;
+    border: 1px solid var(--ink);
+    padding: 12px 14px;
+    background: color-mix(in srgb, var(--acid) 32%, var(--paper-light));
+    color: var(--ink);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.035em;
     line-height: 1.55;
+    text-transform: uppercase;
 }
 
 @media (max-width: 760px) {
