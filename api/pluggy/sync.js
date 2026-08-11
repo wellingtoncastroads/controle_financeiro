@@ -27,16 +27,6 @@ function publicAccount(account) {
         bankData: account.bankData ? {
             transferNumber: account.bankData.transferNumber,
             closingBalance: account.bankData.closingBalance
-        } : null,
-        creditData: account.creditData ? {
-            brand: account.creditData.brand,
-            level: account.creditData.level,
-            balanceCloseDate: account.creditData.balanceCloseDate,
-            balanceDueDate: account.creditData.balanceDueDate,
-            creditLimit: account.creditData.creditLimit,
-            availableCreditLimit: account.creditData.availableCreditLimit,
-            minimumPayment: account.creditData.minimumPayment,
-            status: account.creditData.status
         } : null
     };
 }
@@ -60,13 +50,6 @@ function publicTransaction(transaction) {
             paymentMethod: transaction.paymentData.paymentMethod,
             payer: transaction.paymentData.payer ? { name: transaction.paymentData.payer.name } : null,
             receiver: transaction.paymentData.receiver ? { name: transaction.paymentData.receiver.name } : null
-        } : null,
-        creditCardMetadata: transaction.creditCardMetadata ? {
-            installmentNumber: transaction.creditCardMetadata.installmentNumber,
-            totalInstallments: transaction.creditCardMetadata.totalInstallments,
-            totalAmount: transaction.creditCardMetadata.totalAmount,
-            cardNumber: transaction.creditCardMetadata.cardNumber,
-            billForecastDate: transaction.creditCardMetadata.billForecastDate
         } : null,
         merchant: transaction.merchant ? {
             name: transaction.merchant.name,
@@ -97,11 +80,15 @@ export default async function handler(request, response) {
         for (const itemId of itemIds) {
             const item = await assertItemOwnership(itemId, user.id, apiKey);
             items.push(publicItem(item));
-            const itemAccounts = await collectPluggyPages(`/accounts?itemId=${encodeURIComponent(itemId)}&pageSize=500`, apiKey, 10);
+            const allAccounts = await collectPluggyPages(`/accounts?itemId=${encodeURIComponent(itemId)}&pageSize=500`, apiKey, 10);
+            const itemAccounts = allAccounts.filter((account) => (
+                account?.type === "BANK"
+                && String(account.currencyCode || "BRL") === "BRL"
+            ));
             accounts.push(...itemAccounts.map(publicAccount));
             for (const account of itemAccounts) {
                 const rows = await collectPluggyPages(
-                    `/transactions?accountId=${encodeURIComponent(account.id)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&pageSize=500`,
+                    `/v2/transactions?accountId=${encodeURIComponent(account.id)}&dateFrom=${encodeURIComponent(from)}&dateTo=${encodeURIComponent(to)}`,
                     apiKey,
                     30
                 );
@@ -110,6 +97,7 @@ export default async function handler(request, response) {
         }
 
         sendJson(response, 200, {
+            mode: "read_only",
             syncedAt: new Date().toISOString(),
             period: { from, to },
             items,
