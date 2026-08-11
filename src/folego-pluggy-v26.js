@@ -99,14 +99,26 @@ async function apiRequest(path, body) {
     if (!session?.access_token) throw new Error("Entre novamente no Fôlego para conectar o banco.");
     const response = await fetch(path, {
         method: "POST",
+        credentials: "same-origin",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`
+            "X-Folego-Session": session.access_token
         },
         body: JSON.stringify(body || {})
     });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || "A integração bancária não respondeu.");
+    const raw = await response.text();
+    let payload = {};
+    try {
+        payload = raw ? JSON.parse(raw) : {};
+    } catch {
+        payload = {};
+    }
+    if (!response.ok) {
+        const fallback = response.status === 401 || response.status === 403
+            ? "A prévia foi bloqueada antes de alcançar a integração. Reabra o link autorizado da Vercel."
+            : `A integração bancária respondeu com o código ${response.status}.`;
+        throw new Error(payload.error || fallback);
+    }
     return payload;
 }
 
