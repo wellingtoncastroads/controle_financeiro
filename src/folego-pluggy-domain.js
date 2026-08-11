@@ -5,6 +5,8 @@ export const PLUGGY_META_KEYS = {
 
 export const TRANSFER_CATEGORY = "Transferência";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export function normalizeText(value) {
     return String(value || "")
         .normalize("NFD")
@@ -27,19 +29,9 @@ export function transactionFingerprint(row) {
         String(row.occurred_on || row.date || "").slice(0, 10),
         row.type || "",
         Math.abs(Number(row.amount || 0)).toFixed(2),
+        row.payment_method || row.paymentMethod || "",
         normalizeText(row.description).slice(0, 64)
     ].join("|");
-}
-
-export function isBillPayment(transaction) {
-    const text = normalizeText([
-        transaction?.description,
-        transaction?.descriptionRaw,
-        transaction?.category,
-        transaction?.operationType,
-        transaction?.operationTypeAdditionalInfo
-    ].filter(Boolean).join(" "));
-    return /(pagamento.*fatura|fatura.*cartao|pgto.*cartao|payment.*bill|credit card bill)/.test(text);
 }
 
 export function looksLikeTransfer(transaction) {
@@ -48,25 +40,31 @@ export function looksLikeTransfer(transaction) {
         transaction?.descriptionRaw,
         transaction?.category,
         transaction?.operationType,
+        transaction?.operationTypeAdditionalInfo,
         transaction?.paymentData?.paymentMethod
     ].filter(Boolean).join(" "));
-    return /(pix|ted|doc|transfer|transferencia)/.test(text);
+    return /(pix|ted|doc|transfer|transferencia|mesma titularidade)/.test(text);
 }
 
-export function paymentMethodFor(transaction, account) {
-    if (account?.type === "CREDIT") return "credit_card";
+export function accountPocket(account, item) {
     const text = normalizeText([
-        transaction?.paymentData?.paymentMethod,
-        transaction?.description,
-        transaction?.operationType
+        item?.connector?.name,
+        item?.name,
+        account?.marketingName,
+        account?.name
     ].filter(Boolean).join(" "));
-    if (text.includes("pix")) return "pix";
-    if (/(saque|cash|dinheiro)/.test(text)) return "cash";
+
+    if (/(^| )inter( |$)/.test(text)) return "pix";
+    if (/(banco do brasil|(^| )bb( |$))/.test(text)) return "bank_transfer";
+    if (/(^| )itau( |$)/.test(text)) return "itau";
     return "other";
 }
 
+export function paymentMethodFor(_transaction, account, item) {
+    return accountPocket(account, item);
+}
+
 export function categoryFor(transaction) {
-    if (isBillPayment(transaction)) return TRANSFER_CATEGORY;
     const text = normalizeText([
         transaction?.category,
         transaction?.merchant?.category,
@@ -88,110 +86,94 @@ export function categoryFor(transaction) {
     return transaction?.type === "CREDIT" ? "Outras receitas" : "Outras despesas";
 }
 
-function currentMonthKey(now = new Date()) {
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function cardFromAccount(account) {
-    const limit = Number(account?.creditData?.creditLimit || 0);
-    if (account?.type !== "CREDIT" || String(account.currencyCode || "BRL") !== "BRL" || limit <= 0) return null;
-    const close = String(account?.creditData?.balanceCloseDate || "").slice(8, 10);
-    const due = String(account?.creditData?.balanceDueDate || "").slice(8, 10);
-    return {
-        id: account.id,
-        name: String(account.marketingName || account.name || "Cartão conectado").slice(0, 40),
-        limit,
-        closingDay: Math.min(28, Math.max(1, Number(close) || 10)),
-        dueDay: Math.min(28, Math.max(1, Number(due) || 17)),
-        archived: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
+function sharedTransferSeriesId(first, second) {
+    return [first?.series_id, second?.series_id]
+        .filter((value) => typeof value === "string" && UUID_PATTERN.test(value))
+        .sort()[0] || null;
 }
 
 function pairInternalTransfers(rows) {
-    const candidates = rows.filter((row) => row._accountType === "BANK" && row._transferHint);
+    const candidates = rows.filter((row) => row._transferHint && row.payment_method !== "other");
+    let pairCount = 0;
+
     candidates.forEach((row, index) => {
         if (row._paired) return;
         const date = new Date(`${row.occurred_on}T12:00:00Z`).getTime();
         const match = candidates.slice(index + 1).find((other) => {
             if (other._paired || other.type === row.type || other._accountId === row._accountId) return false;
+            if (other.payment_method === row.payment_method) return false;
             if (Math.abs(Number(other.amount) - Number(row.amount)) > 0.009) return false;
             const otherDate = new Date(`${other.occurred_on}T12:00:00Z`).getTime();
             return Math.abs(otherDate - date) <= 86400000;
         });
-        if (match) {
-            row.category = TRANSFER_CATEGORY;
-            match.category = TRANSFER_CATEGORY;
-            row._paired = true;
-            match._paired = true;
-        }
+
+        if (!match) return;
+        const seriesId = sharedTransferSeriesId(row, match);
+        if (!seriesId) return;
+        row.category = TRANSFER_CATEGORY;
+        match.category = TRANSFER_CATEGORY;
+        row.series_id = seriesId;
+        match.series_id = seriesId;
+        row._paired = true;
+        match._paired = true;
+        pairCount += 1;
     });
+
+    return pairCount;
 }
 
-export function mapPluggyPayload(payload, { userId, now = new Date() } = {}) {
-    const accounts = Array.isArray(payload?.accounts) ? payload.accounts : [];
+export function mapPluggyPayload(payload, { userId } = {}) {
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    const accounts = Array.isArray(payload?.accounts)
+        ? payload.accounts.filter((account) => account?.type === "BANK")
+        : [];
     const transactions = Array.isArray(payload?.transactions) ? payload.transactions : [];
     const accountMap = new Map(accounts.map((account) => [account.id, account]));
-    const month = currentMonthKey(now);
+    const itemMap = new Map(items.map((item) => [item.id, item]));
     const rows = [];
-    const seriesMap = {};
 
     transactions.forEach((transaction) => {
-        const account = accountMap.get(transaction.accountId);
+        const account = accountMap.get(transaction?.accountId);
         if (!account || !transaction?.id || !transaction?.date) return;
         if (String(transaction.currencyCode || account.currencyCode || "BRL") !== "BRL") return;
-        if (account.type === "CREDIT" && transaction.type === "CREDIT") return;
         const date = brazilDate(transaction.date);
         if (!date) return;
-        const creditPurchase = account.type === "CREDIT";
-        const type = creditPurchase ? "expense" : transaction.type === "CREDIT" ? "income" : "expense";
+
         const description = String(transaction.merchant?.name || transaction.description || "Movimentação bancária")
             .replace(/\s+/g, " ")
             .trim()
             .slice(0, 80);
-        const installmentNumber = Number(transaction.creditCardMetadata?.installmentNumber || 0);
-        const installmentTotal = Number(transaction.creditCardMetadata?.totalInstallments || 0);
-        const validInstallment = installmentTotal >= 2 && installmentTotal <= 120 && installmentNumber >= 1 && installmentNumber <= installmentTotal;
         const row = {
             user_id: userId,
             description,
             amount: Math.abs(Number(transaction.amount || 0)),
-            type,
+            type: transaction.type === "CREDIT" ? "income" : "expense",
             category: categoryFor(transaction),
             occurred_on: date,
-            status: creditPurchase ? (date.slice(0, 7) < month ? "paid" : "pending") : transaction.status === "PENDING" ? "pending" : "paid",
-            payment_method: paymentMethodFor(transaction, account),
+            status: transaction.status === "PENDING" ? "pending" : "paid",
+            payment_method: paymentMethodFor(transaction, account, itemMap.get(account.itemId)),
             series_id: transaction.id,
-            series_kind: validInstallment ? "installment" : null,
-            installment_number: validInstallment ? installmentNumber : null,
-            installment_total: validInstallment ? installmentTotal : null,
+            series_kind: null,
+            installment_number: null,
+            installment_total: null,
             _accountId: account.id,
-            _accountType: account.type,
             _transferHint: looksLikeTransfer(transaction)
         };
         if (!Number.isFinite(row.amount) || row.amount <= 0) return;
         rows.push(row);
-        if (creditPurchase) seriesMap[transaction.id] = account.id;
     });
 
-    pairInternalTransfers(rows);
-
-    const cleanRows = rows.map(({ _accountId, _accountType, _transferHint, _paired, ...row }) => row);
+    const transferCount = pairInternalTransfers(rows);
+    const cleanRows = rows.map(({ _accountId, _transferHint, _paired, ...row }) => row);
     const brlAccounts = accounts.filter((account) => String(account.currencyCode || "BRL") === "BRL");
-    const cards = brlAccounts.map(cardFromAccount).filter(Boolean);
-    const bankAccounts = brlAccounts.filter((account) => account.type === "BANK");
-    const creditAccounts = brlAccounts.filter((account) => account.type === "CREDIT");
 
     return {
         rows: cleanRows,
-        cards,
-        seriesMap,
         summary: {
-            bankBalance: bankAccounts.reduce((sum, account) => sum + Number(account.balance || 0), 0),
-            creditOpen: creditAccounts.reduce((sum, account) => sum + Math.max(0, Number(account.balance || 0)), 0),
-            bankCount: bankAccounts.length,
-            cardCount: creditAccounts.length
+            bankBalance: brlAccounts.reduce((sum, account) => sum + Number(account.balance || 0), 0),
+            bankCount: brlAccounts.length,
+            transactionCount: cleanRows.length,
+            transferCount
         }
     };
 }
