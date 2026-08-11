@@ -43,13 +43,16 @@ export async function readJson(request) {
     return {};
 }
 
-function bearerToken(request) {
-    const header = String(request.headers.authorization || "");
-    return header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+function sessionToken(request) {
+    const folegoHeader = String(request.headers["x-folego-session"] || "").trim();
+    if (folegoHeader) return folegoHeader;
+
+    const authorization = String(request.headers.authorization || "");
+    return authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
 }
 
 export async function requireSupabaseUser(request) {
-    const token = bearerToken(request);
+    const token = sessionToken(request);
     if (!token) throw Object.assign(new Error("Sessão do Fôlego ausente."), { status: 401 });
 
     const url = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
