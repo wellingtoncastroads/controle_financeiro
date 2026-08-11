@@ -1,6 +1,22 @@
 const PLUGGY_API = "https://api.pluggy.ai";
 let cachedApiKey = null;
 let cachedApiKeyExpiresAt = 0;
+const REQUEST_TIMEOUT_MS = 20000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } catch (error) {
+        if (error?.name === "AbortError") {
+            throw Object.assign(new Error("A integração bancária demorou além do esperado."), { status: 504 });
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
 
 export function sendJson(response, status, payload) {
     response.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -17,7 +33,13 @@ export function allowMethods(request, response, methods) {
 
 export async function readJson(request) {
     if (request.body && typeof request.body === "object") return request.body;
-    if (typeof request.body === "string" && request.body.trim()) return JSON.parse(request.body);
+    if (typeof request.body === "string" && request.body.trim()) {
+        try {
+            return JSON.parse(request.body);
+        } catch {
+            throw Object.assign(new Error("Corpo da requisição inválido."), { status: 400 });
+        }
+    }
     return {};
 }
 
@@ -36,7 +58,7 @@ export async function requireSupabaseUser(request) {
         throw Object.assign(new Error("Supabase não configurado no servidor."), { status: 500 });
     }
 
-    const response = await fetch(`${url}/auth/v1/user`, {
+    const response = await fetchWithTimeout(`${url}/auth/v1/user`, {
         headers: {
             apikey: publishableKey,
             Authorization: `Bearer ${token}`
@@ -53,7 +75,7 @@ async function createPluggyApiKey() {
         throw Object.assign(new Error("Credenciais da Pluggy ausentes na Vercel."), { status: 503 });
     }
 
-    const response = await fetch(`${PLUGGY_API}/auth`, {
+    const response = await fetchWithTimeout(`${PLUGGY_API}/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clientId, clientSecret })
@@ -75,7 +97,7 @@ export async function getPluggyApiKey() {
 export async function pluggyRequest(pathOrUrl, { method = "GET", body, apiKey } = {}) {
     const key = apiKey || await getPluggyApiKey();
     const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${PLUGGY_API}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
         method,
         headers: {
             "Content-Type": "application/json",
