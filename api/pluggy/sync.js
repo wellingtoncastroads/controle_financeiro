@@ -61,8 +61,9 @@ function publicTransaction(transaction) {
 export default async function handler(request, response) {
     if (!allowMethods(request, response, ["POST"])) return;
     try {
-        const user = await requireSupabaseUser(request);
         const body = await readJson(request);
+        const user = await requireSupabaseUser(request, body.__folegoSession);
+        delete body.__folegoSession;
         const itemIds = [...new Set(Array.isArray(body.itemIds) ? body.itemIds.filter((id) => typeof id === "string") : [])].slice(0, 8);
         if (!itemIds.length) return sendJson(response, 400, { error: "Nenhuma conexão bancária foi informada." });
 
