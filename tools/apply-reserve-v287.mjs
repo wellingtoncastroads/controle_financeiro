@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const VERSION = "2.8.7";
+const CACHE_VERSION = `${VERSION}-paleta`;
 const COMMAND = "node tools/apply-reserve-v287.mjs";
 const STYLE = '<link rel="stylesheet" href="/src/folego-reserve-v287.css">';
 const RUNTIME = '<script type="module" src="/src/folego-reserve-runtime-v287.js"></script>';
@@ -210,7 +211,7 @@ function patchMainRuntime() {
 
 function stampCache() {
     const file = "public/sw.js";
-    const source = read(file).replace(/const CACHE_NAME = "folego-v[^"]+";/, `const CACHE_NAME = "folego-v${VERSION}";`);
+    const source = read(file).replace(/const CACHE_NAME = "folego-v[^"]+";/, `const CACHE_NAME = "folego-v${CACHE_VERSION}";`);
     write(file, source);
 }
 
@@ -225,7 +226,7 @@ function validate() {
     if (!transfer.includes('other: "Reserva"')) throw new Error("A Reserva ainda não aparece no histórico.");
     if (!runtime.includes("validateReserveOperation") || !runtime.includes("saveInternalTransferPair")) throw new Error("O fluxo Guardar/Resgatar está incompleto.");
     if (!main.includes("folego:open-reserve-dialog") || !main.includes("refreshFromCloud(true)")) throw new Error("A atualização da Reserva não está sincronizada.");
-    if (!read("public/sw.js").includes(`folego-v${VERSION}`)) throw new Error("O cache da versão não foi renovado.");
+    if (!read("public/sw.js").includes(`folego-v${CACHE_VERSION}`)) throw new Error("O cache da versão não foi renovado.");
 }
 
 patchPackage();
