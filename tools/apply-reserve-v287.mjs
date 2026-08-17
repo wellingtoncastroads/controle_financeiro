@@ -82,12 +82,15 @@ function patchVersionAssertions() {
 function patchAccountsDomain() {
     const file = "src/folego-accounts-v28.js";
     let source = read(file);
+    // Normaliza a cor antiga antes da checagem idempotente; a paleta final é aplicada logo abaixo.
+    source = source.replace('accent: "#ff4e1a"', 'accent: "#2456d8"');
     source = replaceRequired(
         source,
         'export const ACCOUNT_SNAPSHOT_META_KEY = "folego_account_snapshot_v282";',
         `export const ACCOUNT_SNAPSHOT_META_KEY = "folego_account_snapshot_v282";\nexport const RESERVE_STORAGE_METHOD = "other";\n\nexport const RESERVE_ACCOUNT = Object.freeze({\n    id: "reserve",\n    name: "Reserva",\n    subtitle: "Dinheiro guardado",\n    logo: "",\n    accent: "#2456d8",\n    openingBalance: 0\n});`,
         "identidade da Reserva"
     );
+    source = source.replace('accent: "#2456d8"', 'accent: "#ff4e1a"');
     source = replaceRequired(
         source,
         `export function isAccountTransfer(transaction) {\n    return TRANSFER_CATEGORIES.has(String(transaction?.category || ""));\n}`,

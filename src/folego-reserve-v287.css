@@ -1,9 +1,9 @@
-/* FÔLEGO V2.8.7 / RESERVA — dinheiro fora do saldo, dentro do patrimônio */
+/* FÔLEGO V2.8.7 / RESERVA — paleta editorial, dinheiro fora do saldo */
 .reserve-panel-v287 {
     --reserve-ink: #11120e;
     --reserve-paper: #f4f0e6;
     --reserve-acid: #c8ff3d;
-    --reserve-blue: #2456d8;
+    --reserve-orange: #ff4e1a;
     position: relative;
     display: grid;
     width: min(100%, 720px);
@@ -16,17 +16,17 @@
     background-color: var(--reserve-ink);
     background-image:
         radial-gradient(circle at 1px 1px, rgba(244, 240, 230, .11) 1px, transparent 1.2px),
-        linear-gradient(105deg, transparent 0 72%, rgba(36, 86, 216, .17) 72% 72.4%, transparent 72.4%);
+        linear-gradient(105deg, transparent 0 72%, rgba(200, 255, 61, .13) 72% 72.4%, transparent 72.4%);
     background-size: 11px 11px, 100% 100%;
     color: var(--reserve-paper);
-    box-shadow: 6px 6px 0 var(--reserve-blue);
+    box-shadow: 6px 6px 0 var(--reserve-orange);
 }
 
 .reserve-panel-v287::before {
     position: absolute;
     inset: 0 0 auto;
     height: 6px;
-    background: linear-gradient(90deg, var(--reserve-blue) 0 61%, var(--reserve-acid) 61% 86%, var(--reserve-paper) 86%);
+    background: linear-gradient(90deg, var(--reserve-orange) 0 12%, var(--reserve-acid) 12% 76%, var(--reserve-paper) 76%);
     content: "";
 }
 
@@ -36,9 +36,9 @@
     align-content: space-between;
     justify-items: center;
     padding: 26px 10px 18px;
-    border-right: 1px solid rgba(244, 240, 230, .45);
-    background: var(--reserve-blue);
-    color: #fff;
+    border-right: 1px solid var(--reserve-ink);
+    background: var(--reserve-paper);
+    color: var(--reserve-ink);
 }
 
 .reserve-ledger-mark span {
@@ -50,6 +50,7 @@
 }
 
 .reserve-ledger-mark small {
+    color: var(--reserve-orange);
     font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
     font-size: .58rem;
     font-weight: 900;
@@ -149,7 +150,7 @@
 }
 
 .reserve-save-v287 {
-    background: var(--reserve-acid);
+    background: var(--reserve-orange);
     color: var(--reserve-ink);
 }
 
@@ -178,8 +179,8 @@
     gap: 14px;
     padding: 9px 14px;
     border-top: 2px solid var(--reserve-ink);
-    background: var(--reserve-blue);
-    color: #fff;
+    background: var(--reserve-paper);
+    color: var(--reserve-ink);
     font-size: .51rem;
 }
 
@@ -199,13 +200,13 @@
 .reserve-totals-v287 i {
     width: 20px;
     height: 1px;
-    background: rgba(255, 255, 255, .6);
+    background: var(--reserve-orange);
 }
 
 .account-logo-v28.reserve,
 .account-mini-logo-v28.reserve {
-    background: #2456d8;
-    color: #fff;
+    background: #ff4e1a;
+    color: #11120e;
     font-family: Georgia, "Times New Roman", serif;
     font-size: 1.15rem;
 }
@@ -219,7 +220,7 @@
     position: absolute;
     inset: 0 0 auto;
     height: 7px;
-    background: linear-gradient(90deg, #2456d8 0 66%, #c8ff3d 66%);
+    background: linear-gradient(90deg, #ff4e1a 0 14%, #c8ff3d 14% 76%, #f4f0e6 76%);
     content: "";
 }
 
@@ -253,8 +254,8 @@
     min-height: 44px;
     place-items: center;
     border-inline: 1px solid var(--line, #23231f);
-    background: #2456d8;
-    color: #fff;
+    background: #ff4e1a;
+    color: #11120e;
     font-style: normal;
     font-size: 1.05rem;
 }
@@ -269,8 +270,8 @@
 }
 
 .reserve-notice-v287 {
-    border-left: 5px solid #2456d8;
-    background: color-mix(in srgb, #2456d8 9%, transparent);
+    border-left: 5px solid #ff4e1a;
+    background: color-mix(in srgb, #ff4e1a 8%, transparent);
     color: var(--muted, #747168);
 }
 
@@ -300,7 +301,7 @@ html[data-theme="dark"] .reserve-sheet-v287 .reserve-notice-v287 strong {
         grid-template-columns: 58px minmax(0, 1fr);
         grid-template-rows: auto auto auto auto;
         margin-top: 18px;
-        box-shadow: 5px 5px 0 var(--reserve-blue);
+        box-shadow: 5px 5px 0 var(--reserve-orange);
     }
 
     .reserve-ledger-mark {
