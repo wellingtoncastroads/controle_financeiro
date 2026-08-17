@@ -1,5 +1,15 @@
 export const ACCOUNT_ASSIGNMENTS_META_KEY = "folego_account_assignments_v28";
 export const ACCOUNT_SNAPSHOT_META_KEY = "folego_account_snapshot_v282";
+export const RESERVE_STORAGE_METHOD = "other";
+
+export const RESERVE_ACCOUNT = Object.freeze({
+    id: "reserve",
+    name: "Reserva",
+    subtitle: "Dinheiro guardado",
+    logo: "",
+    accent: "#ff4e1a",
+    openingBalance: 0
+});
 
 export const ACCOUNT_METHODS = Object.freeze({
     pix: {
@@ -17,6 +27,14 @@ export const ACCOUNT_METHODS = Object.freeze({
         logo: "/banks/banco-do-brasil.svg",
         accent: "#0057b8",
         openingBalance: 302.01
+    },
+    itau: {
+        id: "itau",
+        name: "Itaú",
+        subtitle: "Conta corrente",
+        logo: "/banks/itau.svg",
+        accent: "#ec7000",
+        openingBalance: 0
     },
     cash: {
         id: "cash",
@@ -48,6 +66,15 @@ export function isAccountTransfer(transaction) {
     return TRANSFER_CATEGORIES.has(String(transaction?.category || ""));
 }
 
+export function isReserveTransfer(transaction) {
+    if (!isAccountTransfer(transaction)) return false;
+    if (transaction?.type === "transfer") {
+        return transaction.transferFrom === RESERVE_STORAGE_METHOD
+            || transaction.transferTo === RESERVE_STORAGE_METHOD;
+    }
+    return transactionPaymentMethod(transaction) === RESERVE_STORAGE_METHOD;
+}
+
 export function normalizeAccountMethod(value) {
     return ACCOUNT_METHOD_VALUES.includes(value) ? value : "pix";
 }
@@ -77,6 +104,7 @@ export function normalizeAccountSnapshot(value) {
 }
 
 export function accountForMethod(value) {
+    if (value === RESERVE_STORAGE_METHOD) return RESERVE_ACCOUNT;
     return ACCOUNT_METHODS[normalizeAccountMethod(value)];
 }
 
@@ -100,6 +128,7 @@ export function calculateAccountBalances(transactions, throughDate = "9999-12-31
 
     (Array.isArray(transactions) ? transactions : [])
         .filter((transaction) => transaction?.status === "paid" && transactionDate(transaction) <= throughDate)
+        .filter((transaction) => !isReserveTransfer(transaction))
         .filter((transaction) => {
             if (!snapshot) return true;
             const createdAt = transactionCreatedAt(transaction);
@@ -116,6 +145,30 @@ export function calculateAccountBalances(transactions, throughDate = "9999-12-31
     return {
         balances,
         total: roundMoney(Object.values(balances).reduce((sum, value) => sum + value, 0))
+    };
+}
+
+export function calculateReserveBalance(transactions, throughDate = "9999-12-31") {
+    return roundMoney((Array.isArray(transactions) ? transactions : [])
+        .filter((transaction) => (
+            transaction?.status === "paid"
+            && transactionDate(transaction) <= throughDate
+            && isReserveTransfer(transaction)
+            && transaction?.type !== "transfer"
+        ))
+        .reduce((total, transaction) => (
+            total + (transaction.type === "income" ? Number(transaction.amount || 0) : -Number(transaction.amount || 0))
+        ), 0));
+}
+
+export function calculatePatrimony(transactions, throughDate = "9999-12-31", assignments = {}, snapshotValue = null) {
+    const available = calculateAccountBalances(transactions, throughDate, assignments, snapshotValue);
+    const reserve = calculateReserveBalance(transactions, throughDate);
+    return {
+        balances: available.balances,
+        available: available.total,
+        reserve,
+        total: roundMoney(available.total + reserve)
     };
 }
 

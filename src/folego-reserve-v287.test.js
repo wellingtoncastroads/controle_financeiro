@@ -141,4 +141,16 @@ describe("Reserva do Fôlego V2.8.7", () => {
         expect(runtime).toContain('from("transactions")');
         expect(runtime).not.toContain('.from("goals")');
     });
+
+    it("usa a paleta editorial do Fôlego sem azul dominante na Reserva", () => {
+        const styles = fs.readFileSync("src/folego-reserve-v287.css", "utf8");
+        const accounts = fs.readFileSync("src/folego-accounts-v28.js", "utf8");
+
+        expect(styles).toContain("--reserve-ink: #11120e");
+        expect(styles).toContain("--reserve-paper: #f4f0e6");
+        expect(styles).toContain("--reserve-acid: #c8ff3d");
+        expect(styles).toContain("--reserve-orange: #ff4e1a");
+        expect(styles).not.toContain("#2456d8");
+        expect(accounts).toContain('accent: "#ff4e1a"');
+    });
 });
