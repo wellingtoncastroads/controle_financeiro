@@ -5,7 +5,8 @@ export const POCKET_LABELS = Object.freeze({
     pix: "Inter",
     bank_transfer: "Banco do Brasil",
     itau: "Itaú",
-    cash: "Espécie"
+    cash: "Espécie",
+    other: "Reserva"
 });
 
 const VALID_POCKETS = new Set(Object.keys(POCKET_LABELS));

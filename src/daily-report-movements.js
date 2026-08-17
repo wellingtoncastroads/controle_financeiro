@@ -80,8 +80,9 @@ function signedValue(row) {
 
 function movementDetails(row) {
     if (movementType(row) === "transfer") {
-        const from = methodLabels[row.transferFrom] || methodLabels[paymentMethodOf(row)] || methodLabels.other;
-        const to = methodLabels[row.transferTo];
+        const transferLabel = (method) => method === "other" ? "Reserva" : methodLabels[method];
+        const from = transferLabel(row.transferFrom) || transferLabel(paymentMethodOf(row)) || methodLabels.other;
+        const to = transferLabel(row.transferTo);
         return to ? `Transferência entre contas • ${from} → ${to}` : `Transferência entre contas • ${from}`;
     }
 
