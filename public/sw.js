@@ -1,4 +1,4 @@
-const CACHE_NAME = "folego-v2.8.5";
+const CACHE_NAME = "folego-v2.8.7";
 const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/assets/folego-mark.svg", "/banks/itau.svg"];
 
 self.addEventListener("install", (event) => {

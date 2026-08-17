@@ -1,12 +1,12 @@
 {
   "name": "folego-financas",
   "private": true,
-  "version": "2.8.5",
+  "version": "2.8.7",
   "type": "module",
   "scripts": {
-    "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs && node tools/apply-folego-v25-suite.mjs && node tools/harden-folego-v25.mjs && node tools/apply-route-number-font-v251.mjs && node tools/apply-mobile-fix-v253.mjs && node tools/apply-pluggy-v26.mjs && node tools/harden-pluggy-v26.mjs && node tools/fix-pluggy-sdk-v264.mjs && node tools/run-internal-transfer-v27.mjs && node tools/fix-transfer-mobile-v271.mjs && node tools/fix-new-record-mobile-v272.mjs && node tools/fix-transfer-neutrality-v273.mjs && node tools/apply-accounts-v28.mjs && node tools/polish-accounts-v281.mjs && node tools/fix-account-snapshot-v282.mjs && node tools/add-itau-v283.mjs && node tools/simplify-folego-v284.mjs",
+    "predev": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs && node tools/apply-folego-v25-suite.mjs && node tools/harden-folego-v25.mjs && node tools/apply-route-number-font-v251.mjs && node tools/apply-mobile-fix-v253.mjs && node tools/apply-pluggy-v26.mjs && node tools/harden-pluggy-v26.mjs && node tools/fix-pluggy-sdk-v264.mjs && node tools/run-internal-transfer-v27.mjs && node tools/fix-transfer-mobile-v271.mjs && node tools/fix-new-record-mobile-v272.mjs && node tools/fix-transfer-neutrality-v273.mjs && node tools/apply-accounts-v28.mjs && node tools/polish-accounts-v281.mjs && node tools/fix-account-snapshot-v282.mjs && node tools/add-itau-v283.mjs && node tools/simplify-folego-v284.mjs && node tools/apply-reserve-v287.mjs",
     "dev": "vite",
-    "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs && node tools/apply-folego-v25-suite.mjs && node tools/harden-folego-v25.mjs && node tools/apply-route-number-font-v251.mjs && node tools/apply-mobile-fix-v253.mjs && node tools/apply-pluggy-v26.mjs && node tools/harden-pluggy-v26.mjs && node tools/fix-pluggy-sdk-v264.mjs && node tools/run-internal-transfer-v27.mjs && node tools/fix-transfer-mobile-v271.mjs && node tools/fix-new-record-mobile-v272.mjs && node tools/fix-transfer-neutrality-v273.mjs && node tools/apply-accounts-v28.mjs && node tools/polish-accounts-v281.mjs && node tools/fix-account-snapshot-v282.mjs && node tools/add-itau-v283.mjs && node tools/simplify-folego-v284.mjs",
+    "prebuild": "node tools/apply-pix-cash-split.mjs && node tools/apply-folego-pocket-style.mjs && node tools/fix-pocket-overlap.mjs && node tools/fix-pocket-theme-contrast.mjs && node tools/apply-credit-card-v22.mjs && node tools/apply-monthly-history-v23.mjs && node tools/apply-daily-report-movements-v231.mjs && node tools/apply-card-history-v232.mjs && node tools/apply-monthly-planning-v24.mjs && node tools/apply-mobile-layout-fix-v241.mjs && node tools/apply-folego-v25-suite.mjs && node tools/harden-folego-v25.mjs && node tools/apply-route-number-font-v251.mjs && node tools/apply-mobile-fix-v253.mjs && node tools/apply-pluggy-v26.mjs && node tools/harden-pluggy-v26.mjs && node tools/fix-pluggy-sdk-v264.mjs && node tools/run-internal-transfer-v27.mjs && node tools/fix-transfer-mobile-v271.mjs && node tools/fix-new-record-mobile-v272.mjs && node tools/fix-transfer-neutrality-v273.mjs && node tools/apply-accounts-v28.mjs && node tools/polish-accounts-v281.mjs && node tools/fix-account-snapshot-v282.mjs && node tools/add-itau-v283.mjs && node tools/simplify-folego-v284.mjs && node tools/apply-reserve-v287.mjs",
     "build": "vitest run && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -21,5 +21,8 @@
     "html-validate": "^11.5.6",
     "vite": "^7.0.4",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
