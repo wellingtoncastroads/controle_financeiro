@@ -19,7 +19,7 @@ describe("integração de contas V2.8", () => {
         const transfer = read("src/folego-transfer-v27.js");
         expect(domain).toContain('logo: "/banks/itau.svg"');
         expect(domain).toContain('name: "Itaú"');
-        expect(runtime).toContain("05 CONTAS");
+        expect(runtime).toContain("04 CONTAS");
         expect(runtime).toContain('<option value="itau">Itaú</option>');
         expect(transfer).toContain('itau: "Itaú"');
     });
@@ -45,8 +45,8 @@ describe("integração de contas V2.8", () => {
     });
 
     it("publica a versão e o cache novos", () => {
-        expect(read("package.json")).toContain('"version": "2.8.8"');
-        expect(read("index.html")).toContain("FÔLEGO / V2.8.8");
-        expect(read("public/sw.js")).toContain("folego-v2.8.8");
+        expect(read("package.json")).toContain('"version": "2.8.3"');
+        expect(read("index.html")).toContain("FÔLEGO / V2.8.3");
+        expect(read("public/sw.js")).toContain("folego-v2.8.3");
     });
 });

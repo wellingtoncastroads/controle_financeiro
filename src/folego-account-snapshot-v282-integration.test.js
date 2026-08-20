@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 
-describe("integração dos saldos iniciais V2.8.3", () => {
+describe("integração dos saldos iniciais V2.8.2", () => {
     it("publica os valores atuais informados pelo usuário", () => {
         const domain = read("src/folego-accounts-v28.js");
         expect(domain).toContain('capturedAt: "2026-07-30T13:43:00.000Z"');
@@ -27,9 +27,7 @@ describe("integração dos saldos iniciais V2.8.3", () => {
 
     it("renova versão e cache", () => {
         const pkg = read("package.json");
-        expect(pkg).toContain('"version": "2.8.8"');
-        expect(fs.existsSync("tools/fix-account-snapshot-v282.mjs")).toBe(true);
-        expect(pkg).toContain("node tools/add-nubank-v288.mjs");
+        expect(pkg).toContain('"version": "2.8.2"');
+        expect(pkg).toContain("node tools/fix-account-snapshot-v282.mjs");
     });
 });
-

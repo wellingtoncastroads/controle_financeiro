@@ -5,7 +5,6 @@ export const POCKET_LABELS = Object.freeze({
     pix: "Inter",
     bank_transfer: "Banco do Brasil",
     itau: "Itaú",
-    nubank: "Nubank",
     cash: "Espécie",
     other: "Reserva"
 });

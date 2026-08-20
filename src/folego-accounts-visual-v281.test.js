@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 
-describe("identidade visual das contas V2.8.3", () => {
+describe("identidade visual das contas V2.8.1", () => {
     it("usa somente a paleta estrutural do Fôlego nos saldos", () => {
         const css = read("src/folego-accounts-v28.css");
         expect(css).toContain("--accounts-acid: #c8ff3d");
@@ -28,9 +28,8 @@ describe("identidade visual das contas V2.8.3", () => {
     });
 
     it("publica a revisão com cache renovado", () => {
-        expect(read("package.json")).toContain('"version": "2.8.8"');
-        expect(read("index.html")).toContain("FÔLEGO / V2.8.8");
-        expect(read("public/sw.js")).toContain("folego-v2.8.8");
+        expect(read("package.json")).toContain('"version": "2.8.1"');
+        expect(read("index.html")).toContain("FÔLEGO / V2.8.1");
+        expect(read("public/sw.js")).toContain("folego-v2.8.1");
     });
 });
-
