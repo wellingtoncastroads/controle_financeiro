@@ -52,8 +52,8 @@ describe("Fôlego V2.8.5", () => {
     it("renova a versão sem criar qualquer operação de dados", () => {
         const tool = read("tools/simplify-folego-v284.mjs");
 
-        expect(read("package.json")).toContain('"version": "2.8.5"');
-        expect(read("public/sw.js")).toContain('folego-v2.8.5');
+        expect(read("package.json")).toContain('"version": "2.8.8"');
+        expect(read("public/sw.js")).toContain('folego-v2.8.8');
         expect(tool).not.toContain('.from("');
         expect(tool).not.toContain("supabase");
     });

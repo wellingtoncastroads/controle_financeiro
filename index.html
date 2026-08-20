@@ -11,6 +11,17 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/assets/folego-mark.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/src/monthly-history.css">
+    <link rel="stylesheet" href="/src/daily-report-movements.css">
+    <link rel="stylesheet" href="/src/mobile-layout-fix-v241.css">
+    <link rel="stylesheet" href="/src/mobile-layout-carousel-v242.css">
+    <link rel="stylesheet" href="/src/folego-v25-suite.css">
+    <link rel="stylesheet" href="/src/mobile-fix-v253.css">
+    <link rel="stylesheet" href="/src/folego-pluggy-v26.css">
+    <link rel="stylesheet" href="/src/folego-transfer-v27.css">
+    <link rel="stylesheet" href="/src/folego-accounts-v28.css">
+    <link rel="stylesheet" href="/src/folego-v284.css">
+    <link rel="stylesheet" href="/src/folego-reserve-v287.css">
 </head>
 
 <body>
@@ -185,6 +196,10 @@
                 <span>04</span>
                 <strong>Raio-X</strong>
             </button>
+            <button class="rail-link" type="button" data-view="archive">
+                <span>05</span>
+                <strong>Arquivo</strong>
+            </button>
         </nav>
 
         <div class="rail-signature" aria-hidden="true">
@@ -224,7 +239,7 @@
                         <button id="installAppButton" type="button" hidden>Instalar neste aparelho <span>APP ↓</span></button>
                         <button class="delete-account-button" id="deleteAccountButton" type="button">Excluir conta e dados <span>×</span></button>
                         <button class="signout-button" id="signOutButton" type="button">Sair desta conta <span>→</span></button>
-                        <small class="account-version">FÔLEGO / V2.8.3</small>
+                        <small class="account-version">FÔLEGO / V2.8.8</small>
                     </div>
                 </div>
 
@@ -264,11 +279,33 @@
                         <span class="balance-question">Quanto você tem de fôlego hoje?</span>
                         <strong class="hero-balance" id="currentBalance">R$ 0,00</strong>
 
+                        <!-- FÔLEGO PIX/ESPÉCIE SPLIT -->
+                        <!-- FÔLEGO POCKETS EDITORIAL V2 -->
+                        <section class="balance-pockets" aria-label="Saldo separado entre Pix e espécie">
+                            <header class="balance-pocket-head">
+                                <span>DIVISÃO DO CAIXA / 02 PARTES</span>
+                                <i>CONFIRMADO ATÉ HOJE</i>
+                            </header>
+                            <article class="money-pocket pix-pocket">
+                                <span>01 / PIX</span>
+                                <strong id="pixBalance">R$ 0,00</strong>
+                                <small>saldo digital</small>
+                            </article>
+                            <article class="money-pocket cash-pocket">
+                                <span>02 / ESPÉCIE</span>
+                                <strong id="cashBalance">R$ 0,00</strong>
+                                <small>dinheiro em mãos</small>
+                            </article>
+                        </section>
+
                         <div class="balance-footer">
                             <p id="balanceCaption">Calculando seu mês...</p>
-                            <button class="ink-button" id="bannerNewTransaction" type="button">
-                                <span>+</span> Anotar movimento
-                            </button>
+                            <div class="transfer-actions">
+                                <button class="transfer-button" id="bannerNewTransfer" type="button">↔ Transferir</button>
+                                <button class="ink-button" id="bannerNewTransaction" type="button">
+                                    <span>+</span> Anotar movimento
+                                </button>
+                            </div>
                         </div>
 
                         <div class="balance-tape">
@@ -411,7 +448,7 @@
                     <article class="projection-board">
                         <header class="board-heading">
                             <div>
-                                <span class="section-code">F / ROTA PROVÁVEL</span>
+                                <span class="section-code">F / PROJEÇÃO DE CAIXA</span>
                                 <h3>O caixa que vem pela frente</h3>
                             </div>
                             <button class="arrow-link" type="button" data-view="reports">VER RAIO-X <span>↗</span></button>
@@ -452,7 +489,10 @@
                         <span class="section-code">ARQUIVO DE MOVIMENTOS</span>
                         <h2>Tudo que entrou.<br>Tudo que saiu.</h2>
                     </div>
-                    <button class="ink-button" id="pageNewTransaction" type="button"><span>+</span> Novo registro</button>
+                    <div class="transfer-actions">
+                        <button class="transfer-button" id="pageNewTransfer" type="button">↔ Transferir</button>
+                        <button class="ink-button" id="pageNewTransaction" type="button"><span>+</span> Novo registro</button>
+                    </div>
                 </header>
 
                 <section class="ledger-shell">
@@ -549,8 +589,15 @@
                 <div class="goals-grid" id="goalsGrid"></div>
             </section>
 
+
+            <!-- FÔLEGO CARTÃO V2.2 -->
             <!-- =====================================================
-                 04 — RAIO-X E RELATÓRIOS
+                 04 — CARTÃO E FATURAS
+            ====================================================== -->
+
+
+            <!-- =====================================================
+                 05 — RAIO-X E RELATÓRIOS
             ====================================================== -->
             <section class="view" id="reportsView" data-view-section="reports">
                 <div class="view-index" aria-hidden="true">
@@ -589,6 +636,47 @@
                     <article class="report-total result"><span>RESULTADO</span><strong id="reportResult">R$ 0,00</strong><small>somente confirmados</small></article>
                 </section>
 
+                <section class="report-pocket-grid" aria-label="Resultado separado entre Pix e espécie no período">
+                    <header class="report-pocket-head">
+                        <span>04 / POSSE DO DINHEIRO</span>
+                        <strong>Onde o resultado ficou</strong>
+                    </header>
+                    <article class="report-pocket pix-pocket">
+                        <span>01 / PIX NO PERÍODO</span>
+                        <strong id="reportPixBalance">R$ 0,00</strong>
+                        <small>SALDO LÍQUIDO</small>
+                    </article>
+                    <article class="report-pocket cash-pocket">
+                        <span>02 / ESPÉCIE NO PERÍODO</span>
+                        <strong id="reportCashBalance">R$ 0,00</strong>
+                        <small>SALDO LÍQUIDO</small>
+                    </article>
+                </section>
+
+
+                <!-- FÔLEGO MOVIMENTOS DO DIA V2.3.1 -->
+                <section class="daily-movements-board" id="dailyMovementsBoard" aria-label="Movimentações do dia selecionado" hidden>
+                    <header class="daily-movements-heading">
+                        <div>
+                            <span class="section-code">DIA / MOVIMENTOS</span>
+                            <h3>Tudo que passou<br>por este dia.</h3>
+                        </div>
+                        <div class="daily-movements-reference">
+                            <span>DATA SELECIONADA</span>
+                            <strong id="dailyMovementsDate">—</strong>
+                            <small id="dailyMovementsCount">0 movimentos</small>
+                        </div>
+                    </header>
+                    <div class="daily-movements-summary" role="group" aria-label="Resumo confirmado do dia">
+                        <div><span>ENTROU</span><strong id="dailyMovementsIncome">R$ 0,00</strong></div>
+                        <div><span>SAIU</span><strong id="dailyMovementsExpense">R$ 0,00</strong></div>
+                        <div class="result"><span>RESULTADO</span><strong id="dailyMovementsResult">R$ 0,00</strong></div>
+                    </div>
+                    <div class="daily-movements-list" id="dailyMovementsList">
+                        <div class="daily-movements-empty">Escolha um dia para abrir os movimentos.</div>
+                    </div>
+                </section>
+
                 <section class="ranking-layout">
                     <article class="ranking-board ranking-primary">
                         <header class="board-heading">
@@ -607,10 +695,25 @@
 
                     <article class="ranking-board method-board">
                         <header class="board-heading">
-                            <div><span class="section-code">03 / COMO PAGOU</span><h3>Meios utilizados</h3></div>
+                            <div><span class="section-code">03 / PIX OU ESPÉCIE</span><h3>Meios utilizados</h3></div>
                         </header>
                         <div class="method-ledger" id="methodRanking"></div>
                     </article>
+                </section>
+
+
+                <!-- FÔLEGO HISTÓRICO MENSAL V2.3 -->
+                <section class="monthly-history-board" aria-label="Histórico financeiro mensal">
+                    <header class="monthly-history-heading">
+                        <div>
+                            <span class="section-code">05 / ARQUIVO MENSAL</span>
+                            <h3>O mês vira página.<br>O histórico fica.</h3>
+                        </div>
+                        <p>O mês atual permanece em aberto. Os anteriores são fechados automaticamente e continuam disponíveis no Raio-X.</p>
+                    </header>
+                    <div class="monthly-history-list" id="monthlyHistoryList">
+                        <div class="monthly-history-empty">Abrindo o arquivo mensal...</div>
+                    </div>
                 </section>
 
                 <section class="budget-board">
@@ -625,9 +728,230 @@
                     <div class="budget-list" id="budgetList"></div>
                 </section>
             </section>
+
+            <!-- FÔLEGO PLANEJAMENTO MENSAL V2.4 -->
+            <!-- =====================================================
+                 06 — ROTA E PLANEJAMENTO MENSAL
+            ====================================================== -->
+
+
+
+            <!-- FÔLEGO V2.5 SUITE -->
+            <!-- =====================================================
+                 07 — ARQUIVO, RISCO E INTELIGÊNCIA
+            ====================================================== -->
+            <section class="view" id="archiveView" data-view-section="archive">
+                <div class="view-index" aria-hidden="true">
+                    <span>05</span>
+                    <i></i>
+                    <b>ARQUIVO</b>
+                </div>
+
+                <header class="page-intro archive-intro">
+                    <div>
+                        <span class="section-code">LEITURA AMPLA / DECISÃO CURTA</span>
+                        <h2>O passado compara.<br>O futuro avisa.</h2>
+                    </div>
+                    <span class="v25-edition-stamp">FÔLEGO / V2.8.8</span>
+                </header>
+
+                <section class="v25-action-strip" aria-label="Ações rápidas do caixa">
+                    <div class="v25-connection-copy">
+                        <span>ESTADO DA SINCRONIZAÇÃO</span>
+                        <strong id="v25ConnectionBadge">ABRINDO O ARQUIVO</strong>
+                    </div>
+                    <button class="ink-button" id="v25TransferButton" type="button"><span>↔</span> Transferir saldo</button>
+                    <button class="paper-button" id="v25TrashButton" type="button">LIXEIRA / RECUPERAR</button>
+                </section>
+
+                <!-- FÔLEGO V2.6 / CONTAS CONECTADAS -->
+                <section class="v26-bank-section" id="v26BankSection" aria-labelledby="v26BankTitle">
+                    <header class="v26-bank-heading">
+                        <div>
+                            <span class="section-code">00 / CONTAS CONECTADAS</span>
+                            <h3 id="v26BankTitle">O banco escreve o caixa</h3>
+                        </div>
+                        <div class="v26-bank-controls">
+                            <span class="v26-bank-status" id="v26BankStatus" data-state="online">PRONTO PARA CONECTAR</span>
+                            <button class="ink-button" id="v26ConnectBank" type="button">+ CONECTAR BANCO</button>
+                            <button class="paper-button" id="v26SyncBanks" type="button">SINCRONIZAR AGORA</button>
+                        </div>
+                    </header>
+                    <div class="v26-bank-summary">
+                        <article><span>SALDO NAS CONTAS</span><strong id="v26BankBalance">R$ 0,00</strong><small>contas bancárias conectadas</small></article>
+                        <article><span>ABERTO NO CRÉDITO</span><strong id="v26CreditOpen">R$ 0,00</strong><small>faturas e cartões encontrados</small></article>
+                        <article><span>ÚLTIMA LEITURA</span><strong id="v26LastSync">AINDA NÃO</strong><small>importação automática</small></article>
+                    </div>
+                    <div class="v26-bank-list" id="v26BankList"></div>
+                    <p class="v26-bank-note" id="v26BankNote">A autorização acontece no ambiente seguro da Pluggy. O Fôlego nunca recebe sua senha bancária.</p>
+                </section>
+
+                <section class="v25-section" aria-labelledby="v25RiskTitle">
+                    <header class="v25-section-heading">
+                        <div><span class="section-code">01 / PREVISÃO DE RISCO</span><h3 id="v25RiskTitle">O aperto antes de chegar</h3></div>
+                        <p>O Fôlego cruza saldo, pendências, orçamentos e cartões para mostrar onde a margem pode desaparecer.</p>
+                    </header>
+                    <div class="v25-risk-list" id="v25RiskList"></div>
+                </section>
+
+                <section class="v25-section" aria-labelledby="v25CompareTitle">
+                    <header class="v25-section-heading">
+                        <div><span class="section-code">02 / MÊS CONTRA MÊS</span><h3 id="v25CompareTitle">O que mudou de verdade</h3></div>
+                        <label class="v25-control-label"><span>MÊS EM COMPARAÇÃO</span><input type="month" id="v25CompareMonth"></label>
+                    </header>
+                    <div class="v25-compare-grid">
+                        <article><span>RESULTADO ATUAL</span><strong id="v25CompareCurrent">R$ 0,00</strong><small>entradas menos saídas</small></article>
+                        <article><span>RESULTADO ANTERIOR</span><strong id="v25ComparePrevious">R$ 0,00</strong><small>mês imediatamente anterior</small></article>
+                        <article><span>DIFERENÇA</span><strong id="v25CompareDelta">R$ 0,00</strong><small>contra o mês anterior</small></article>
+                        <article class="category" id="v25CompareCategory"><span>MAIOR ALTA</span><strong>—</strong><small>sem leitura ainda</small></article>
+                    </div>
+                </section>
+
+                <section class="v25-section" id="v25AnnualSection" aria-labelledby="v25AnnualTitle">
+                    <header class="v25-section-heading">
+                        <div><span class="section-code">03 / FECHAMENTO ANUAL</span><h3 id="v25AnnualTitle">Doze meses em uma página</h3></div>
+                        <div class="v25-annual-actions">
+                            <label class="v25-control-label"><span>ANO</span><select id="v25AnnualYear"></select></label>
+                            <button class="paper-button" id="v25AnnualPrint" type="button">IMPRIMIR / SALVAR PDF</button>
+                        </div>
+                    </header>
+                    <div class="v25-annual-summary">
+                        <article><span>TOTAL RECEBIDO</span><strong id="v25AnnualIncome">R$ 0,00</strong><small>somente confirmados</small></article>
+                        <article><span>TOTAL GASTO</span><strong id="v25AnnualExpense">R$ 0,00</strong><small>transferências não entram</small></article>
+                        <article><span>RESULTADO DO ANO</span><strong id="v25AnnualResult">R$ 0,00</strong><small>saldo produzido no período</small></article>
+                        <article><span>MÉDIA MENSAL</span><strong id="v25AnnualAverage">R$ 0,00</strong><small>média das despesas ativas</small></article>
+                    </div>
+                    <div class="v25-annual-highlights" id="v25AnnualHighlights"></div>
+                    <div class="v25-annual-layout">
+                        <div class="v25-annual-months" id="v25AnnualMonths"></div>
+                        <div class="v25-annual-categories" id="v25AnnualCategories"></div>
+                    </div>
+                </section>
+
+                <section class="v25-section" aria-labelledby="v25RulesTitle">
+                    <header class="v25-section-heading">
+                        <div><span class="section-code">04 / REGRAS DE CATEGORIA</span><h3 id="v25RulesTitle">O Fôlego aprende o nome</h3></div>
+                        <p>Palavras como Uber, mercado ou Netflix podem preencher a categoria automaticamente antes de salvar.</p>
+                    </header>
+                    <div class="v25-rules-layout">
+                        <form class="v25-rule-form" id="v25RuleForm">
+                            <label><span>PALAVRA OU NOME</span><input type="text" id="v25RuleKeyword" maxlength="40" placeholder="Ex.: padaria" required></label>
+                            <label><span>CATEGORIA</span><select id="v25RuleCategory" required>
+                                <option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Lazer</option><option>Assinaturas</option><option>Contas</option><option>Outras despesas</option><option>Salário</option><option>Freelance</option><option>Vendas</option><option>Investimentos</option><option>Outras receitas</option>
+                            </select></label>
+                            <button class="ink-button" type="submit">GRAVAR REGRA →</button>
+                        </form>
+                        <div class="v25-rule-list" id="v25RuleList"></div>
+                    </div>
+                </section>
+
+                <section class="v25-section" aria-labelledby="v25OfflineTitle">
+                    <header class="v25-section-heading">
+                        <div><span class="section-code">05 / FILA OFFLINE</span><h3 id="v25OfflineTitle">Anote agora. Envie depois.</h3></div>
+                        <p>Movimentações registradas sem internet ficam neste aparelho e são sincronizadas automaticamente ao reconectar.</p>
+                    </header>
+                    <div class="v25-offline-board">
+                        <div class="v25-offline-head"><span id="v25OfflineCount">0 ITENS</span><button class="paper-button" id="v25OfflineSyncButton" type="button">SINCRONIZAR AGORA</button></div>
+                        <div id="v25OfflineList"></div>
+                    </div>
+                </section>
+            </section>
         </main>
     </div>
     </div>
+
+
+    <!-- FÔLEGO V2.5 / TRANSFERÊNCIA ENTRE SALDOS -->
+    <dialog class="modal" id="v25TransferDialog">
+        <form class="modal-sheet v25-transfer-sheet" id="v25TransferForm">
+            <div class="modal-header"><div><span>CAIXA / TRANSFERÊNCIA</span><h2>Mover sem gastar</h2></div><button class="modal-close" type="button" data-close-dialog="v25TransferDialog" aria-label="Fechar">×</button></div>
+            <p class="modal-lead">O saldo total permanece igual. Apenas a divisão entre Pix e espécie muda.</p>
+            <div class="v25-transfer-direction">
+                <label class="form-field"><span>SAI DE</span><select id="v25TransferSource"><option value="pix">Pix</option><option value="cash">Espécie</option></select></label>
+                <span class="v25-transfer-arrow">→</span>
+                <label class="form-field"><span>ENTRA EM</span><select id="v25TransferDestination"><option value="cash">Espécie</option><option value="pix">Pix</option></select></label>
+            </div>
+            <div class="form-grid v25-transfer-form-grid">
+                <label class="form-field"><span>VALOR</span><span class="money-field"><b>R$</b><input type="number" id="v25TransferAmount" min="0.01" step="0.01" required></span></label>
+                <label class="form-field"><span>DATA</span><input type="date" id="v25TransferDate" required></label>
+                <label class="form-field form-field-wide"><span>NOTA / OPCIONAL</span><input type="text" id="v25TransferNote" maxlength="60" placeholder="Ex.: saque para a semana"></label>
+            </div>
+            <div class="modal-actions"><button class="paper-button" type="button" data-close-dialog="v25TransferDialog">Cancelar</button><button class="ink-button" type="submit">Registrar transferência →</button></div>
+        </form>
+    </dialog>
+
+    <!-- FÔLEGO V2.5 / ORIGEM DO PAGAMENTO DA FATURA -->
+
+
+    <!-- FÔLEGO V2.5 / LIXEIRA -->
+    <dialog class="modal" id="v25TrashDialog">
+        <div class="modal-sheet v25-trash-sheet">
+            <div class="modal-header"><div><span>SEGURANÇA / 30 DIAS</span><h2>Lixeira de movimentos</h2></div><button class="modal-close" type="button" data-close-dialog="v25TrashDialog" aria-label="Fechar">×</button></div>
+            <p class="modal-lead">Restaure uma movimentação ou remova sua cópia de recuperação definitivamente.</p>
+            <div class="v25-trash-list" id="v25TrashList"></div>
+            <div class="modal-actions"><button class="paper-button" type="button" data-close-dialog="v25TrashDialog">Fechar</button></div>
+        </div>
+    </dialog>
+
+    <div class="v25-undo-bar" id="v25UndoBar" hidden><span id="v25UndoCopy">Movimentação excluída.</span><button type="button" data-v25-undo>DESFAZER</button></div>
+    <div class="v25-global-connection" id="v25GlobalConnection" role="status" aria-live="polite">ABRINDO</div>
+
+    <!-- FÔLEGO V2.7 / TRANSFERÊNCIA INTERNA -->
+    <dialog class="modal" id="transferDialog">
+        <form class="modal-sheet compact-sheet" id="transferForm">
+            <div class="modal-header">
+                <div>
+                    <span>CAIXA / MOVIMENTO NEUTRO</span>
+                    <h2 id="transferModalTitle">Transferir dinheiro</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-dialog="transferDialog" aria-label="Fechar">×</button>
+            </div>
+
+            <input type="hidden" id="transferSeriesId">
+
+            <div class="form-grid">
+                <div class="transfer-flow">
+                    <label class="form-field">
+                        <span>ORIGEM</span>
+                        <select id="transferFrom" required>
+                            <option value="pix">Pix</option>
+                            <option value="cash">Espécie</option>
+                        </select>
+                    </label>
+                    <span class="transfer-arrow" aria-hidden="true">→</span>
+                    <label class="form-field">
+                        <span>DESTINO</span>
+                        <select id="transferTo" required>
+                            <option value="cash">Espécie</option>
+                            <option value="pix">Pix</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label class="form-field">
+                    <span>VALOR</span>
+                    <span class="money-field"><b>R$</b><input type="number" id="transferAmount" min="0.01" step="0.01" placeholder="0,00" required></span>
+                </label>
+
+                <label class="form-field">
+                    <span>DATA</span>
+                    <input type="date" id="transferDate" required>
+                </label>
+
+                <label class="form-field form-field-wide">
+                    <span>DESCRIÇÃO / OPCIONAL</span>
+                    <input type="text" id="transferDescription" maxlength="80" placeholder="Ex.: saque para a carteira">
+                </label>
+
+                <p class="transfer-notice"><strong>Não é receita nem despesa.</strong> O valor apenas muda de lugar entre Pix e espécie e não altera o resultado do mês.</p>
+            </div>
+
+            <div class="modal-actions">
+                <button class="paper-button" type="button" data-close-dialog="transferDialog">Cancelar</button>
+                <button class="ink-button" type="submit">Confirmar transferência →</button>
+            </div>
+        </form>
+    </dialog>
 
     <!-- =============================================================
          FORMULÁRIO DE MOVIMENTAÇÃO
@@ -689,16 +1013,14 @@
                     <span id="transactionMethodLabel">COMO PAGOU</span>
                     <select id="transactionPaymentMethod" required>
                         <option value="pix">Pix</option>
-                        <option value="cash">Dinheiro</option>
+                        <option value="cash">Espécie</option>
                         <option value="debit_card">Cartão de débito</option>
-                        <option value="credit_card">Cartão de crédito</option>
-                        <option value="bank_transfer">Transferência bancária</option>
-                        <option value="boleto">Boleto</option>
-                        <option value="other">Não informado</option>
                     </select>
                 </label>
 
-                <label class="form-field">
+
+
+                <label class="form-field" id="transactionModeField">
                     <span>TIPO DE LANÇAMENTO</span>
                     <select id="transactionMode">
                         <option value="single">Uma única vez</option>
@@ -739,6 +1061,12 @@
             </div>
         </form>
     </dialog>
+
+
+    <!-- =============================================================
+         CADASTRO DO CARTÃO DE CRÉDITO
+    ============================================================== -->
+
 
     <!-- =============================================================
          FORMULÁRIO DE META
@@ -934,6 +1262,13 @@
 
     <div class="celebration-layer" id="celebrationLayer" aria-hidden="true"></div>
 
+    <script type="module" src="/src/folego-v25-suite.js"></script>
+    <script src="https://cdn.pluggy.ai/pluggy-connect/latest/pluggy-connect.js"></script>
+    <script type="module" src="/src/folego-pluggy-v26.js"></script>
     <script type="module" src="script.js"></script>
+    <script type="module" src="/src/monthly-history.js"></script>
+    <script type="module" src="/src/daily-report-movements.js"></script>
+    <script type="module" src="/src/folego-accounts-runtime-v28.js"></script>
+    <script type="module" src="/src/folego-reserve-runtime-v287.js"></script>
 </body>
 </html>

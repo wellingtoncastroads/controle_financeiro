@@ -100,7 +100,7 @@ export function buildCreditRows({ userId, description, amount, category, purchas
 }
 
 export function buildTransferRows({ userId, amount, source, destination, date, note = "", seriesId }) {
-    const labels = { pix: "Inter", bank_transfer: "Banco do Brasil", itau: "Itaú", cash: "Espécie" };
+    const labels = { pix: "Inter", bank_transfer: "Banco do Brasil", itau: "Itaú", nubank: "Nubank", cash: "Espécie" };
     const cleanNote = String(note || "").trim().replace(/\s+/g, " ").slice(0, 60);
     const suffix = cleanNote ? ` • ${cleanNote}` : "";
     const shared = {

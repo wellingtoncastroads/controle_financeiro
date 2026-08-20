@@ -18,7 +18,7 @@ const paid = (overrides = {}) => ({
     ...overrides
 });
 
-describe("fotografia inicial das contas V2.8.2", () => {
+describe("fotografia inicial das contas V2.8.3", () => {
     it("parte dos saldos atuais confirmados sem criar receita", () => {
         const snapshot = normalizeAccountSnapshot(DEFAULT_ACCOUNT_SNAPSHOT_V282);
         const result = calculateAccountBalances([], "9999-12-31", {}, snapshot);
@@ -26,6 +26,8 @@ describe("fotografia inicial das contas V2.8.2", () => {
         expect(result.balances).toEqual({
             pix: 1552.57,
             bank_transfer: 302.01,
+            itau: 0,
+            nubank: 0,
             cash: 0
         });
         expect(result.total).toBe(1854.58);
@@ -80,4 +82,5 @@ describe("fotografia inicial das contas V2.8.2", () => {
         expect(result.balances.bank_transfer).toBe(402.01);
         expect(result.total).toBe(1854.58);
     });
+
 });

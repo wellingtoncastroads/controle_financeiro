@@ -1,5 +1,5 @@
-const CACHE_NAME = "folego-v2.8.7-paleta";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/assets/folego-mark.svg", "/banks/itau.svg"];
+const CACHE_NAME = "folego-v2.8.8-nubank";
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/assets/folego-mark.svg", "/banks/itau.svg", "/banks/nubank.svg"];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));

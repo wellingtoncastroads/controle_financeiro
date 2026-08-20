@@ -36,6 +36,14 @@ export const ACCOUNT_METHODS = Object.freeze({
         accent: "#ec7000",
         openingBalance: 0
     },
+    nubank: {
+        id: "nubank",
+        name: "Nubank",
+        subtitle: "Conta corrente",
+        logo: "/banks/nubank.svg",
+        accent: "#820ad1",
+        openingBalance: 0
+    },
     cash: {
         id: "cash",
         name: "Espécie",

@@ -4,13 +4,15 @@ export const THEME_STORAGE_KEY = "folego-theme-v2";
 
 export const INCOME_CATEGORIES = ["Salário", "Freelance", "Vendas", "Investimentos", "Outras receitas"];
 export const EXPENSE_CATEGORIES = ["Moradia", "Alimentação", "Transporte", "Saúde", "Educação", "Lazer", "Assinaturas", "Contas", "Outras despesas"];
+// FÔLEGO PIX/ESPÉCIE SPLIT
 export const PAYMENT_METHODS = [
     { value: "pix", label: "Pix" },
-    { value: "cash", label: "Dinheiro" },
+    { value: "cash", label: "Espécie" },
     { value: "debit_card", label: "Cartão de débito" },
     { value: "credit_card", label: "Cartão de crédito" },
     { value: "bank_transfer", label: "Transferência bancária" },
     { value: "itau", label: "Itaú" },
+    { value: "nubank", label: "Nubank" },
     { value: "boleto", label: "Boleto" },
     { value: "other", label: "Não informado" }
 ];

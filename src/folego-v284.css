@@ -67,7 +67,7 @@ html[data-theme="dark"] .paper-noise {
 }
 
 .accounts-list-v28 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 /* Classes que substituem estilos inline removidos durante o build. */
@@ -101,6 +101,12 @@ html[data-theme="dark"] .paper-noise {
     }
 
     .account-card-v28:nth-last-child(-n + 2) {
+        border-bottom: 1px solid var(--accounts-line);
+    }
+
+    .account-card-v28:last-child {
+        grid-column: 1 / -1;
+        border-right: 0;
         border-bottom: 0;
     }
 
