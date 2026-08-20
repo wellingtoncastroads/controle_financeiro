@@ -84,4 +84,13 @@ describe("Fôlego V2.9.0 — fidelidade ao mockup", () => {
         const index = fs.readFileSync("index.html", "utf8");
         expect(index).not.toContain("<script>try { document.documentElement.dataset.theme");
     });
+
+    it("mostra saldo livre como valor principal das contas no celular", () => {
+        const style = fs.readFileSync("src/folego-mockup-v290.css", "utf8");
+
+        expect(style).toContain('#v290AccountsList .savings-account-free-v289::before { content: "LIVRE"; }');
+        expect(style).toContain('#v290AccountsList .savings-account-protected-v289::before { content: "GUARDADO"; }');
+        expect(style).toContain("#v290AccountsList .savings-account-total-v289 { display: none !important; }");
+        expect(style).not.toContain("#v290AccountsList .savings-account-total-v289 { display: block !important; }");
+    });
 });
